@@ -1,1 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* You can add global styles to this file, and also import other style files */
+html {
+  font-size: 16px;
+}
+body {
+  font-size: 1rem;
+  /* Use Canela Deck site-wide (font must be provided) */
+  font-family: "Canela Deck", Georgia, "Times New Roman", Times, serif;
+}
+
+/*
+  To load the real "Canela Deck" font, either:
+  1) Self-host: place WOFF/WOFF2 files under `src/assets/fonts/` and uncomment and adjust the @font-face below.
+ 2) Use a font provider (e.g., the font's CDN or Typekit) and include their CSS/link in `index.html`.
+
+  Example @font-face (self-host):
+
+  @font-face {
+    font-family: 'Canela Deck';
+    src: url('/assets/fonts/CanelaDeck-Regular.woff2') format('woff2'),
+         url('/assets/fonts/CanelaDeck-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+*/
+
+/* Self-hosted Canela Deck weights (using provided OTF trial files).
+   Files are under public/assets/fonts/Canela_Collection/Canela Deck Family/
+   We declare the most common weights so font-weight:100/300/400/500/700/900 work.
+*/
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Thin.otf") format("opentype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Regular.otf")
+    format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Canela Deck";
+  src: url("/assets/fonts/Canela Deck/CanelaDeck-Black.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Helper class for Canela Deck (font must be loaded separately) */
+.font-canela-deck {
+  font-family: "Canela Deck", Georgia, "Times New Roman", Times, serif;
+}
+
+/* Try to prevent browser-synthesized bold and provide a thin-force helper.
+   NOTE: this only works if the active font includes a thin (100/200) weight. */
+.font-canela-deck {
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.thin-force {
+  /* numeric thin weight; falls back if not available */
+  font-weight: 100 !important;
+  font-synthesis: none !important;
+}
+
+/* Visual fallback for thin: reduces contrast and slightly increases tracking */
+.thin-visual {
+  color: rgba(0, 0, 0, 0.85);
+  letter-spacing: 0.02em;
+  filter: contrast(0.9);
+}
