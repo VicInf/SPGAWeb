@@ -1,24 +1,29 @@
+import { Component, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import {
-  Component,
-  signal,
-  OnDestroy,
-  HostListener,
-  Inject,
-  PLATFORM_ID,
-} from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+  OwlCarouselComponent,
+  OwlCarouselOptions,
+  OwlCarouselSlide,
+} from './owl-carousel.component';
+import {
+  SimpleAutoCarouselComponent,
+  SimpleAutoCarouselSlide,
+  SimpleAutoCarouselOptions,
+} from './simple-auto-carousel.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, OwlCarouselComponent, SimpleAutoCarouselComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css',
+  // Correct metadata key is styleUrls
+  styleUrls: ['./app.css'],
 })
 export class App {
   protected readonly title = signal('spga-group');
-  // Carousel state
-  slides = [
+
+  slides: OwlCarouselSlide[] = [
     {
       src: 'assets/pictures/first-image.png',
       alt: 'Slide 1',
@@ -31,124 +36,209 @@ export class App {
       title: 'ARQUITECTURA',
       subtitle: 'moderna',
     },
+    {
+      src: 'assets/pictures/first-image.png',
+      alt: 'Slide 3',
+      title: 'DISEÑO',
+      subtitle: 'minimalista',
+    },
+    {
+      src: 'assets/pictures/piscina.png',
+      alt: 'Slide 4',
+      title: 'ARQUITECTURA',
+      subtitle: 'sostenible',
+    },
   ];
 
-  currentIndex = 0;
+  carouselOptions: OwlCarouselOptions = {
+    loop: false, // disable looping so it stops at last slide
+    items: 1,
+    margin: 0,
+    autoplay: false, // disabled per request: no autoscroll
+    autoplayTimeout: 4000, // retained (ignored while autoplay false)
+    autoplayHoverPause: false, // not needed now
+    nav: false,
+    dots: true, // still using progress bar implementation
+    transitionSpeed: 500,
+    responsive: {
+      0: { items: 1 },
+      768: { items: 1 },
+      1024: { items: 1 },
+    },
+  };
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    // Removed autoplay logic
+  // Mini carousel (pale section)
+  // miniSlides: OwlCarouselSlide[] = [
+  //   { src: 'assets/pictures/first-image.png', alt: 'Mini 1' },
+  //   { src: 'assets/pictures/piscina.png', alt: 'Mini 2' },
+  //   { src: 'assets/pictures/first-image.png', alt: 'Mini 3' },
+  // ];
+  // miniIndex = 0;
+  // private miniTimer: any = null;
+  // miniInterval = 3000; // ms
+
+  // ngOnInit(): void {
+  //   this.startMiniAutoplay();
+  // }
+  // ngOnDestroy(): void {
+  //   this.stopMiniAutoplay();
+  // }
+
+  // startMiniAutoplay() {
+  //   this.stopMiniAutoplay();
+  //   this.miniTimer = setInterval(() => this.nextMini(), this.miniInterval);
+  // }
+  // stopMiniAutoplay() {
+  //   if (this.miniTimer) {
+  //     clearInterval(this.miniTimer);
+  //     this.miniTimer = null;
+  //   }
+  // }
+
+  // nextMini() {
+  //   this.miniIndex = (this.miniIndex + 1) % this.miniSlides.length;
+  // }
+  // prevMini() {
+  //   this.miniIndex =
+  //     (this.miniIndex - 1 + this.miniSlides.length) % this.miniSlides.length;
+  // }
+  // goToMini(i: number) {
+  //   this.miniIndex = Math.max(0, Math.min(this.miniSlides.length - 1, i));
+  // }
+
+  // Services integrales auto carousel (independent from owl carousel)
+  servicesSlides: SimpleAutoCarouselSlide[] = [
+    {
+      src: 'assets/pictures/first-image.png',
+      alt: 'Servicio 1',
+      title: 'Diseño integral',
+    },
+    {
+      src: 'assets/pictures/piscina.png',
+      alt: 'Servicio 2',
+      title: 'Arquitectura moderna',
+    },
+    {
+      src: 'assets/pictures/first-image.png',
+      alt: 'Servicio 3',
+      title: 'Interiorismo',
+    },
+    {
+      src: 'assets/pictures/piscina.png',
+      alt: 'Servicio 4',
+      title: 'Renderización 3D',
+    },
+    {
+      src: 'assets/pictures/first-image.png',
+      alt: 'Servicio 5',
+      title: 'Gestión de obra',
+    },
+    {
+      src: 'assets/pictures/piscina.png',
+      alt: 'Servicio 6',
+      title: 'Landscape',
+    },
+  ];
+  servicesCarouselOptions: SimpleAutoCarouselOptions = {
+    items: 3,
+    margin: 24,
+    // Enable continuous smooth scrolling instead of discrete autoplay
+    continuous: true,
+    speedPxPerSec: 50, // tweak speed for desired visual pacing
+    autoplay: false, // disabled because continuous mode handles motion
+    transitionMs: 700,
+    pauseOnHover: true,
+    loop: true,
+    responsive: {
+      0: { items: 1 },
+      640: { items: 2 },
+      1024: { items: 3 },
+    },
+  };
+
+  // Proyectos data (center card can be highlighted)
+  projects: Array<{
+    title: string;
+    subtitle: string;
+    hasModel?: boolean;
+    image: string;
+  }> = [
+    {
+      title: 'Casa Horizonte',
+      subtitle: 'Residencial costera',
+      hasModel: true,
+      image: 'assets/pictures/first-image.png',
+    },
+    {
+      title: 'Torre Central',
+      subtitle: 'Edificio corporativo',
+      hasModel: false,
+      image: 'assets/pictures/piscina.png',
+    },
+    {
+      title: 'Jardín Interior',
+      subtitle: 'Espacio verde privado',
+      hasModel: true,
+      image: 'assets/pictures/first-image.png',
+    },
+  ];
+
+  // Fullscreen 3D model overlay state
+  loadingModel: boolean = false;
+  modelError: string | null = null;
+  showModel = false;
+  private modelUrl =
+    'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY';
+  safeModelUrl: SafeResourceUrl;
+
+  constructor(private sanitizer: DomSanitizer) {
+    this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      this.modelUrl
+    );
   }
 
-  // Removed autoplay and navigation logic for continuous manual scrolling
+  openModel(index: number) {
+    // Only open for first project as requested
+    if (index !== 0) return;
+    this.loadingModel = true;
+    this.modelError = null;
+    this.showModel = true;
+    this.lockBodyScroll();
+    // Fallback timeout in case iframe never fires load (X-Frame-Options / CSP blocking)
+    setTimeout(() => {
+      if (this.showModel && this.loadingModel) {
+        this.modelError = 'No se pudo cargar el modelo 3D.';
+        this.loadingModel = false;
+      }
+    }, 8000);
+  }
 
-  @HostListener('document:visibilitychange')
-  onVisibilityChange() {
-    if (isPlatformBrowser(this.platformId)) {
-      // No need to pause or resume autoplay
+  closeModel() {
+    this.showModel = false;
+    this.loadingModel = false;
+    this.unlockBodyScroll();
+  }
+
+  onModelLoad() {
+    this.loadingModel = false;
+  }
+
+  onModelError(_evt: Event) {
+    this.loadingModel = false;
+    this.modelError = 'Error al cargar el modelo.';
+  }
+
+  onKey(event: KeyboardEvent) {
+    if (event.key === 'Escape' && this.showModel) {
+      this.closeModel();
     }
   }
 
-  ngOnDestroy(): void {
-    // Removed timer clearance as it's no longer needed
+  private lockBodyScroll() {
+    if (typeof document !== 'undefined')
+      document.body.style.overflow = 'hidden';
   }
-
-  // Added goTo method to handle button-style navigation
-  goTo(i: number) {
-    if (i >= 0 && i < this.slides.length) {
-      this.currentIndex = i;
-    }
-  }
-
-  // Refined onScroll method to ensure smooth transitions between horizontal and vertical scrolling
-  onScroll(event: WheelEvent) {
-    const carouselSection = document.getElementById('carousel-section');
-    if (!carouselSection) {
-      console.log('Carousel section not found');
-      return;
-    }
-
-    // Get the bounding rectangle of the carousel section
-    const carouselRect = carouselSection.getBoundingClientRect();
-    console.log('Carousel bounding rect:', carouselRect);
-
-    // Adjust the logic to determine if the user is within the carousel section
-    const isWithinCarousel =
-      carouselRect.top < window.innerHeight && carouselRect.bottom > 0;
-
-    console.log('Scroll event detected:', {
-      deltaY: event.deltaY,
-      currentIndex: this.currentIndex,
-      isWithinCarousel,
-    });
-
-    if (isWithinCarousel) {
-      // Prevent vertical scrolling and enable horizontal scrolling
-      event.preventDefault();
-      const scrollAmount = event.deltaY * 2; // Scale deltaY for better responsiveness
-      carouselSection.scrollLeft += scrollAmount;
-
-      // Update currentIndex based on scroll position
-      const slideWidth = carouselSection.offsetWidth;
-      this.currentIndex = Math.round(carouselSection.scrollLeft / slideWidth);
-
-      console.log('Updated scroll position:', {
-        scrollLeft: carouselSection.scrollLeft,
-        slideWidth,
-        currentIndex: this.currentIndex,
-      });
-    } else {
-      // Allow vertical scrolling when leaving the carousel section
-      window.scrollBy({ top: event.deltaY, behavior: 'smooth' });
-      console.log('Vertical scrolling:', {
-        scrollTop: carouselSection.scrollTop,
-      });
-    }
-  }
-
-  // Refined swipe functionality to ensure proper handling
-  private startX = 0;
-  private isSwiping = false;
-  private carouselElement: HTMLElement | null = null;
-
-  onSwipeStart(event: MouseEvent) {
-    this.startX = event.clientX;
-    this.isSwiping = true;
-    this.carouselElement = document.getElementById('carousel-section');
-  }
-
-  onSwipeEnd(event: MouseEvent) {
-    this.isSwiping = false;
-    const endX = event.clientX;
-    const deltaX = endX - this.startX;
-
-    if (deltaX > 50) {
-      this.prev();
-    } else if (deltaX < -50) {
-      this.next();
-    }
-
-    // Reset scroll position to align with the current slide
-    if (this.carouselElement) {
-      this.carouselElement.scrollLeft =
-        this.currentIndex * this.carouselElement.offsetWidth;
-    }
-  }
-
-  onSwipeMove(event: MouseEvent) {
-    if (!this.isSwiping || !this.carouselElement) return;
-
-    const deltaX = event.clientX - this.startX;
-    this.carouselElement.scrollLeft -= deltaX;
-    this.startX = event.clientX;
-  }
-
-  // Added next and prev methods to handle swipe navigation
-  next() {
-    this.currentIndex = (this.currentIndex + 1) % this.slides.length;
-  }
-
-  prev() {
-    this.currentIndex =
-      (this.currentIndex - 1 + this.slides.length) % this.slides.length;
+  private unlockBodyScroll() {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
   }
 }

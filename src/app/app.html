@@ -104,51 +104,169 @@
     </div>
   </section>
 
-  <!-- Carousel section (updated for swipe functionality) -->
-  <section class="w-screen h-screen pt-12" id="carousel-section">
-    <div class="max-w-full w-full h-full mx-auto relative">
-      <div
-        class="carousel-wrapper relative w-full h-full overflow-hidden whitespace-nowrap scroll-smooth"
-        (wheel)="onScroll($event)"
-        (mousedown)="onSwipeStart($event)"
-        (mouseup)="onSwipeEnd($event)"
-        (mousemove)="onSwipeMove($event)"
-      >
-        <!-- Slides -->
-        <div
-          *ngFor="let slide of slides; let i = index"
-          class="carousel-slide inline-block w-full h-full relative"
-        >
-          <img
-            [src]="slide.src"
-            [alt]="slide.alt"
-            class="w-full h-full object-cover cursor-pointer"
-          />
-          <!-- Unique text overlay for each image -->
-          <div
-            class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck"
-          >
-            <span class="text-2xl">{{ slide.title }}</span>
-            <span class="text-7xl font-bold">{{ slide.subtitle }}</span>
-          </div>
-        </div>
-      </div>
-      <!-- Slide bar navigation -->
-      <div
-        class="absolute z-30 flex items-center bottom-5 left-1/2 -translate-x-1/2 w-3/4 h-2 bg-gray-300 rounded-full"
-      >
-        <div
-          class="h-full bg-white rounded-full transition-all duration-300"
-          [style.width.%]="((currentIndex + 1) / slides.length) * 100"
-        ></div>
-      </div>
-    </div>
+  <!-- Owl-like Carousel Component -->
+  <section class="w-screen h-screen pt-12">
+    <owl-carousel
+      class="w-full h-full block"
+      [slides]="slides"
+      [options]="carouselOptions"
+    >
+    </owl-carousel>
   </section>
 
   <!-- New pale background section -->
   <section
-    class="w-full"
-    style="background: #e0ddcb; min-height: 320px"
-  ></section>
+    class="w-full flex items-center justify-center"
+    style="background: #e0ddcb; height: 100vh"
+  >
+    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+      <h2
+        class="text-[64px] leading-tight font-canela-deck font-thin thin-visual text-center"
+      >
+        Servicios integrales
+      </h2>
+      <!-- Services integrales autoplay carousel (full width, 50vh height) -->
+      <div
+        class="mt-10 w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
+        style="height: 50vh"
+      >
+        <simple-auto-carousel
+          class="w-full h-full block"
+          [slides]="servicesSlides"
+          [options]="servicesCarouselOptions"
+        ></simple-auto-carousel>
+      </div>
+    </div>
+  </section>
+  <!-- Proyectos section (same heading style, plain background, full viewport height) -->
+  <section
+    class="w-full flex items-center justify-center"
+    style="height: 100vh"
+  >
+    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+      <h2
+        class="text-[64px] leading-tight font-canela-deck font-thin thin-visual text-center"
+      >
+        Proyectos
+      </h2>
+      <!-- Three project cards row -->
+      <div class="mt-12 flex justify-center gap-8">
+        <ng-container *ngFor="let p of projects; let i = index">
+          <div
+            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden"
+            [class.h-[520px]]="i === 1"
+            [class.h-[400px]]="i !== 1"
+            style="width: 340px"
+          >
+            <div
+              class="w-full relative"
+              [class.h-[65%]]="i === 1"
+              [class.h-[55%]]="i !== 1"
+            >
+              <img
+                [src]="p.image"
+                [alt]="p.title"
+                class="absolute inset-0 w-full h-full object-cover"
+                draggable="false"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none"
+              ></div>
+            </div>
+            <div class="w-full px-6 pt-6 flex flex-col">
+              <h3
+                class="text-2xl font-canela-deck font-light mb-2 tracking-wide"
+              >
+                {{ p.title }}
+              </h3>
+              <p class="text-base font-light text-gray-700 mb-4">
+                {{ p.subtitle }}
+              </p>
+              <div class="flex items-center gap-4 mt-auto pb-6">
+                <button
+                  class="flex-1 bg-black text-white py-3 text-sm uppercase tracking-wide hover:opacity-85 transition"
+                >
+                  Ver proyecto
+                </button>
+                <button
+                  *ngIf="p.hasModel"
+                  (click)="openModel(i)"
+                  class="flex-1 border border-black py-3 text-sm uppercase tracking-wide hover:bg-black hover:text-white transition"
+                  [disabled]="i !== 0"
+                >
+                  Ver modelo 3D
+                </button>
+              </div>
+            </div>
+            <!-- subtle emphasis on center card -->
+            <div
+              *ngIf="i === 1"
+              class="absolute inset-0 -z-10 rounded-sm"
+            ></div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </section>
+</div>
+<!-- Fullscreen 3D model overlay -->
+<div
+  *ngIf="showModel"
+  class="fixed inset-0 z-50"
+  (document:keydown)="onKey($event)"
+>
+  <div
+    class="absolute inset-0 bg-black/80 backdrop-blur-sm"
+    (click)="closeModel()"
+  ></div>
+  <div class="absolute inset-0">
+    <div class="relative w-full h-full">
+      <button
+        (click)="closeModel()"
+        class="absolute top-4 right-12 w-12 h-12 flex items-center justify-center text-white bg-white/10 hover:bg-white/20 rounded-full transition"
+        aria-label="Cerrar modelo"
+        style="margin-right: 3rem"
+      >
+        <span class="text-2xl leading-none">×</span>
+      </button>
+      <!-- Loading state -->
+      <div
+        *ngIf="loadingModel"
+        class="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none"
+      >
+        <div class="flex flex-col items-center gap-4 text-white">
+          <div
+            class="w-14 h-14 border-4 border-white/30 border-t-white rounded-full animate-spin"
+          ></div>
+          <p class="text-base tracking-wide">Cargando modelo…</p>
+        </div>
+      </div>
+      <!-- Error state -->
+      <div
+        *ngIf="modelError && !loadingModel"
+        class="absolute inset-0 flex items-center justify-center bg-black/60"
+      >
+        <div class="text-center text-white px-10 max-w-md">
+          <p class="mb-6 text-lg">{{ modelError }}</p>
+          <button
+            (click)="closeModel()"
+            class="px-8 py-4 bg-white text-black rounded hover:bg-white/90 transition text-sm uppercase tracking-wide"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+      <iframe
+        [src]="safeModelUrl"
+        class="w-full h-full"
+        loading="lazy"
+        allowfullscreen
+        referrerpolicy="no-referrer"
+        style="border: 0"
+        (load)="onModelLoad()"
+        (error)="onModelError($event)"
+      ></iframe>
+    </div>
+  </div>
 </div>
 <!-- Piscina image centered at 30% viewport height -->
