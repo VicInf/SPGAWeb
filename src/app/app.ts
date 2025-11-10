@@ -11,11 +11,17 @@ import {
   SimpleAutoCarouselSlide,
   SimpleAutoCarouselOptions,
 } from './simple-auto-carousel.component';
+import { RevealImageComponent } from './reveal-image.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, OwlCarouselComponent, SimpleAutoCarouselComponent],
+  imports: [
+    CommonModule,
+    OwlCarouselComponent,
+    SimpleAutoCarouselComponent,
+    RevealImageComponent,
+  ],
   templateUrl: './app.html',
   // Correct metadata key is styleUrls
   styleUrls: ['./app.css'],
@@ -183,6 +189,9 @@ export class App {
     },
   ];
 
+  // Reveal image external text animation progress (0 full size, 1 fully shrunk)
+  revealImageProgress: number = 0;
+
   // Fullscreen 3D model overlay state
   loadingModel: boolean = false;
   modelError: string | null = null;
@@ -232,6 +241,10 @@ export class App {
     if (event.key === 'Escape' && this.showModel) {
       this.closeModel();
     }
+  }
+
+  onRevealImageProgress(p: number) {
+    this.revealImageProgress = p;
   }
 
   private lockBodyScroll() {

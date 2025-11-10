@@ -14,3 +14,20 @@
 .carousel-dots button.bg-white {
   background: #fff !important;
 }
+
+/* Toggle whatsapp icons inside .btn-whatsapp on hover */
+.btn-whatsapp .icon-hover {
+  display: none;
+}
+.btn-whatsapp .icon-default {
+  display: inline-block;
+}
+.btn-whatsapp:hover .icon-hover {
+  display: inline-block;
+}
+.btn-whatsapp:hover .icon-default {
+  display: none;
+}
+.btn-whatsapp img {
+  vertical-align: middle;
+}

@@ -1,18 +1,17 @@
-<!-- Header -->
 <div style="overflow-x: hidden">
-  <header class="bg-black text-white fixed w-full z-20">
-    <div class="h-24">
+  <header class="bg-black text-white fixed w-full" style="z-index: 50">
+    <div class="h-20">
       <!-- Left: logo flush to the viewport left -->
       <div
         class="absolute left-4 sm:left-6 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-3">
-          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-12 w-auto" />
-          <span class="text-sm md:text-xl font-light font-canela-deck"
-            >Arquitectura
+          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-10 w-auto" />
+          <span class="text-sm md:text-xl font-light font-canela-deck">
+            Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
-            Interiorismo</span
-          >
+            Interiorismo
+          </span>
         </div>
       </div>
 
@@ -20,17 +19,17 @@
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
       >
-        <nav class="hidden md:flex space-x-24 mt-2">
+        <nav class="hidden md:flex space-x-20 mt-2">
           <a
-            class="text-xl text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
-            class="text-xl text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
-            class="text-xl text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
         </nav>
@@ -42,7 +41,7 @@
       >
         <div class="flex items-center gap-4">
           <button
-            class="hidden sm:inline-flex items-center px-6 py-3 border border-white text-white rounded hover:border-transparent transition text-sm md:text-xl"
+            class="hidden sm:inline-flex items-center px-4 py-2 border border-white text-white rounded hover:border-transparent transition text-sm md:text-base"
           >
             Contáctanos
             <img
@@ -53,7 +52,7 @@
           </button>
 
           <button
-            class="inline-flex items-center px-6 py-3 bg-white text-black rounded hover:opacity-90 transition text-sm md:text-xl"
+            class="inline-flex items-center px-4 py-2 bg-white text-black rounded hover:opacity-90 transition text-sm md:text-base"
           >
             Presupuesta
             <svg
@@ -270,3 +269,131 @@
   </div>
 </div>
 <!-- Piscina image centered at 30% viewport height -->
+<!-- Proyectos section (same heading style, plain background, full viewport height) -->
+<!-- Full-height image section below Proyectos with scroll-driven reveal scaling -->
+<section
+  class="w-full flex items-end justify-center"
+  style="
+    background: #e0ddcb;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+  "
+>
+  <reveal-image
+    src="assets/pictures/piscina.png"
+    alt="Featured"
+    [endScale]="1"
+    [scrollDistance]="600"
+    [autoAfterFull]="true"
+    [minScale]="0.3"
+    (scaleProgress)="onRevealImageProgress($event)"
+    style="position: relative; z-index: 1"
+  >
+  </reveal-image>
+
+  <!-- External headline/buttons in the section (outside image) -->
+  <div
+    style="margin-top: 4rem"
+    class="absolute inset-x-0 flex flex-col items-center justify-center pointer-events-none"
+  >
+    <div
+      class="text-center space-y-6 w-full max-w-3xl mx-auto px-6 pointer-events-auto"
+    >
+      <h2
+        class="text-black font-canela-deck font-thin text-[84px] leading-tight tracking-wide"
+        style="margin-top: 2rem"
+      >
+        Construyamos juntos tu espacio
+      </h2>
+      <div
+        class="flex items-center justify-center gap-6"
+        style="position: relative"
+      >
+        <button
+          class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
+          [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
+        >
+          <span class="mr-2">Contáctanos</span>
+          <img
+            src="assets/svgs/whatsapp_black.svg"
+            alt="WhatsApp"
+            class="icon-default h-[18px] w-[18px]"
+          />
+          <img
+            src="assets/svgs/whatsapp.svg"
+            alt="WhatsApp"
+            class="icon-hover h-[18px] w-[18px]"
+          />
+        </button>
+        <button
+          class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] uppercase tracking-wide hover:opacity-85 transition"
+          [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
+        >
+          <span class="mr-2">Presupuesta</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-[18px] w-[18px] ml-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#9CA3AF"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 12h14M12 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+      <!-- Small link to services PDF -->
+      <p class="mt-4 text-sm" style="margin-bottom: 1rem">
+        <a
+          href="assets/pdfs/servicios.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-gray-700"
+          aria-label="Explora nuestro PDF de servicios"
+          >Explora nuestro PDF de servicios</a
+        >
+      </p>
+    </div>
+  </div>
+</section>
+<!-- New black 100vh section with image left and texts right -->
+<section class="w-full" style="height: 100vh; background: #000">
+  <div class="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center">
+    <div
+      class="w-full flex flex-col md:flex-row items-center md:items-stretch gap-8 h-full"
+    >
+      <!-- Left image (takes ~50% width on md+) -->
+      <div class="w-full md:w-1/2 h-full">
+        <img
+          src="assets/pictures/about-us-image.png"
+          alt="Equipo"
+          class="w-full h-full object-cover"
+        />
+      </div>
+      <!-- Right text block -->
+      <div class="w-full md:w-1/2 h-full flex items-center">
+        <div class="text-white max-w-xl">
+          <h2
+            class="text-3xl md:text-4xl font-canela-deck font-thin leading-tight mb-6"
+          >
+            Somos un equipo comprometido en la comprensión profunda de las
+            necesidades de nuestros clientes.
+          </h2>
+          <p class="text-base md:text-lg leading-relaxed">
+            Nos guiamos por la responsabilidad, la innovación y la colaboración.
+            Nuestro compromiso es ofrecer servicios de alta calidad, que superen
+            las expectativas de nuestros clientes. Creemos en el poder del
+            diseño innovador como herramienta para transformar espacios y
+            mejorar la calidad de vida. Trabajamos codo a codo con nuestros
+            clientes para crear soluciones únicas y efectivas.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
