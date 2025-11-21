@@ -21,14 +21,20 @@
       >
         <nav class="hidden md:flex space-x-20 mt-2">
           <a
+            href="#servicios"
+            (click)="scrollToSection('servicios', $event)"
             class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
+            href="#proyectos"
+            (click)="scrollToSection('proyectos', $event)"
             class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
+            href="#sobre-nosotros"
+            (click)="scrollToSection('sobre-nosotros', $event)"
             class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
@@ -115,7 +121,8 @@
 
   <!-- New pale background section -->
   <section
-    class="w-full flex items-center justify-center"
+    id="servicios"
+    class="w-full flex items-center justify-center scroll-mt-28"
     style="background: #e0ddcb; height: 100vh"
   >
     <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
@@ -139,7 +146,8 @@
   </section>
   <!-- Proyectos section (same heading style, plain background, full viewport height) -->
   <section
-    class="w-full flex items-center justify-center"
+    id="proyectos"
+    class="w-full flex items-center justify-center scroll-mt-28"
     style="height: 100vh"
   >
     <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
@@ -362,13 +370,16 @@
   </div>
 </section>
 <!-- New black 100vh section with image left and texts right -->
-<section class="w-full" style="height: 100vh; background: #000">
-  <div class="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center">
+<section
+  id="sobre-nosotros"
+  class="w-full bg-black py-16 md:py-20 lg:py-24 scroll-mt-28"
+>
+  <div class="max-w-7xl mx-auto">
     <div
-      class="w-full flex flex-col md:flex-row items-center md:items-stretch gap-8 h-full"
+      class="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-16"
     >
-      <!-- Left image (takes ~50% width on md+) -->
-      <div class="w-full md:w-1/2 h-full">
+      <!-- Left image -->
+      <div class="w-full lg:w-[45%] h-[500px] lg:h-[650px]">
         <img
           src="assets/pictures/about-us-image.png"
           alt="Equipo"
@@ -376,24 +387,48 @@
         />
       </div>
       <!-- Right text block -->
-      <div class="w-full md:w-1/2 h-full flex items-center">
-        <div class="text-white max-w-xl">
+      <div class="w-full lg:w-[50%] flex items-center">
+        <div class="text-white space-y-8">
           <h2
-            class="text-3xl md:text-4xl font-canela-deck font-thin leading-tight mb-6"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light leading-tight"
           >
             Somos un equipo comprometido en la comprensión profunda de las
             necesidades de nuestros clientes.
           </h2>
-          <p class="text-base md:text-lg leading-relaxed">
-            Nos guiamos por la responsabilidad, la innovación y la colaboración.
-            Nuestro compromiso es ofrecer servicios de alta calidad, que superen
-            las expectativas de nuestros clientes. Creemos en el poder del
-            diseño innovador como herramienta para transformar espacios y
-            mejorar la calidad de vida. Trabajamos codo a codo con nuestros
-            clientes para crear soluciones únicas y efectivas.
-          </p>
+          <div class="space-y-6 text-base md:text-lg leading-relaxed">
+            <p>
+              Nos guiamos por la responsabilidad, la innovación y la
+              colaboración. Nuestro compromiso es ofrecer servicios de alta
+              calidad, que superen las expectativas de nuestros clientes.
+              Creemos en el poder del diseño innovador como herramienta para
+              transformar espacios y mejorar la calidad de vida. Trabajamos codo
+              a codo con nuestros clientes para crear soluciones únicas y
+              efectivas.
+            </p>
+            <p>
+              La sinergia de nuestro equipo nos permite abordar proyectos de
+              gran envergadura, fusionando diferentes perspectivas y creando
+              soluciones innovadoras. Evolucionamos con cada proyecto,
+              adaptándonos a las necesidades y tendencias del momento, pero
+              siempre manteniendo la coherencia con nuestra visión y valores.
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- White Divider -->
+<div class="w-full h-px bg-white"></div>
+
+<!-- Contactanos Section -->
+<contactanos-section
+  logoSrc="/assets/svgs/SPGA.svg"
+  videoSrc="/assets/videos/Design your post.mp4"
+  fallbackImageSrc="/assets/pictures/first-image.png"
+  whatsappNumber="+58000-00000"
+  email="spgagroup@gmail.com"
+  designCredit="Maya Bottino"
+  devCredit="Vicente Perez"
+></contactanos-section>

@@ -73,11 +73,14 @@ export class RevealImageComponent implements AfterViewInit {
   // zIndexAtMin so it sits beneath other content. Defaults match your request.
   @Input() zIndexAtMin: string = '0';
   @Input() zIndexThreshold: number = 0.35;
+  // Fraction (0-1) of component height that must be visible before shrink begins.
+  @Input() visibilityThreshold: number = 0.85;
+  // Must reach this (>= visibilityThreshold) before first shrink/grow interaction begins
+  @Input() startVisibilityThreshold: number = 0.95;
+  // Optional: element top must be within this px distance from viewport top for first interaction (0 disables)
+  @Input() requireTopNear: number = 0;
   private isBrowser = false;
-  private scalingPhaseActive = true; // while growing
-  private fullyVisibleAt: number | null = null; // scrollY anchor after fully visible (if not auto)
-  private scaledUp = false;
-  private lockScrollY: number | null = null; // maintain page position while scaling
+  private shrinkLockAnchor: number | null = null; // scrollY held while mid-shrink/regrow
   transform = 'scale(1)';
   private currentScale = this.endScale;
   // UI content animation state
@@ -107,64 +110,77 @@ export class RevealImageComponent implements AfterViewInit {
 
   @HostListener('window:scroll') onScroll() {
     if (!this.isBrowser) return;
-    this.evaluateGrowth();
+    // Maintain lock if active and mid-scale
+    if (
+      this.shrinkLockAnchor !== null &&
+      !this.isAtExtreme() &&
+      window.scrollY !== this.shrinkLockAnchor
+    ) {
+      window.scrollTo({ top: this.shrinkLockAnchor });
+    }
   }
 
-  @HostListener('wheel', ['$event']) onWheel(ev: WheelEvent) {
+  @HostListener('window:wheel', ['$event']) onWheel(ev: WheelEvent) {
     if (!this.isBrowser) return;
     const rect = this.el.nativeElement.getBoundingClientRect();
     const vh = window.innerHeight || document.documentElement.clientHeight;
-    const fullyVisible = rect.top >= 0 && rect.bottom <= vh;
+    const elHeight = rect.height || 1;
+    const visible = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+    let fractionVisible = visible / elHeight;
+    if (rect.bottom < 0 || rect.top > vh) fractionVisible = 0;
+    fractionVisible = Math.max(0, Math.min(1, fractionVisible));
+    const baseThreshold = Math.max(
+      0.05,
+      Math.min(1, this.visibilityThreshold || 0.85)
+    );
+    const startThreshold = Math.max(
+      baseThreshold,
+      Math.min(1, this.startVisibilityThreshold || baseThreshold)
+    );
+    const topNearPass =
+      this.requireTopNear <= 0 || rect.top <= this.requireTopNear;
+    // Before lock established: need startThreshold AND topNear
+    if (this.shrinkLockAnchor == null) {
+      if (fractionVisible < startThreshold || !topNearPass) return;
+    } else {
+      // After start: only require base threshold to continue scaling
+      if (fractionVisible < baseThreshold) return;
+    }
+
     const delta = ev.deltaY;
-    const epsilon = 0.0001;
+    const span = this.endScale - this.minScale;
+    if (span <= 0) return;
+    // Establish lock on first interaction within threshold visibility
+    if (this.shrinkLockAnchor == null) this.shrinkLockAnchor = window.scrollY;
 
-    // If not fully visible allow default scroll
-    if (!fullyVisible) {
-      this.lockScrollY = null;
-      return;
-    }
-
-    // New logic: start at full size (endScale). Wheel scrolling DOWN shrinks toward minScale.
-    // Scrolling UP regrows toward endScale.
-
-    // Shrink when scrolling down and not at minScale
-    if (delta > 0 && this.currentScale > this.minScale + epsilon) {
-      if (this.lockScrollY == null) this.lockScrollY = window.scrollY;
+    // If mid-scale, prevent page scroll
+    if (!this.isAtExtreme()) {
       ev.preventDefault();
-      this.restrictPageScroll();
-      const span = this.endScale - this.minScale;
-      const progress = (this.currentScale - this.minScale) / span; // 0..1
-      let newProgress = progress - Math.abs(delta) / this.scrollDistance;
-      if (newProgress < 0) newProgress = 0;
-      this.currentScale = this.minScale + span * newProgress;
+      if (window.scrollY !== this.shrinkLockAnchor)
+        window.scrollTo({ top: this.shrinkLockAnchor });
+    }
+    // Compute linear progress (1 full size -> 0 min size direction we emit later)
+    const currentProgress = (this.currentScale - this.minScale) / span; // 0..1
+    const deltaProgress = Math.abs(delta) / this.scrollDistance;
+    let newProgress =
+      currentProgress + (delta < 0 ? deltaProgress : -deltaProgress);
+    if (newProgress < 0) newProgress = 0;
+    if (newProgress > 1) newProgress = 1;
+    const targetScale = this.minScale + span * newProgress;
+    if (Math.abs(targetScale - this.currentScale) > 0.0001) {
+      this.currentScale = targetScale;
       this.updateTransform();
       this.updateContentReveal();
-      // Release lock when reached min
-      if (newProgress <= epsilon) this.lockScrollY = null;
-      return;
+      this.scaleProgress.emit(1 - newProgress); // 0 full -> 1 min
     }
-
-    // Grow back when scrolling up and below endScale
-    if (delta < 0 && this.currentScale < this.endScale - epsilon) {
-      if (this.lockScrollY == null) this.lockScrollY = window.scrollY;
-      ev.preventDefault();
-      this.restrictPageScroll();
-      const span = this.endScale - this.minScale;
-      const progress = (this.currentScale - this.minScale) / span;
-      let newProgress = progress + Math.abs(delta) / this.scrollDistance;
-      if (newProgress > 1) newProgress = 1;
-      this.currentScale = this.minScale + span * newProgress;
-      this.updateTransform();
-      this.updateContentReveal();
-      if (newProgress >= 1 - epsilon) this.lockScrollY = null; // allow page scroll after full regrow
-      return;
+    if (this.isAtExtreme()) {
+      // Release lock so page can continue
+      this.shrinkLockAnchor = null;
     }
   }
 
   private evaluateGrowth() {
-    // In reversed mode we do not auto-grow; we start at full size already.
-    // We could optionally trigger an auto shrink but requirement specifies manual shrink via scroll.
-    return;
+    /* simplified: wheel drives scaling; scroll only enforces lock */
   }
 
   private updateTransform() {
@@ -177,17 +193,7 @@ export class RevealImageComponent implements AfterViewInit {
     this.transform = `translateY(-${translateVh}vh) scale(${this.currentScale})`;
     // when fully shrunk, put the element under other content by setting z-index to 0
     const EPS = 0.0001;
-    // Only apply the z-index swap if the configured minScale is at or below the
-    // threshold — this lets you avoid changing stacking for modest shrinks.
-    if (
-      this.minScale <= this.zIndexThreshold &&
-      this.currentScale <= this.minScale + EPS
-    )
-      if (this.shrinkWithScale) {
-        // Map scale endScale -> 100vh, minScale -> minScale * 100vh
-        const base = 100; // base vh at full size
-        const scaledVh = base * this.currentScale;
-      }
+    // (Optional future: host height / z-index adjustments removed for clarity here)
     this.cdr.markForCheck();
   }
 
@@ -209,9 +215,13 @@ export class RevealImageComponent implements AfterViewInit {
     }
   }
 
-  private restrictPageScroll() {
-    if (this.lockScrollY !== null && window.scrollY !== this.lockScrollY) {
-      window.scrollTo({ top: this.lockScrollY });
-    }
+  private isAtFullSize(): boolean {
+    return this.currentScale >= this.endScale - 0.0001;
+  }
+  private isAtMinSize(): boolean {
+    return this.currentScale <= this.minScale + 0.0001;
+  }
+  private isAtExtreme(): boolean {
+    return this.isAtFullSize() || this.isAtMinSize();
   }
 }

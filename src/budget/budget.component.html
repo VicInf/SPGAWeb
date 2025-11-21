@@ -1,0 +1,216 @@
+<div class="min-h-screen bg-[#f0ede2] text-black">
+  <header class="bg-black text-white fixed top-0 inset-x-0" style="z-index: 60">
+    <div class="h-20 relative">
+      <div
+        class="absolute left-4 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 flex items-center"
+      >
+        <div class="flex items-center gap-3">
+          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-10 w-auto" />
+          <span class="text-sm md:text-xl font-light font-canela-deck">
+            Arquitectura
+            <span style="font-style: italic; font-weight: 100">&amp;</span>
+            Interiorismo
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
+      >
+        <nav class="hidden md:flex space-x-20 mt-2">
+          <a
+            href="/"
+            (click)="handleNav(null, $event)"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            >Inicio</a
+          >
+          <a
+            href="/servicios"
+            (click)="handleNav('servicios', $event)"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            >Servicios</a
+          >
+          <a
+            href="/proyectos"
+            (click)="handleNav('proyectos', $event)"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            >Proyectos</a
+          >
+          <a
+            href="/sobre-nosotros"
+            (click)="handleNav('sobre-nosotros', $event)"
+            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            >Sobre Nosotros</a
+          >
+        </nav>
+      </div>
+
+      <div
+        class="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 flex items-center"
+      >
+        <div class="flex items-center gap-4">
+          <button
+            type="button"
+            (click)="scrollToContact()"
+            class="hidden sm:inline-flex items-center px-4 py-2 border border-white text-white rounded hover:border-transparent transition text-sm md:text-base"
+          >
+            Contáctanos
+            <img
+              src="assets/svgs/whatsapp.svg"
+              alt="WhatsApp"
+              class="h-5 w-5 ml-3"
+            />
+          </button>
+          <span
+            class="inline-flex items-center px-4 py-2 bg-white text-black rounded text-sm md:text-base"
+          >
+            Presupuesta
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5 ml-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 12h14M12 5l7 7-7 7"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-28 pb-24">
+    <section class="max-w-6xl mx-auto px-6 sm:px-10 lg:px-12">
+      <div class="space-y-8">
+        <div class="space-y-4">
+          <p class="uppercase tracking-[0.3em] text-xs text-gray-500">
+            Presupuesta
+          </p>
+          <h1
+            class="text-4xl sm:text-5xl lg:text-6xl font-canela-deck font-light leading-tight"
+          >
+            Presupuesta tu Proyecto
+          </h1>
+          <p class="text-base sm:text-lg text-gray-700 max-w-3xl">
+            Responde a estas preguntas para ayudarnos a entender tu visión. Con
+            esta información podremos asignar al equipo correcto y preparar una
+            propuesta personalizada para ti.
+          </p>
+        </div>
+
+        <form class="space-y-12" (submit)="handleSubmit($event)">
+          <div class="grid gap-8">
+            <div
+              *ngFor="let question of questions"
+              class="bg-white/70 rounded-xl border border-black/5 shadow-sm px-6 sm:px-8 py-8"
+            >
+              <div class="flex flex-col md:flex-row md:items-start gap-3">
+                <span
+                  class="inline-flex items-center justify-center w-12 h-12 rounded-full border border-black/10 text-sm font-medium tracking-widest"
+                >
+                  {{ question.order }}
+                </span>
+                <div class="flex-1 space-y-2">
+                  <h3
+                    class="text-2xl font-canela-deck font-light leading-tight"
+                  >
+                    {{ question.prompt }}
+                  </h3>
+                  <p *ngIf="question.helper" class="text-sm text-gray-500">
+                    {{ question.helper }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-6">
+                <ng-container [ngSwitch]="question.type">
+                  <div *ngSwitchCase="'options'" class="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      *ngFor="let option of question.options"
+                      (click)="handleOption(question, option)"
+                      [ngClass]="
+                        optionIsSelected(question, option)
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-800 border-black/10'
+                      "
+                      class="px-4 py-3 rounded-full border text-sm uppercase tracking-wide transition duration-200"
+                    >
+                      {{ option.label }}
+                    </button>
+                  </div>
+                  <div
+                    *ngSwitchCase="'inputs'"
+                    class="grid gap-4 md:grid-cols-3 mt-2"
+                  >
+                    <div
+                      *ngFor="let input of questionInputs(question)"
+                      class="flex flex-col gap-2"
+                    >
+                      <label
+                        [for]="question.id + '-' + input.id"
+                        class="text-sm font-medium text-gray-700"
+                      >
+                        {{ input.label }}
+                      </label>
+                      <input
+                        [id]="question.id + '-' + input.id"
+                        [type]="input.type || 'text'"
+                        [placeholder]="input.placeholder"
+                        class="border border-gray-300 rounded-md px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/70 focus:border-transparent"
+                        [value]="inputs()[question.id]?.[input.id] ?? ''"
+                        (input)="onInputChange(question.id, input.id, $event)"
+                      />
+                    </div>
+                  </div>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+          >
+            <p class="text-xs text-gray-500 max-w-xl">
+              Tu información se mantendrá confidencial y será utilizada solo
+              para preparar una propuesta acorde a tus necesidades.
+            </p>
+            <div class="flex gap-3">
+              <button
+                type="button"
+                (click)="resetForm()"
+                class="px-5 py-3 border border-black text-sm uppercase tracking-wide rounded-md hover:bg-black hover:text-white transition"
+              >
+                Reiniciar
+              </button>
+              <button
+                type="submit"
+                class="px-5 py-3 bg-black text-white text-sm uppercase tracking-wide rounded-md hover:opacity-90 transition"
+              >
+                Enviar respuestas
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <section id="budget-contact" class="bg-black">
+    <contactanos-section
+      logoSrc="/assets/svgs/SPGA.svg"
+      videoSrc="/assets/videos/Design your post.mp4"
+      fallbackImageSrc="/assets/pictures/first-image.png"
+      whatsappNumber="+58000-00000"
+      email="spgagroup@gmail.com"
+      designCredit="Maya Bottino"
+      devCredit="Vicente Perez"
+    ></contactanos-section>
+  </section>
+</div>

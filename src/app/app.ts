@@ -12,6 +12,7 @@ import {
   SimpleAutoCarouselOptions,
 } from './simple-auto-carousel.component';
 import { RevealImageComponent } from './reveal-image.component';
+import { ContactanosComponent } from './contactanos.component';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ import { RevealImageComponent } from './reveal-image.component';
     OwlCarouselComponent,
     SimpleAutoCarouselComponent,
     RevealImageComponent,
+    ContactanosComponent,
   ],
   templateUrl: './app.html',
   // Correct metadata key is styleUrls
@@ -204,6 +206,23 @@ export class App {
     this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       this.modelUrl
     );
+  }
+
+  scrollToSection(sectionId: string, event?: Event) {
+    event?.preventDefault();
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+
+    const header = document.querySelector('header');
+    const offset = header instanceof HTMLElement ? header.offsetHeight : 0;
+    const targetPosition = target.getBoundingClientRect().top + window.scrollY;
+    const scrollPosition = targetPosition - offset;
+
+    window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
   }
 
   openModel(index: number) {

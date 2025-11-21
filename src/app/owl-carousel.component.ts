@@ -185,6 +185,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   private baseOffsetForWheel = 0;
   private lastAnnounceIndex = -1;
   announceMessage = '';
+  private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
 
   // Reveal state
   revealActive = false; // becomes true once revealed
@@ -239,6 +240,21 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopAutoplay();
+    this.releaseScrollLock();
+  }
+
+  private applyScrollLock() {
+    if (!this.isBrowser || typeof document === 'undefined') return;
+    // Simple overflow hidden - no position manipulation
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+
+  private releaseScrollLock(restorePosition: boolean = true) {
+    if (!this.isBrowser || typeof document === 'undefined') return;
+    // Just remove overflow lock - no scroll position changes
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
   }
 
   @HostListener('window:resize') onResize() {
@@ -310,6 +326,23 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @HostListener('window:scroll')
   onWindowScroll() {
     if (!this.isBrowser) return;
+
+    // Check if carousel left viewport and should release lock
+    if (this.lockScrollY !== null && this.scaledUp) {
+      const vp = this.viewportRef?.nativeElement;
+      if (vp) {
+        const rect = vp.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const fullyVisible = rect.top >= 0 && rect.bottom <= vh;
+
+        // Release lock if carousel is no longer fully visible
+        if (!fullyVisible) {
+          this.lockScrollY = null;
+          this.releaseScrollLock();
+        }
+      }
+    }
+
     if (this.options.revealScrollDriven) this.updateRevealGrowth();
   }
 
@@ -386,6 +419,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.currentIndex = logicalIndex;
     this.stageIndex = this.logicalToPhysical(logicalIndex);
     this.wheelAccumulator = 0; // reset wheel progression
+    this.boundaryPushAccumulator = 0; // reset boundary push
     this.updateStageTransform(true);
     this.wheelAnimating = true;
     setTimeout(() => (this.wheelAnimating = false), this.transitionMs + 40);
@@ -478,7 +512,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   // Global wheel handling: symmetric grow/shrink to/from start scale regardless of cursor hover
-  @HostListener('wheel', ['$event'])
+  @HostListener('window:wheel', ['$event'])
   onWheel(event: WheelEvent) {
     if (!this.isBrowser) return; // SSR safety
     const vp = this.viewportRef?.nativeElement;
@@ -500,6 +534,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (!fullyVisible) {
       // Release any lock if leaving full visibility
       this.lockScrollY = null;
+      this.releaseScrollLock();
+      this.boundaryPushAccumulator = 0;
       return; // allow normal page scroll
     }
     // LINEAR progress approach for consistent feel both directions
@@ -513,11 +549,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       delta < 0 &&
       this.revealScaleCurrent > startScale + epsilon
     ) {
-      if (this.lockScrollY == null) this.lockScrollY = window.scrollY;
-      event.preventDefault();
-      if (this.lockScrollY !== null && window.scrollY !== this.lockScrollY) {
-        window.scrollTo({ top: this.lockScrollY });
+      if (this.lockScrollY == null) {
+        this.lockScrollY = window.scrollY;
+        this.applyScrollLock();
       }
+      event.preventDefault();
+      // Don't enforce position during shrink phase - let it stay where it is
       const deltaProgress = Math.abs(delta) / distance; // linear
       let newProgress = currentProgress - deltaProgress;
       if (newProgress < 0) newProgress = 0;
@@ -526,6 +563,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
         this.revealScaleCurrent = startScale;
         this.scaledUp = false;
         // release lock so further upward scroll scrolls page
+        this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
         this.lockScrollY = null;
       }
       this.cdr.markForCheck();
@@ -535,11 +573,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     // If not fully scaled (initial entrance or after shrink) grow BEFORE slide navigation
     if (!this.scaledUp) {
       if (delta > 0 && this.revealScaleCurrent < endScale - epsilon) {
-        if (this.lockScrollY == null) this.lockScrollY = window.scrollY;
-        event.preventDefault();
-        if (this.lockScrollY !== null && window.scrollY !== this.lockScrollY) {
-          window.scrollTo({ top: this.lockScrollY });
+        if (this.lockScrollY == null) {
+          this.lockScrollY = window.scrollY;
+          this.applyScrollLock();
         }
+        event.preventDefault();
+        // Don't enforce position during grow phase - let it stay where it is
         const deltaProgress = Math.abs(delta) / distance;
         let newProgress = currentProgress + deltaProgress;
         if (newProgress > 1) newProgress = 1;
@@ -553,26 +592,52 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       return; // while not scaledUp, never move slides
     }
 
-    // At this point: fully scaledUp
-    // If at first slide and user scrolls up while already at start scale -> let page scroll (scaledUp would be false, handled above). So here we only handle slide navigation.
+    // At this point: fully scaledUp - prevent vertical scrolling while navigating carousel
     if (this.pointerActive) return;
+
+    // Check if at boundaries (for non-looping carousels)
     const atLast = this.currentIndex === count - 1;
-    const goingForwardPastLast = !this.options.loop && atLast && delta > 0;
-    if (goingForwardPastLast) {
-      // Release lock & allow normal page scroll beyond carousel
+    // atFirst already declared above
+    const tryingToGoForward = delta > 0;
+
+    // ONLY allow escape if at the LAST slide and scrolling forward
+    if (!this.options.loop && atLast && tryingToGoForward) {
+      // At last slide, scrolling down -> release lock and allow page scroll to continue
+      this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
       this.lockScrollY = null;
-      return; // don't preventDefault -> page scroll continues
+      this.boundaryPushAccumulator = 0;
+      return; // don't preventDefault, allow vertical scroll past carousel
     }
-    if (this.lockScrollY == null) this.lockScrollY = window.scrollY;
+
+    // For looping carousels: allow escape after persistent forward scrolling
+    if (this.options.loop && tryingToGoForward) {
+      this.boundaryPushAccumulator += Math.abs(delta);
+      const loopEscapeThreshold = 1200; // need more persistent scrolling to escape loop
+      if (this.boundaryPushAccumulator >= loopEscapeThreshold) {
+        this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
+        this.lockScrollY = null;
+        this.boundaryPushAccumulator = 0;
+        return; // allow vertical scroll past carousel
+      }
+    } else if (!tryingToGoForward) {
+      // Reset accumulator when scrolling backward
+      this.boundaryPushAccumulator = 0;
+    }
+
+    // For all other cases: maintain scroll lock and prevent vertical scrolling
+    if (this.lockScrollY == null) {
+      this.lockScrollY = window.scrollY;
+      this.applyScrollLock();
+    }
     event.preventDefault();
-    if (this.lockScrollY !== null && window.scrollY !== this.lockScrollY) {
-      window.scrollTo({ top: this.lockScrollY });
-    }
+    // No need to enforce position - position: fixed on body prevents scrolling
     if (this.wheelAnimating) return; // keep lock but ignore until animation done
 
     const threshold = this.options.wheelThreshold || 280;
     const slideSpan = this.itemWidth + this.itemMargin;
     this.baseOffsetForWheel = -this.stageIndex * slideSpan;
+
+    // Process slide navigation
     this.wheelAccumulator += delta;
     const clamped = Math.max(
       -threshold,
