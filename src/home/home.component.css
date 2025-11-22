@@ -1,0 +1,42 @@
+/* Carousel local styles */
+.carousel-slide {
+  width: 100%;
+}
+.carousel-control {
+  backdrop-filter: blur(4px);
+}
+.carousel-dots button {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.carousel-dots button.bg-black {
+  background: #000 !important;
+}
+.carousel-dots button.bg-white {
+  background: #fff !important;
+}
+
+/* Toggle whatsapp icons inside .btn-whatsapp on hover */
+.btn-whatsapp .icon-hover {
+  display: none;
+}
+.btn-whatsapp .icon-default {
+  display: inline-block;
+}
+.btn-whatsapp:hover .icon-hover {
+  display: inline-block;
+}
+.btn-whatsapp:hover .icon-default {
+  display: none;
+}
+.btn-whatsapp img {
+  vertical-align: middle;
+}
+
+/* Ensure carousel containers fill properly */
+owl-carousel {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}

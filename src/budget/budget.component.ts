@@ -1,12 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  EventEmitter,
-  Output,
-  signal,
-  WritableSignal,
-} from '@angular/core';
+import { Component, signal, WritableSignal } from '@angular/core';
+import { Router } from '@angular/router';
 import { ContactanosComponent } from '../app/contactanos.component';
+import emailjs from '@emailjs/browser';
 
 interface BudgetOption {
   label: string;
@@ -29,6 +25,7 @@ interface BudgetQuestion extends BudgetQuestionBase {
     label: string;
     placeholder: string;
     type?: string;
+    required?: boolean;
   }>;
 }
 
@@ -40,117 +37,118 @@ interface BudgetQuestion extends BudgetQuestionBase {
   styleUrls: ['./budget.component.css'],
 })
 export class BudgetComponent {
-  @Output() navigateHome = new EventEmitter<string | null>();
+  constructor(private router: Router) {}
 
   readonly questions: BudgetQuestion[] = [
     {
       id: 'projectType',
       order: '01',
-      prompt: '¿Qué tipo de proyecto deseas desarrollar?',
+      prompt: '¿Qué deseas diseñar o construir?',
       options: [
-        { label: 'Residencial', value: 'residencial' },
-        { label: 'Comercial', value: 'comercial' },
-        { label: 'Hospitality', value: 'hospitality' },
-        { label: 'Otro', value: 'otro' },
+        { label: 'Vivienda nueva', value: 'vivienda_nueva' },
+        { label: 'Remodelación', value: 'remodelacion' },
+        { label: 'Local Comercial', value: 'local_comercial' },
+        { label: 'Oficina', value: 'oficina' },
       ],
       type: 'options',
     },
     {
       id: 'projectStage',
       order: '02',
-      prompt: '¿En qué etapa se encuentra tu proyecto?',
-      options: [
-        { label: 'Idea inicial', value: 'idea' },
-        { label: 'Anteproyecto', value: 'anteproyecto' },
-        { label: 'Proyecto ejecutivo', value: 'ejecutivo' },
-        { label: 'Construcción', value: 'construccion' },
-      ],
-      type: 'options',
-    },
-    {
-      id: 'services',
-      order: '03',
       prompt: '¿Qué servicios necesitas?',
-      helper: 'Selecciona todas las opciones que apliquen.',
       options: [
-        { label: 'Diseño arquitectónico', value: 'arquitectura' },
-        { label: 'Interiorismo', value: 'interiorismo' },
-        { label: 'Renderización 3D', value: 'renders' },
-        { label: 'Gestión de obra', value: 'gestion' },
+        { label: 'Consultoría y asesoramiento', value: 'consultoria' },
+        { label: 'Diseño arquitectónico', value: 'diseno_arquitectonico' },
+        { label: 'Diseño de interiores', value: 'diseno_interiores' },
+        { label: 'Planificación de proyectos', value: 'planificacion' },
+        { label: 'Modelado y visualización 3D', value: 'modelado_3d' },
+        { label: 'Supervisión de obras', value: 'supervision' },
+        { label: 'Capacitación y talleres', value: 'capacitacion' },
+        { label: 'Quiero orientación', value: 'orientacion' },
       ],
       multiple: true,
       type: 'options',
     },
     {
       id: 'surface',
-      order: '04',
-      prompt: '¿Cuál es el rango de superficie aproximado?',
+      order: '03',
+      prompt: '¿Cuál es el área aproximada del proyecto?',
       options: [
-        { label: 'Hasta 100 m²', value: 'lt100' },
-        { label: '100 - 250 m²', value: '100_250' },
-        { label: '250 - 500 m²', value: '250_500' },
-        { label: 'Más de 500 m²', value: 'gt500' },
+        { label: 'Menos de 50 m²', value: 'lt50' },
+        { label: 'Entre 50 y 100 m²', value: '50_100' },
+        { label: 'Más de 100 m²', value: 'gt100' },
+        { label: 'No lo sé con certeza', value: 'no_se' },
       ],
       type: 'options',
     },
     {
       id: 'budgetRange',
-      order: '05',
-      prompt: '¿Cuál es tu presupuesto estimado?',
+      order: '04',
+      prompt: '¿Tienes un presupuesto estimado?',
       options: [
-        { label: 'Menos de $25K', value: 'lt25' },
-        { label: '$25K - $75K', value: '25_75' },
-        { label: '$75K - $150K', value: '75_150' },
-        { label: 'Más de $150K', value: 'gt150' },
+        { label: 'No, quiero que me orienten', value: 'orientacion' },
       ],
       type: 'options',
     },
     {
       id: 'timeline',
-      order: '06',
-      prompt: '¿Cuál es tu horizonte de ejecución?',
+      order: '05',
+      prompt: '¿Tienes una fecha límite o plazo ideal?',
       options: [
-        { label: 'Menos de 3 meses', value: 'lt3' },
-        { label: '3 a 6 meses', value: '3_6' },
-        { label: '6 a 12 meses', value: '6_12' },
-        { label: 'Más de 12 meses', value: 'gt12' },
+        { label: 'Urgente (1 mes)', value: 'urgente' },
+        { label: 'En 2 a 3 meses', value: '2_3_meses' },
+        { label: 'Más adelante', value: 'mas_adelante' },
+        { label: 'No tengo apuro', value: 'sin_apuro' },
       ],
       type: 'options',
     },
     {
       id: 'contactInfo',
-      order: '07',
-      prompt: 'Déjanos tus datos de contacto',
-      helper: 'Necesitamos poder comunicarnos contigo.',
+      order: '06',
+      prompt: 'Tus datos de contacto',
       inputs: [
         {
           id: 'fullName',
-          label: 'Nombre y apellido',
-          placeholder: 'Tu nombre completo',
+          label: 'Nombre completo',
+          placeholder: '',
+          required: true,
         },
         {
           id: 'email',
-          label: 'Correo electrónico',
-          placeholder: 'nombre@empresa.com',
+          label: 'Email',
+          placeholder: '',
           type: 'email',
+          required: true,
         },
         {
           id: 'phone',
           label: 'Teléfono',
-          placeholder: 'Código de país + número',
+          placeholder: '',
           type: 'tel',
+          required: true,
         },
       ],
       type: 'inputs',
     },
     {
       id: 'contactPreference',
-      order: '08',
+      order: '07',
       prompt: '¿Cómo prefieres que te contactemos?',
       options: [
         { label: 'WhatsApp', value: 'whatsapp' },
         { label: 'Correo electrónico', value: 'email' },
         { label: 'Llamada telefónica', value: 'telefono' },
+      ],
+      type: 'options',
+    },
+    {
+      id: 'discoveryMethod',
+      order: '08',
+      prompt: '¿Cómo nos conociste?',
+      options: [
+        { label: 'Recomendación', value: 'recommendation' },
+        { label: 'Instagram', value: 'instagram' },
+        { label: 'Google', value: 'google' },
       ],
       type: 'options',
     },
@@ -218,14 +216,306 @@ export class BudgetComponent {
 
   handleSubmit(event: Event) {
     event.preventDefault();
-    // Placeholder for future integration (API, email, etc.)
-    console.table({ selections: this.selections(), inputs: this.inputs() });
-    this.resetForm();
+    
+    // Validate form
+    const validationError = this.validateForm();
+    if (validationError) {
+      this.showToast(validationError, 'error');
+      return;
+    }
+    
+    // Collect all form data
+    const formData = this.collectFormData();
+    
+    // Format the email message
+    const emailMessage = this.formatEmailMessage(formData);
+    
+    // EmailJS configuration
+    const serviceID = 'service_tqqedyl';
+    const publicKey = 'hQlNCuG7N4s5xQUHt';
+    
+    // Prepare email data for direct API call
+    const emailData = {
+      service_id: serviceID,
+      template_id: 'template_zyrgwp8',
+      user_id: publicKey,
+      template_params: {
+        to_email: 'vicentedev00@gmail.com',
+        to_name: 'SPGA Group',
+        from_name: formData.contactInfo['fullName'] || 'Cliente Potencial',
+        from_email: formData.contactInfo['email'] || 'no-reply@spga.com',
+        reply_to: 'no-reply@spga.com',
+        subject: `Nueva Solicitud de Presupuesto - ${formData.contactInfo['fullName'] || 'Cliente'}`,
+        message: emailMessage,
+      }
+    };
+    
+    // Show loading state
+    this.showToast('Enviando solicitud...', 'info');
+    
+    // Send email using direct HTTP POST to EmailJS API
+    fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData),
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log('Email sent successfully!');
+          this.showToast('¡Gracias! Tu solicitud de presupuesto ha sido enviada exitosamente.', 'success');
+          this.resetForm();
+          return Promise.resolve();
+        } else {
+          return response.text().then(text => {
+            throw new Error(`Error ${response.status}: ${text}`);
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to send email:', error);
+        this.showToast('Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a vicentedev00@gmail.com', 'error');
+      });
+  }
+  
+  private validateForm(): string | null {
+    const selections = this.selections();
+    const inputs = this.inputs();
+    
+    // Check Question 1: Project Type (must select option or fill "Otro")
+    if (!selections['projectType']?.length && !inputs['additionalInfo']?.['projectTypeOther']) {
+      return 'Por favor, selecciona qué deseas diseñar o construir';
+    }
+    
+    // Check Question 2: Services (must select at least one)
+    if (!selections['projectStage']?.length) {
+      return 'Por favor, selecciona al menos un servicio';
+    }
+    
+    // Check Question 3: Surface Area
+    if (!selections['surface']?.length) {
+      return 'Por favor, selecciona el área aproximada del proyecto';
+    }
+    
+    // Check Question 4: Budget (must have budget input or select "No, quiero que me orienten")
+    if (!inputs['additionalInfo']?.['budget'] && !selections['budgetRange']?.length) {
+      return 'Por favor, indica tu presupuesto o selecciona "No, quiero que me orienten"';
+    }
+    
+    // Check Question 5: Timeline
+    if (!selections['timeline']?.length) {
+      return 'Por favor, selecciona una fecha límite o plazo ideal';
+    }
+    
+    // Check Question 6: Comments
+    if (!inputs['additionalInfo']?.['comments']) {
+      return 'Por favor, cuéntanos brevemente tu idea o necesidad';
+    }
+    
+    // Check Question 7: Contact Info
+    if (!inputs['contactInfo']?.['fullName']) {
+      return 'Por favor, ingresa tu nombre completo';
+    }
+    if (!inputs['contactInfo']?.['email']) {
+      return 'Por favor, ingresa tu email';
+    }
+    if (!inputs['contactInfo']?.['phone']) {
+      return 'Por favor, ingresa tu teléfono';
+    }
+    
+    // Check Question 8: Discovery Method (must select option or fill "Otro")
+    if (!selections['discoveryMethod']?.length && !inputs['additionalInfo']?.['discoveryOther']) {
+      return 'Por favor, indícanos cómo nos conociste';
+    }
+    
+    // Check Question 9: Contact Preference
+    if (!selections['contactPreference']?.length) {
+      return 'Por favor, selecciona cómo prefieres que te contactemos';
+    }
+    
+    return null;
+  }
+  
+  clearSelection(questionId: string) {
+    this.selections.update((current) => {
+      const updated = { ...current };
+      updated[questionId] = [];
+      return updated;
+    });
+  }
+  
+  private showToast(message: string, type: 'success' | 'error' | 'info') {
+    if (typeof document === 'undefined') return;
+    
+    // Remove existing toasts
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    toast.textContent = message;
+    
+    // Set color based on type
+    const colors = {
+      success: '#10b981',
+      error: '#ef4444',
+      info: '#3b82f6'
+    };
+    
+    toast.style.cssText = `
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: ${colors[type]};
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      font-size: 14px;
+      max-width: 400px;
+      animation: slideIn 0.3s ease-out;
+    `;
+    
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+      toast.style.animation = 'slideOut 0.3s ease-out';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+  
+  private collectFormData() {
+    const selections = this.selections();
+    const inputs = this.inputs();
+    
+    return {
+      projectType: this.getSelectedLabels('projectType'),
+      services: this.getSelectedLabels('projectStage'), // Fixed: using correct question ID
+      surface: this.getSelectedLabels('surface'),
+      timeline: this.getSelectedLabels('timeline'),
+      contactPreference: this.getSelectedLabels('contactPreference'),
+      discoveryMethod: this.getSelectedLabels('discoveryMethod'),
+      contactInfo: inputs['contactInfo'] || {},
+      additionalInfo: inputs['additionalInfo'] || {},
+    };
+  }
+  
+  private getSelectedLabels(questionId: string): string {
+    const question = this.questions.find(q => q.id === questionId);
+    if (!question || question.type !== 'options') return '';
+    
+    const selectedValues = this.selections()[questionId] || [];
+    const selectedOptions = question.options?.filter(opt => 
+      selectedValues.includes(opt.value)
+    ) || [];
+    
+    return selectedOptions.map(opt => opt.label).join(', ');
+  }
+  
+  private formatEmailMessage(data: any): string {
+    const projectTypeOther = data.additionalInfo?.projectTypeOther ? `\n      Otro: ${data.additionalInfo.projectTypeOther}` : '';
+    const discoveryOther = data.additionalInfo?.discoveryOther ? `\n      Otro: ${data.additionalInfo.discoveryOther}` : '';
+    
+    return `
+═══════════════════════════════════════════════════════
+    NUEVA SOLICITUD DE PRESUPUESTO
+═══════════════════════════════════════════════════════
+
+
+1. ¿Qué deseas diseñar o construir?
+   
+   → ${data.projectType || 'No especificado'}${projectTypeOther}
+
+
+2. ¿Qué servicios necesitas?
+   
+   → ${data.services || 'No especificado'}
+
+
+3. ¿Cuál es el área aproximada del proyecto?
+   
+   → ${data.surface || 'No especificado'}
+
+
+4. ¿Tienes un presupuesto estimado?
+   
+   → ${data.additionalInfo?.budget || 'No especificado'}
+
+
+5. ¿Tienes una fecha límite o plazo ideal?
+   
+   → ${data.timeline || 'No especificado'}
+
+
+6. Cuéntanos brevemente tu idea o necesidad:
+   
+   → ${data.additionalInfo?.comments || 'No especificado'}
+
+
+═══════════════════════════════════════════════════════
+    DATOS DE CONTACTO
+═══════════════════════════════════════════════════════
+
+   Nombre completo: ${data.contactInfo?.fullName || 'No especificado'}
+   Email: ${data.contactInfo?.email || 'No especificado'}
+   Teléfono: ${data.contactInfo?.phone || 'No especificado'}
+
+
+7. ¿Cómo nos conociste?
+   
+   → ${data.discoveryMethod || 'No especificado'}${discoveryOther}
+
+
+8. ¿Cómo prefieres que te contactemos?
+   
+   → ${data.contactPreference || 'No especificado'}
+
+
+═══════════════════════════════════════════════════════
+Enviado desde: SPGA Web - Formulario de Presupuesto
+═══════════════════════════════════════════════════════
+    `.trim();
   }
 
   handleNav(section: string | null, event?: Event) {
     event?.preventDefault();
-    this.navigateHome.emit(section);
+    if (section) {
+      this.router.navigate(['/'], { fragment: section });
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 
   scrollToContact() {
