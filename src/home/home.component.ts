@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, AfterViewInit, OnDestroy, ElementRef, ViewChildren, QueryList, Inject, PLATFORM_ID } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {
   OwlCarouselComponent,
@@ -29,8 +29,12 @@ import { ContactanosComponent } from '../app/contactanos.component';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly title = signal('spga-group');
+  private observer: IntersectionObserver | null = null;
+  
+  @ViewChildren('fadeInElement') fadeInElements!: QueryList<ElementRef>;
+  @ViewChildren('fadeInBackground') fadeInBackgrounds!: QueryList<ElementRef>;
 
   slides: OwlCarouselSlide[] = [
     {
@@ -203,10 +207,59 @@ export class HomeComponent {
     'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY';
   safeModelUrl: SafeResourceUrl;
 
-  constructor(private sanitizer: DomSanitizer) {
+  constructor(private sanitizer: DomSanitizer, @Inject(PLATFORM_ID) private platformId: Object) {
     this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       this.modelUrl
     );
+  }
+
+  ngAfterViewInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Use setTimeout to ensure DOM is fully rendered before observing
+      setTimeout(() => {
+        this.setupIntersectionObserver();
+      }, 0);
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
+
+  private setupIntersectionObserver() {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          // Optional: Stop observing once visible if you want it to animate only once
+          this.observer?.unobserve(entry.target);
+        }
+      });
+    }, options);
+
+    // Observe elements found by ViewChildren
+    this.fadeInElements.forEach(el => {
+      this.observer?.observe(el.nativeElement);
+    });
+
+    this.fadeInBackgrounds.forEach(el => {
+      this.observer?.observe(el.nativeElement);
+    });
+
+    // Also observe elements by class name if they are not ViewChildren (e.g. static HTML)
+    // This is a fallback/alternative way to grab elements
+    const elements = document.querySelectorAll('.fade-in-section');
+    elements.forEach(el => {
+      this.observer?.observe(el);
+    });
   }
 
   scrollToSection(sectionId: string, event?: Event) {

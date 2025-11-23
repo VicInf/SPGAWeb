@@ -46,6 +46,7 @@
       >
         <div class="flex items-center gap-2 sm:gap-4">
           <button
+            (click)="scrollToSection('contacto', $event)"
             class="hidden sm:inline-flex items-center px-3 sm:px-4 py-2 border border-white text-white rounded hover:border-transparent transition text-xs sm:text-sm md:text-base"
           >
             Contáctanos
@@ -160,16 +161,22 @@
       <div class="mt-12 flex justify-center gap-8">
         <ng-container *ngFor="let p of projects; let i = index">
           <div
-            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden"
+            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden fade-in-section"
+            #fadeInElement
             [class.h-[520px]]="i === 1"
             [class.h-[400px]]="i !== 1"
             style="width: 340px"
           >
             <div
-              class="w-full relative"
-              [class.h-[65%]]="i === 1"
-              [class.h-[55%]]="i !== 1"
-            >
+            class="relative group cursor-pointer w-full"
+            [ngClass]="{
+              'md:col-span-2 md:row-span-2': i === 1,
+              'h-[300px] md:h-full': i === 1,
+              'h-[300px]': i !== 1
+            }"
+            (mouseenter)="i === 1 ? (revealImageProgress = 1) : null"
+            (mouseleave)="i === 1 ? (revealImageProgress = 0) : null"
+          >
               <img
                 [src]="p.image"
                 [alt]="p.title"
@@ -319,6 +326,7 @@
         style="position: relative"
       >
         <button
+          (click)="scrollToSection('contacto', $event)"
           class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
           [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
         >
@@ -373,9 +381,10 @@
 <!-- New black 100vh section with image left and texts right -->
 <section
   id="sobre-nosotros"
-  class="w-full bg-black py-16 md:py-20 lg:py-24 scroll-mt-28"
+  class="w-full bg-black py-16 md:py-20 lg:py-24 scroll-mt-28 fade-background-section"
+  #fadeInBackground
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section" #fadeInElement>
     <div
       class="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-16"
     >
@@ -424,12 +433,14 @@
 <div class="w-full h-px bg-white"></div>
 
 <!-- Contactanos Section -->
-<contactanos-section
-  logoSrc="/assets/svgs/SPGA.svg"
-  videoSrc="/assets/videos/Design your post.mp4"
-  fallbackImageSrc="/assets/pictures/first-image.png"
-  whatsappNumber="+58000-00000"
-  email="spgagroup@gmail.com"
-  designCredit="Maya Bottino"
-  devCredit="Vicente Perez"
-></contactanos-section>
+<div id="contacto" class="scroll-mt-28">
+  <contactanos-section
+    logoSrc="/assets/svgs/SPGA.svg"
+    videoSrc="/assets/videos/Design your post.mp4"
+    fallbackImageSrc="/assets/pictures/first-image.png"
+    whatsappNumber="+58000-00000"
+    email="spgagroup@gmail.com"
+    designCredit="Maya Bottino"
+    devCredit="Vicente Perez"
+  ></contactanos-section>
+</div>

@@ -40,3 +40,38 @@ owl-carousel {
   max-width: 100%;
   overflow: hidden;
 }
+
+/* Scroll Animations */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  will-change: opacity, transform;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered delay for project cards if needed */
+.fade-in-section.delay-100 {
+  transition-delay: 0.1s;
+}
+.fade-in-section.delay-200 {
+  transition-delay: 0.2s;
+}
+.fade-in-section.delay-300 {
+  transition-delay: 0.3s;
+}
+
+/* Background fade animation */
+.fade-background-section {
+  background-color: transparent; /* Start transparent to show previous section color/white */
+  transition: background-color 1s ease-out;
+  will-change: background-color;
+}
+
+.fade-background-section.is-visible {
+  background-color: #000;
+}
