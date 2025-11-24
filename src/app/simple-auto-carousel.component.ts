@@ -16,6 +16,7 @@ export interface SimpleAutoCarouselSlide {
   alt?: string;
   title?: string;
   subtitle?: string;
+  description?: string;
 }
 
 export interface SimpleAutoCarouselOptions {
@@ -55,16 +56,19 @@ export interface SimpleAutoCarouselOptions {
           [style.marginRight.px]="itemMargin"
           [attr.data-index]="i"
         >
-          <img
-            [src]="slide.src"
-            [alt]="slide.alt || 'Slide ' + (i + 1)"
-            draggable="false"
-          />
-          <div class="sac-caption" *ngIf="slide.title || slide.subtitle">
-            <span class="sac-title" *ngIf="slide.title">{{ slide.title }}</span>
-            <span class="sac-subtitle" *ngIf="slide.subtitle">{{
-              slide.subtitle
-            }}</span>
+          <div class="sac-card">
+            <div class="sac-icon-container">
+              <img
+                [src]="slide.src"
+                [alt]="slide.alt || 'Slide ' + (i + 1)"
+                draggable="false"
+                class="sac-icon"
+              />
+            </div>
+            <div class="sac-content">
+              <h3 class="sac-title" *ngIf="slide.title">{{ slide.title }}</h3>
+              <p class="sac-description" *ngIf="slide.description">{{ slide.description }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -111,31 +115,57 @@ export interface SimpleAutoCarouselOptions {
         flex: 0 0 auto;
         user-select: none;
         height: 50vh;
+        padding: 0;
+        margin-left: -1px;
       }
-      .sac-item img {
+      .sac-item:first-child {
+        margin-left: 0;
+      }
+      .sac-card {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .sac-caption {
-        position: absolute;
-        inset: 0;
+        background: #e0ddcb;
+        border: 1px solid #000;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        color: #fff;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-        pointer-events: none;
+        padding: 3rem 2rem;
+        box-sizing: border-box;
+      }
+      .sac-icon-container {
+        flex: 0 0 auto;
+        margin-bottom: 2rem;
+        max-width: 200px;
+        max-height: 200px;
+      }
+      .sac-icon {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .sac-content {
+        flex: 0 0 auto;
+        text-align: center;
+        color: #000;
+        width: 100%;
+        align-self: flex-start;
       }
       .sac-title {
-        font-size: 1rem;
-        letter-spacing: 0.5px;
-      }
-      .sac-subtitle {
+        font-family: 'Canela Deck', serif;
         font-size: 2rem;
-        font-weight: 600;
+        font-weight: 300;
+        line-height: 1.2;
+        margin: 0 0 1rem 0;
+      }
+      .sac-description {
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 100;
+        line-height: 1.5;
+        margin: 0;
+        max-width: 400px;
       }
       .sac-nav {
         display: flex;
@@ -150,7 +180,7 @@ export interface SimpleAutoCarouselOptions {
         width: 44px;
         height: 44px;
         border: 1px solid #000;
-
+        background: transparent;
         color: #000;
         display: flex;
         align-items: center;

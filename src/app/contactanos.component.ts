@@ -14,17 +14,15 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   template: `
     <section class="w-full bg-black text-white py-16 md:py-24">
       <div class="container mx-auto px-6 md:px-12 lg:px-20">
-        <!-- First Row: Logo and Video -->
-        <div
-          class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 mb-20"
-        >
-          <!-- Left Side - Logo -->
-          <div class="flex items-center justify-start h-32 md:h-40 lg:h-48">
+        <!-- First Row: Logo and Video with space between -->
+        <div class="flex flex-col lg:flex-row lg:justify-between items-center gap-12 mb-12">
+          <!-- Logo -->
+          <div class="flex items-center justify-center h-64 md:h-40 lg:h-48">
             <img [src]="logoSrc" alt="SPGA Logo" class="h-full w-auto" />
           </div>
 
-          <!-- Right Side - Video (same height and width as logo) -->
-          <div class="relative h-32 md:h-40 lg:h-48 overflow-hidden rounded-lg">
+          <!-- Video -->
+          <div class="relative h-64 md:h-40 lg:h-48 overflow-hidden rounded-lg">
             <video
               *ngIf="isBrowser"
               [src]="videoSrc"
@@ -46,19 +44,17 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
           </div>
         </div>
 
-        <!-- Second Row: Contact Info -->
-        <div
-          class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 mb-8"
-        >
-          <!-- Contactanos Title -->
+        <!-- Second Row: Title and Contact Info aligned with logo/video above -->
+        <div class="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-12 mb-8">
+          <!-- Contactanos Title (aligned with logo) -->
           <h2
-            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center lg:text-left"
           >
             Contáctanos
           </h2>
 
-          <!-- Contact Info - Column layout -->
-          <div class="flex flex-col gap-6">
+          <!-- Contact Info (aligned with video) -->
+          <div class="flex flex-col gap-6 items-center lg:items-start lg:mr-24">
             <!-- WhatsApp -->
             <a
               [href]="getWhatsAppUrl()"
@@ -99,10 +95,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 
         <!-- Footer Text -->
         <div
-          class="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70"
+          class="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70 text-center md:text-left"
         >
           <p>© Copyright SPGA Group. Venezuela</p>
-          <div class="flex gap-8">
+          <div class="flex flex-col lg:flex-row gap-1 lg:gap-8 items-center lg:items-end">
             <p *ngIf="designCredit">Diseño por {{ designCredit }}</p>
             <p *ngIf="devCredit">Desarrollo por {{ devCredit }}</p>
           </div>

@@ -31,7 +31,17 @@ import { ContactanosComponent } from '../app/contactanos.component';
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly title = signal('spga-group');
+  protected readonly mobileMenuOpen = signal(false);
   private observer: IntersectionObserver | null = null;
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen.update(v => !v);
+    if (this.mobileMenuOpen()) {
+      this.lockBodyScroll();
+    } else {
+      this.unlockBodyScroll();
+    }
+  }
   
   @ViewChildren('fadeInElement') fadeInElements!: QueryList<ElementRef>;
   @ViewChildren('fadeInBackground') fadeInBackgrounds!: QueryList<ElementRef>;
@@ -46,20 +56,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     {
       src: 'assets/pictures/piscina.png',
       alt: 'Slide 2',
-      title: 'ARQUITECTURA',
-      subtitle: 'moderna',
+      title: 'DISEÑO',
+      subtitle: 'comercial',
     },
     {
       src: 'assets/pictures/first-image.png',
       alt: 'Slide 3',
       title: 'DISEÑO',
-      subtitle: 'minimalista',
+      subtitle: 'corporativo',
     },
     {
       src: 'assets/pictures/piscina.png',
       alt: 'Slide 4',
-      title: 'ARQUITECTURA',
-      subtitle: 'sostenible',
+      title: 'DISEÑO',
+      subtitle: 'visualización 3D',
     },
   ];
 
@@ -122,39 +132,51 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   // Services integrales auto carousel (independent from owl carousel)
   servicesSlides: SimpleAutoCarouselSlide[] = [
     {
-      src: 'assets/pictures/first-image.png',
-      alt: 'Servicio 1',
-      title: 'Diseño integral',
+      src: 'assets/pictures/Servicio.png',
+      alt: 'Diseño arquitectónico',
+      title: 'Diseño arquitectónico',
+      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
     {
-      src: 'assets/pictures/piscina.png',
-      alt: 'Servicio 2',
-      title: 'Arquitectura moderna',
+      src: 'assets/pictures/Servicio-1.png',
+      alt: 'Diseño de interiores',
+      title: 'Diseño de interiores',
+      description: 'Selección de materiales, colores, mobiliario y decoración.',
     },
     {
-      src: 'assets/pictures/first-image.png',
-      alt: 'Servicio 3',
-      title: 'Interiorismo',
+      src: 'assets/pictures/Servicio-2.png',
+      alt: 'Modelado y visualización 3D',
+      title: 'Modelado y visualización 3D',
+      description: 'Visualizaciones fotorrealistas para previsualizar cada detalle del proyecto.',
     },
     {
-      src: 'assets/pictures/piscina.png',
-      alt: 'Servicio 4',
-      title: 'Renderización 3D',
+      src: 'assets/pictures/Servicio-3.png',
+      alt: 'Planificación de proyectos',
+      title: 'Planificación de proyectos',
+      description: 'Elaboración de planos y documentos técnicos conforme a normativas.',
     },
     {
-      src: 'assets/pictures/first-image.png',
-      alt: 'Servicio 5',
-      title: 'Gestión de obra',
+      src: 'assets/pictures/Servicio-4.png',
+      alt: 'Supervisión de obras',
+      title: 'Supervisión de obras',
+      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
     {
-      src: 'assets/pictures/piscina.png',
-      alt: 'Servicio 6',
-      title: 'Landscape',
+      src: 'assets/pictures/Servicio-5.png',
+      alt: 'Consultoría y asesoramiento',
+      title: 'Consultoría y asesoramiento',
+      description: 'Análisis de necesidades y entornos para soluciones efectivas.',
+    },
+    {
+      src: 'assets/pictures/Servicio-6.png',
+      alt: 'Capacitaciones y talleres',
+      title: 'Capacitaciones y talleres',
+      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
   ];
   servicesCarouselOptions: SimpleAutoCarouselOptions = {
     items: 3,
-    margin: 24,
+    margin: 0,
     // Enable continuous smooth scrolling instead of discrete autoplay
     continuous: true,
     speedPxPerSec: 50, // tweak speed for desired visual pacing
@@ -175,24 +197,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     subtitle: string;
     hasModel?: boolean;
     image: string;
+    year: string;
+    type: string;
   }> = [
     {
       title: 'Casa Horizonte',
       subtitle: 'Residencial costera',
       hasModel: true,
       image: 'assets/pictures/first-image.png',
+      year: '2024',
+      type: 'Residencial',
     },
     {
       title: 'Torre Central',
       subtitle: 'Edificio corporativo',
       hasModel: false,
       image: 'assets/pictures/piscina.png',
+      year: '2023',
+      type: 'Comercial',
     },
     {
       title: 'Jardín Interior',
       subtitle: 'Espacio verde privado',
       hasModel: true,
       image: 'assets/pictures/first-image.png',
+      year: '2024',
+      type: 'Residencial',
     },
   ];
 

@@ -1,12 +1,13 @@
 <div class="min-h-screen bg-[#e0ddcb] text-black">
   <header class="bg-black text-white fixed top-0 inset-x-0" style="z-index: 60">
     <div class="h-20 relative">
+      <!-- Left: Logo -->
       <div
         class="absolute left-4 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-3">
           <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-10 w-auto" />
-          <span class="text-sm md:text-xl font-light font-canela-deck">
+          <span class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck">
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
             Interiorismo
@@ -14,45 +15,55 @@
         </div>
       </div>
 
+      <!-- Center: constrained nav, centered in page -->
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
       >
-        <nav class="hidden md:flex space-x-20 mt-2">
+        <nav class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2">
           <a
             href="/"
             (click)="handleNav(null, $event)"
-            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Inicio</a
           >
           <a
             href="/servicios"
             (click)="handleNav('servicios', $event)"
-            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
             href="/proyectos"
             (click)="handleNav('proyectos', $event)"
-            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
             href="/sobre-nosotros"
             (click)="handleNav('sobre-nosotros', $event)"
-            class="text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
         </nav>
       </div>
 
+      <!-- Right: buttons flush to the viewport right -->
       <div
         class="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-4">
+          <!-- Hamburger Button (Mobile) -->
+          <button
+            (click)="toggleMobileMenu()"
+            class="min-[900px]:hidden bg-white text-black focus:outline-none w-8 h-8 rounded-full flex items-center justify-center mr-4"
+            aria-label="Menu"
+          >
+          </button>
+
           <button
             type="button"
             (click)="scrollToContact()"
-            class="hidden sm:inline-flex items-center px-4 py-2 border border-white text-white rounded hover:border-transparent transition text-sm md:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white rounded hover:border-transparent transition min-[900px]:text-xs xl:text-base"
           >
             Contáctanos
             <img
@@ -62,7 +73,7 @@
             />
           </button>
           <span
-            class="inline-flex items-center px-4 py-2 bg-white text-black rounded text-sm md:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black rounded min-[900px]:text-xs xl:text-base"
           >
             Presupuesta
             <svg
@@ -85,6 +96,90 @@
     </div>
   </header>
 
+  <!-- Mobile Menu Overlay -->
+  <div
+    *ngIf="mobileMenuOpen()"
+    class="fixed inset-0 z-[100] bg-[#0a0a0a] text-white flex flex-col"
+  >
+    <!-- Header -->
+    <div class="h-20 px-4 flex items-center justify-between border-b border-white/20">
+      <div class="flex items-center gap-3">
+        <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
+        <span class="text-sm font-light font-canela-deck">
+          Arquitectura
+          <span style="font-style: italic; font-weight: 100">&amp;</span>
+          Interiorismo
+        </span>
+      </div>
+      <button (click)="toggleMobileMenu()" class="p-2 flex items-center justify-center">
+        <!-- Diamond close icon -->
+        <div class="w-6 h-6 bg-white transform rotate-45"></div>
+      </button>
+    </div>
+
+    <!-- Menu Items -->
+    <div class="flex-1 flex flex-col justify-end">
+      <a
+        href="/"
+        (click)="toggleMobileMenu(); handleNav(null, $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Inicio
+      </a>
+      <a
+        href="/servicios"
+        (click)="toggleMobileMenu(); handleNav('servicios', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Servicios
+      </a>
+      <a
+        href="/proyectos"
+        (click)="toggleMobileMenu(); handleNav('proyectos', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Proyectos
+      </a>
+      <a
+        href="/sobre-nosotros"
+        (click)="toggleMobileMenu(); handleNav('sobre-nosotros', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Sobre nosotros
+      </a>
+      
+      <!-- Contact Button -->
+      <button
+        (click)="toggleMobileMenu(); scrollToContact()"
+        class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
+      >
+        CONTÁCTANOS
+        <img src="assets/svgs/whatsapp_black.svg" alt="WhatsApp" class="h-6 w-6" />
+      </button>
+      
+      <!-- Budget Button (Disabled/Active state since we are on budget page) -->
+      <button
+        class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide opacity-50 cursor-default"
+      >
+        PRESUPUESTA
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 12h14M12 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+
   <main class="pt-28 pb-16 px-4 sm:px-6 lg:px-8">
     <section class="max-w-2xl mx-auto">
       <h1
@@ -93,7 +188,7 @@
         Presupuesta tu proyecto
       </h1>
 
-      <form class="space-y-10" (submit)="handleSubmit($event)">
+      <form class="space-y-10" (submit)="handleSubmit($event)" novalidate>
         <!-- Question 1: Project Type -->
         <div class="space-y-4">
           <h3 class="text-base font-light">
@@ -271,9 +366,9 @@
           </div>
         </div>
 
-        <!-- Contact Preference -->
+        <!-- How did you find us -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">¿Cómo prefieres que te contactemos?*</h3>
+          <h3 class="text-base font-light">¿Cómo nos conociste?*</h3>
           <div class="flex flex-wrap gap-3">
             <button
               type="button"
@@ -281,26 +376,6 @@
               (click)="handleOption(questions[6], option)"
               [ngClass]="
                 optionIsSelected(questions[6], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
-              "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-        </div>
-
-        <!-- How did you find us -->
-        <div class="space-y-4">
-          <h3 class="text-base font-light">¿Cómo nos conociste?*</h3>
-          <div class="flex flex-wrap gap-3">
-            <button
-              type="button"
-              *ngFor="let option of questions[7].options"
-              (click)="handleOption(questions[7], option)"
-              [ngClass]="
-                optionIsSelected(questions[7], option)
                   ? 'bg-black text-white'
                   : 'bg-white text-black'
               "
@@ -317,6 +392,26 @@
               placeholder=""
               (input)="onInputChange('additionalInfo', 'discoveryOther', $event); clearSelection('discoveryMethod')"
             />
+          </div>
+        </div>
+
+        <!-- Contact Preference -->
+        <div class="space-y-4">
+          <h3 class="text-base font-light">¿Cómo prefieres que te contactemos?*</h3>
+          <div class="flex flex-wrap gap-3">
+            <button
+              type="button"
+              *ngFor="let option of questions[7].options"
+              (click)="handleOption(questions[7], option)"
+              [ngClass]="
+                optionIsSelected(questions[7], option)
+                  ? 'bg-black text-white'
+                  : 'bg-white text-black'
+              "
+              class="px-6 py-2.5 border border-black rounded text-sm transition"
+            >
+              {{ option.label }}
+            </button>
           </div>
         </div>
 

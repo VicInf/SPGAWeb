@@ -93,16 +93,20 @@ export interface OwlCarouselOptions {
             [alt]="slide.alt || 'Slide ' + (slide._realIndex + 1)"
             draggable="false"
           />
-          <div
-            *ngIf="slide.title || slide.subtitle"
-            class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
-          >
-            <span class="text-2xl" *ngIf="slide.title">{{ slide.title }}</span>
-            <span class="text-7xl font-bold" *ngIf="slide.subtitle">{{
-              slide.subtitle
-            }}</span>
-          </div>
         </div>
+      </div>
+      
+      
+      <!-- Centered text overlay (fixed position, shows active slide text) -->
+      <div
+        *ngIf="getActiveSlide()?.title || getActiveSlide()?.subtitle"
+        class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
+        [style.opacity]="getTextOpacity()"
+      >
+        <span class="text-xl sm:text-2xl md:text-3xl" *ngIf="getActiveSlide()?.title">{{ getActiveSlide()?.title }}</span>
+        <span class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4" *ngIf="getActiveSlide()?.subtitle">{{
+          getActiveSlide()?.subtitle
+        }}</span>
       </div>
       <!-- Progress bar (replaces dots) -->
       <div
@@ -129,7 +133,7 @@ export interface OwlCarouselOptions {
         aria-live="polite"
         aria-atomic="true"
       >
-        {{ announceMessage }}
+        Slide {{ currentIndex + 1 }} of {{ slides.length }}
       </div>
     </div>
   `,
@@ -138,54 +142,46 @@ export interface OwlCarouselOptions {
 })
 export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @Input() slides: OwlCarouselSlide[] = [];
-  @Input() options: OwlCarouselOptions = {} as OwlCarouselOptions;
+  @Input() options: OwlCarouselOptions = {};
 
-  @ViewChild('stage', { static: true }) stageRef!: ElementRef<HTMLDivElement>;
-  @ViewChild('viewport', { static: true })
-  viewportRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('viewport', { static: true }) viewportRef!: ElementRef<HTMLElement>;
+  @ViewChild('stage', { static: true }) stageRef!: ElementRef<HTMLElement>;
 
-  renderedSlides: Array<
-    OwlCarouselSlide & { _clone?: boolean; _realIndex: number }
-  > = [];
-
-  currentIndex = 0; // logical index (within original slides)
-  private stageIndex = 0; // physical index in renderedSlides
-  private clonesPerSide = 0;
-
+  // State
   itemWidth = 0;
   itemMargin = 0;
-  private isBrowser = false; // SSR guard flag
-  constructor(
-    @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef
-  ) {
-    // Set preliminary flag (finalized again in ngAfterViewInit for safety)
-    this.isBrowser =
-      typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
-  }
-
-  // Drag state
+  renderedSlides: any[] = [];
+  currentIndex = 0;
+  currentTransform = 0;
+  stageTransition = 'transform 0s ease';
+  stageTransform = 'translate3d(0,0,0)';
+  private resizeObserver?: ResizeObserver;
+  private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
+  
+  // Restored properties
+  private isBrowser = false;
   private dragStartX = 0;
   private dragStartTransform = 0;
   pointerActive = false;
   private hasDragged = false;
   private dragStartTime = 0;
-
-  // Autoplay
   private autoplayTimer: any = null;
-
-  // Animation
   private transitionMs = 400;
-  stageTransform = 'translate3d(0,0,0)';
-  stageTransition = '';
-
-  // Wheel control state
   private wheelAccumulator = 0;
   private wheelAnimating = false;
   private baseOffsetForWheel = 0;
   private lastAnnounceIndex = -1;
   announceMessage = '';
-  private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
+  private clonesPerSide = 0;
+  private stageIndex = 0;
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private cdr: ChangeDetectorRef
+  ) {
+    this.isBrowser =
+      typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
+  }
 
   // Reveal state
   revealActive = false; // becomes true once revealed
@@ -205,6 +201,82 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     return this.revealActive
       ? 'scale(1)'
       : `scale(${this.options.revealScaleStart || 0.5})`;
+  }
+
+  getTextOpacity(): number {
+    // 1. Initial Reveal Fade-in (Global Scale)
+    // Map scale from start to end to opacity 0 to 1
+    const startScale = this.options.revealScaleStart ?? 0.5;
+    const endScale = this.options.revealScaleEnd ?? 1;
+    const currentScale = this.revealScaleCurrent;
+    
+    // Start fading in when 80% of the way to full scale
+    const fadeStartScale = startScale + (endScale - startScale) * 0.8;
+    let revealOpacity = 0;
+    
+    if (currentScale >= fadeStartScale) {
+       const fadeProgress = (currentScale - fadeStartScale) / (endScale - fadeStartScale);
+       revealOpacity = Math.min(1, Math.max(0, fadeProgress));
+    }
+
+    // 2. Scroll-Driven Cross-Fade (Slide Transition)
+    // Parse the current transform to get the offset
+    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
+    const stageOffset = match ? Math.abs(parseFloat(match[1])) : 0;
+    const slideWidth = this.itemWidth + this.itemMargin;
+    
+    let scrollOpacity = 1;
+
+    if (slideWidth > 0) {
+      const fractionalIndex = stageOffset / slideWidth;
+      const remainder = fractionalIndex - Math.floor(fractionalIndex);
+      
+      // If remainder < 0.5: We are showing current slide. Fade out as we approach 0.5.
+      // Opacity goes 1 -> 0 as remainder goes 0 -> 0.5
+      if (remainder < 0.5) {
+        scrollOpacity = 1 - (remainder * 2);
+      } 
+      // If remainder >= 0.5: We are showing next slide. Fade in as we leave 0.5.
+      // Opacity goes 0 -> 1 as remainder goes 0.5 -> 1.0
+      else {
+        scrollOpacity = (remainder - 0.5) * 2;
+      }
+    }
+    
+    // Combine both opacities (multiply them)
+    // This ensures text is hidden if carousel hasn't revealed yet, 
+    // AND fades correctly during scroll.
+    return revealOpacity * scrollOpacity;
+  }
+
+  getActiveSlide(): OwlCarouselSlide | null {
+    if (!this.slides || this.slides.length === 0) {
+      return null;
+    }
+    
+    // Calculate visual index from current transform to switch text at 50%
+    const currentOffset = Math.abs(this.getCurrentStageOffset());
+    const slideWidth = this.itemWidth + this.itemMargin;
+    
+    if (slideWidth <= 0) {
+      return this.slides[this.currentIndex] || null;
+    }
+    
+    const fractionalIndex = currentOffset / slideWidth;
+    const visualPhysicalIndex = Math.round(fractionalIndex);
+    
+    // Convert physical index to logical index
+    let logicalIndex = visualPhysicalIndex - this.clonesPerSide;
+    
+    // Normalize for loop
+    const count = this.slides.length;
+    logicalIndex = (logicalIndex % count + count) % count;
+    
+    return this.slides[logicalIndex] || null;
+  }
+
+  trackByIndex(index: number, item: number): number {
+    return item; // Return the currentIndex value to force re-render when it changes
   }
 
   ngAfterViewInit(): void {
@@ -388,12 +460,65 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.itemMargin = this.options.margin || 0;
   }
 
+  private activeAnimation: {
+    startTime: number;
+    startOffset: number;
+    targetOffset: number;
+    duration: number;
+  } | null = null;
+
+  private getCurrentStageOffset(): number {
+    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
+    return match ? parseFloat(match[1]) : 0;
+  }
+
   private updateStageTransform(animate = true) {
-    const offset = -this.stageIndex * (this.itemWidth + this.itemMargin);
-    this.stageTransition = animate
-      ? `transform ${this.transitionMs}ms ease`
-      : '';
-    this.stageTransform = `translate3d(${offset}px,0,0)`;
+    const targetOffset = -this.stageIndex * (this.itemWidth + this.itemMargin);
+    
+    // Always disable CSS transition since we control it via JS or it's instant
+    this.stageTransition = 'transform 0s ease';
+
+    if (!animate) {
+      this.activeAnimation = null;
+      this.stageTransform = `translate3d(${targetOffset}px,0,0)`;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Start JS animation
+    const startOffset = this.getCurrentStageOffset();
+    this.activeAnimation = {
+      startTime: performance.now(),
+      startOffset,
+      targetOffset,
+      duration: this.transitionMs
+    };
+
+    const step = (now: number) => {
+      const anim = this.activeAnimation;
+      if (!anim) return;
+      
+      const elapsed = now - anim.startTime;
+      let progress = elapsed / anim.duration;
+      
+      if (progress >= 1) {
+        progress = 1;
+        this.activeAnimation = null;
+      }
+      
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = anim.startOffset + (anim.targetOffset - anim.startOffset) * eased;
+      
+      this.stageTransform = `translate3d(${current}px,0,0)`;
+      this.cdr.markForCheck();
+      
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    
+    requestAnimationFrame(step);
   }
 
   private logicalToPhysical(index: number): number {

@@ -39,6 +39,29 @@ interface BudgetQuestion extends BudgetQuestionBase {
 export class BudgetComponent {
   constructor(private router: Router) {}
 
+  readonly mobileMenuOpen = signal(false);
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen.update(v => !v);
+    if (this.mobileMenuOpen()) {
+      this.lockBodyScroll();
+    } else {
+      this.unlockBodyScroll();
+    }
+  }
+
+  private lockBodyScroll() {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  private unlockBodyScroll() {
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+    }
+  }
+
   readonly questions: BudgetQuestion[] = [
     {
       id: 'projectType',
@@ -131,24 +154,24 @@ export class BudgetComponent {
       type: 'inputs',
     },
     {
-      id: 'contactPreference',
-      order: '07',
-      prompt: '¿Cómo prefieres que te contactemos?',
-      options: [
-        { label: 'WhatsApp', value: 'whatsapp' },
-        { label: 'Correo electrónico', value: 'email' },
-        { label: 'Llamada telefónica', value: 'telefono' },
-      ],
-      type: 'options',
-    },
-    {
       id: 'discoveryMethod',
-      order: '08',
+      order: '07',
       prompt: '¿Cómo nos conociste?',
       options: [
         { label: 'Recomendación', value: 'recommendation' },
         { label: 'Instagram', value: 'instagram' },
         { label: 'Google', value: 'google' },
+      ],
+      type: 'options',
+    },
+    {
+      id: 'contactPreference',
+      order: '08',
+      prompt: '¿Cómo prefieres que te contactemos?',
+      options: [
+        { label: 'WhatsApp', value: 'whatsapp' },
+        { label: 'Correo electrónico', value: 'email' },
+        { label: 'Llamada telefónica', value: 'telefono' },
       ],
       type: 'options',
     },
@@ -319,6 +342,10 @@ export class BudgetComponent {
     }
     if (!inputs['contactInfo']?.['email']) {
       return 'Por favor, ingresa tu email';
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inputs['contactInfo']['email'])) {
+      return 'Por favor, ingresa un email válido';
     }
     if (!inputs['contactInfo']?.['phone']) {
       return 'Por favor, ingresa tu teléfono';

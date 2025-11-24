@@ -1,12 +1,13 @@
 <div class="w-full overflow-x-hidden">
   <header class="bg-black text-white fixed w-full" style="z-index: 50">
     <div class="h-20">
+      <!-- Left: Logo -->
       <div
         class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-2 sm:gap-3">
           <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 sm:h-10 w-auto" />
-          <span class="text-sm md:text-xl font-light font-canela-deck">
+          <span class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck">
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
             Interiorismo
@@ -18,23 +19,23 @@
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
       >
-        <nav class="hidden md:flex space-x-8 lg:space-x-20 mt-2">
+        <nav class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2">
           <a
             href="#servicios"
             (click)="scrollToSection('servicios', $event)"
-            class="text-base lg:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
             href="#proyectos"
             (click)="scrollToSection('proyectos', $event)"
-            class="text-base lg:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
             href="#sobre-nosotros"
             (click)="scrollToSection('sobre-nosotros', $event)"
-            class="text-base lg:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
         </nav>
@@ -45,9 +46,17 @@
         class="absolute right-2 sm:right-4 lg:right-8 top-1/2 transform -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-2 sm:gap-4">
+          <!-- Hamburger Button (Mobile) -->
+          <button
+            (click)="toggleMobileMenu()"
+            class="min-[900px]:hidden bg-white text-black focus:outline-none w-8 h-8 rounded-full flex items-center justify-center mr-4"
+            aria-label="Menu"
+          >
+          </button>
+
           <button
             (click)="scrollToSection('contacto', $event)"
-            class="hidden sm:inline-flex items-center px-3 sm:px-4 py-2 border border-white text-white rounded hover:border-transparent transition text-xs sm:text-sm md:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white rounded hover:border-transparent transition min-[900px]:text-xs xl:text-base"
           >
             Contáctanos
             <img
@@ -59,7 +68,7 @@
 
           <button
             routerLink="/budget"
-            class="inline-flex items-center px-3 sm:px-4 py-2 bg-white text-black rounded hover:opacity-90 transition text-xs sm:text-sm md:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black rounded hover:opacity-90 transition min-[900px]:text-xs xl:text-base"
           >
             Presupuesta
             <svg
@@ -81,6 +90,85 @@
       </div>
     </div>
   </header>
+
+  <!-- Mobile Menu Overlay -->
+  <div
+    *ngIf="mobileMenuOpen()"
+    class="fixed inset-0 z-[100] bg-[#0a0a0a] text-white flex flex-col"
+  >
+    <!-- Header -->
+    <div class="h-20 px-4 flex items-center justify-between border-b border-white/20">
+      <div class="flex items-center gap-3">
+        <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
+        <span class="text-sm font-light font-canela-deck">
+          Arquitectura
+          <span style="font-style: italic; font-weight: 100">&amp;</span>
+          Interiorismo
+        </span>
+      </div>
+      <button (click)="toggleMobileMenu()" class="p-2 flex items-center justify-center">
+        <!-- Diamond close icon -->
+        <div class="w-6 h-6 bg-white transform rotate-45"></div>
+      </button>
+    </div>
+
+    <!-- Menu Items -->
+    <div class="flex-1 flex flex-col justify-end">
+      <a
+        href="#servicios"
+        (click)="toggleMobileMenu(); scrollToSection('servicios', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Servicios
+      </a>
+      <a
+        href="#proyectos"
+        (click)="toggleMobileMenu(); scrollToSection('proyectos', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Proyectos
+      </a>
+      <a
+        href="#sobre-nosotros"
+        (click)="toggleMobileMenu(); scrollToSection('sobre-nosotros', $event)"
+        class="w-full h-24 flex items-center justify-center px-8 text-xl font-light border-t border-white/20 hover:bg-white/5 transition"
+      >
+        Sobre nosotros
+      </a>
+      
+      <!-- Contact Button -->
+      <button
+        (click)="toggleMobileMenu(); scrollToSection('contacto', $event)"
+        class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
+      >
+        CONTÁCTANOS
+        <img src="assets/svgs/whatsapp_black.svg" alt="WhatsApp" class="h-6 w-6" />
+      </button>
+      
+      <!-- Budget Button -->
+      <button
+        routerLink="/budget"
+        (click)="toggleMobileMenu()"
+        class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide"
+      >
+        PRESUPUESTA
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 12h14M12 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
 
   <!-- Hero image below the header -->
   <main class="w-full h-screen bg-gray-50">
@@ -123,56 +211,59 @@
   <!-- New pale background section -->
   <section
     id="servicios"
-    class="w-full flex items-center justify-center scroll-mt-28"
+    class="w-full flex flex-col items-center justify-center scroll-mt-28"
     style="background: #e0ddcb; height: 100vh"
   >
-    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
-      <h2
-        class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center"
-      >
-        Servicios integrales
-      </h2>
-      <!-- Services integrales autoplay carousel (full width, 50vh height) -->
-      <div
-        class="mt-10 w-full"
-        style="height: 50vh"
-      >
-        <simple-auto-carousel
-          class="w-full h-full block"
-          [slides]="servicesSlides"
-          [options]="servicesCarouselOptions"
-        ></simple-auto-carousel>
-      </div>
+    <h2
+      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center mb-10"
+    >
+      Servicios integrales
+    </h2>
+    <!-- Services integrales autoplay carousel (full width, 50vh height) -->
+    <div
+      class="w-full"
+      style="height: 50vh"
+    >
+      <simple-auto-carousel
+        class="w-full h-full block"
+        [slides]="servicesSlides"
+        [options]="servicesCarouselOptions"
+      ></simple-auto-carousel>
     </div>
   </section>
   <!-- Proyectos section (same heading style, plain background, full viewport height) -->
   <section
     id="proyectos"
-    class="w-full flex items-center justify-center scroll-mt-28"
-    style="height: 100vh"
+    class="w-full flex items-center justify-center scroll-mt-28 min-h-screen py-12 md:py-0"
   >
-    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
+    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
       <h2
         class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center"
       >
         Proyectos
       </h2>
       <!-- Three project cards row -->
-      <div class="mt-12 flex justify-center gap-8">
+      <div class="mt-12 flex flex-col md:flex-row justify-center items-center gap-8">
         <ng-container *ngFor="let p of projects; let i = index">
           <div
-            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden fade-in-section"
+            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden fade-in-section w-full max-w-md md:w-[420px] h-auto"
             #fadeInElement
-            [class.h-[520px]]="i === 1"
-            [class.h-[400px]]="i !== 1"
-            style="width: 340px"
-          >
-            <div
-            class="relative group cursor-pointer w-full"
             [ngClass]="{
-              'md:col-span-2 md:row-span-2': i === 1,
-              'h-[300px] md:h-full': i === 1,
-              'h-[300px]': i !== 1
+              'md:h-[640px]': i === 1,
+              'md:h-[500px]': i !== 1
+            }"
+          >
+            <!-- Year and Type labels (above image) -->
+            <div class="w-full flex justify-between items-center  pt-4 pb-2">
+              <span class="text-sm font-light text-black">{{ p.year }}</span>
+              <span class="text-sm font-light text-black">{{ p.type }}</span>
+            </div>
+            
+            <div
+            class="relative group cursor-pointer w-full h-[350px]"
+            [ngClass]="{
+              'md:h-[520px]': i === 1,
+              'md:h-[380px]': i !== 1
             }"
             (mouseenter)="i === 1 ? (revealImageProgress = 1) : null"
             (mouseleave)="i === 1 ? (revealImageProgress = 0) : null"
@@ -430,7 +521,9 @@
 </section>
 
 <!-- White Divider -->
-<div class="w-full h-px bg-white"></div>
+<div class="w-full bg-black">
+  <div class="w-[85%] h-px bg-white mx-auto"></div>
+</div>
 
 <!-- Contactanos Section -->
 <div id="contacto" class="scroll-mt-28">
