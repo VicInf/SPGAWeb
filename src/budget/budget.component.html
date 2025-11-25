@@ -181,7 +181,7 @@
   </div>
 
   <main class="pt-28 pb-16 px-4 sm:px-6 lg:px-8">
-    <section class="max-w-2xl mx-auto">
+    <section *ngIf="!showSuccess()" class="max-w-2xl mx-auto">
       <h1
         class="text-5xl sm:text-6xl font-canela-deck font-light mb-16 text-center"
       >
@@ -426,6 +426,38 @@
         </div>
       </form>
     </section>
+
+    <!-- Success Section (Inline) -->
+    <section *ngIf="showSuccess()" class="max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in">
+      <!-- Checkmark Icon -->
+      <div class="mb-8">
+        <img
+          src="assets/svgs/STROKED.svg"
+          alt="Success"
+          class="w-20 h-20 mx-auto"
+        />
+      </div>
+
+      <h2 class="text-5xl sm:text-6xl md:text-7xl font-canela-deck font-light mb-8 text-black">
+        Recibimos tu solicitud
+      </h2>
+
+      <div class="text-base sm:text-lg font-light text-black/80 max-w-3xl mx-auto leading-relaxed">
+        <p class="mb-2">
+          Gracias por tu interés, pronto nos pondremos en contacto con la información solicitada.
+        </p>
+        <p>
+          Si deseas comunicarte con nosotros, también puedes contactarnos por
+          <a
+            href="https://wa.me/5800000000"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-black transition"
+            >Whatsapp.</a
+          >
+        </p>
+      </div>
+    </section>
   </main>
 
   <section id="budget-contact" class="bg-black">
@@ -439,4 +471,6 @@
       devCredit="Vicente Perez"
     ></contactanos-section>
   </section>
+  
+
 </div>

@@ -289,6 +289,7 @@
               </p>
               <div class="flex items-center gap-4 mt-auto pb-6">
                 <button
+                  (click)="openCarousel(p)"
                   class="flex-1 bg-black text-white py-3 text-sm uppercase tracking-wide hover:opacity-85 transition"
                 >
                   Ver proyecto
@@ -313,6 +314,16 @@
       </div>
     </div>
   </section>
+
+  <project-carousel
+    *ngIf="isCarouselOpen && selectedProject"
+    [images]="selectedProject.images"
+    [title]="selectedProject.title"
+    [year]="selectedProject.year"
+    [type]="selectedProject.type"
+    [services]="selectedProject.services"
+    (close)="closeCarousel()"
+  ></project-carousel>
 </div>
 <!-- Fullscreen 3D model overlay -->
 <div

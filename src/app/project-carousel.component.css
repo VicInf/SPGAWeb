@@ -1,0 +1,186 @@
+:host {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background-color: #0a0a0a; /* Dark background */
+  color: white;
+  font-family: 'Inter', sans-serif; /* Assuming Inter or similar sans-serif */
+}
+
+.carousel-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  z-index: 110;
+  padding: 0.5rem;
+}
+
+.close-btn svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1;
+}
+
+/* Main Content Area (Image) */
+.main-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-wrapper {
+  position: relative;
+  max-width: 100%;
+  max-height: 80vh; /* Leave space for footer */
+  width: auto;
+  height: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.main-image {
+  max-width: 100%;
+  max-height: 70vh; /* Adjust based on footer height */
+  object-fit: contain;
+  display: block;
+}
+
+/* Blue border effect from image (optional, but looks like it's in the design) */
+.image-border {
+  position: absolute;
+  inset: -2px;
+  border: 2px solid #007bff; /* Example blue */
+  pointer-events: none;
+  display: none; /* Hidden by default unless requested, image shows a blue border? actually it looks like a selection or just the design. Let's add a subtle border if needed or skip. The user said "like the one from the image". The blue border in the screenshot looks like a selection box, maybe from the screenshot tool itself? I will skip the blue border for now as it looks like a screenshot artifact. */
+}
+
+
+/* Footer / Controls Area */
+.footer {
+  height: 120px; /* Fixed height for controls */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3rem;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: transparent; /* Or gradient if needed */
+}
+
+/* Left: Title | Year */
+.project-info-left {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+  width: 300px; /* Fixed width to avoid layout shifts */
+}
+
+.project-title {
+  font-weight: 500;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  opacity: 0.5;
+}
+
+.project-year {
+  font-weight: 300;
+}
+
+/* Center: Navigation */
+.navigation-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1;
+}
+
+.counter {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  min-width: 3rem;
+  text-align: center;
+}
+
+/* Right: Services */
+.project-info-right {
+  font-family: 'Canela Deck', serif; /* Matching the site's serif font */
+  font-weight: 300;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: right;
+  width: 300px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: column;
+    height: auto;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    bottom: 0;
+    background: #0a0a0a;
+  }
+
+  .project-info-left, .project-info-right {
+    width: 100%;
+    text-align: center;
+  }
+
+  .main-image {
+    max-height: 50vh;
+  }
+  
+  .navigation-controls {
+    order: -1; /* Controls on top of text on mobile? Or keep in middle. Let's keep order. */
+  }
+}

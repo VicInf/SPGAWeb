@@ -40,6 +40,7 @@ export class BudgetComponent {
   constructor(private router: Router) {}
 
   readonly mobileMenuOpen = signal(false);
+  readonly showSuccess = signal(false);
 
   toggleMobileMenu() {
     this.mobileMenuOpen.update(v => !v);
@@ -287,8 +288,12 @@ export class BudgetComponent {
       .then((response) => {
         if (response.ok) {
           console.log('Email sent successfully!');
-          this.showToast('¡Gracias! Tu solicitud de presupuesto ha sido enviada exitosamente.', 'success');
+          this.removeToast();
+          this.showSuccess.set(true);
           this.resetForm();
+          if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
           return Promise.resolve();
         } else {
           return response.text().then(text => {
@@ -442,6 +447,14 @@ export class BudgetComponent {
       setTimeout(() => toast.remove(), 300);
     }, 4000);
   }
+
+  private removeToast() {
+    if (typeof document === 'undefined') return;
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) {
+      existingToast.remove();
+    }
+  }
   
   private collectFormData() {
     const selections = this.selections();
@@ -574,4 +587,10 @@ Enviado desde: SPGA Web - Formulario de Presupuesto
     if (!target) return;
     this.updateInput(questionId, inputId, target.value);
   }
+
+  closeSuccess() {
+    this.showSuccess.set(false);
+    this.router.navigate(['/']);
+  }
+
 }

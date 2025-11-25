@@ -14,6 +14,7 @@ import {
 } from '../app/simple-auto-carousel.component';
 import { RevealImageComponent } from '../app/reveal-image.component';
 import { ContactanosComponent } from '../app/contactanos.component';
+import { ProjectCarouselComponent } from '../app/project-carousel.component';
 
 @Component({
   selector: 'home-page',
@@ -25,6 +26,7 @@ import { ContactanosComponent } from '../app/contactanos.component';
     SimpleAutoCarouselComponent,
     RevealImageComponent,
     ContactanosComponent,
+    ProjectCarouselComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
@@ -48,25 +50,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   slides: OwlCarouselSlide[] = [
     {
-      src: 'assets/pictures/first-image.png',
+      src: 'assets/pictures/piscina.png',
       alt: 'Slide 1',
       title: 'DISEÑO',
       subtitle: 'residencial',
     },
     {
-      src: 'assets/pictures/piscina.png',
+      src: 'assets/pictures/piscina-1.png',
       alt: 'Slide 2',
       title: 'DISEÑO',
       subtitle: 'comercial',
     },
     {
-      src: 'assets/pictures/first-image.png',
+      src: 'assets/pictures/piscina-2.png',
       alt: 'Slide 3',
       title: 'DISEÑO',
       subtitle: 'corporativo',
     },
     {
-      src: 'assets/pictures/piscina.png',
+      src: 'assets/pictures/piscina-3.png',
       alt: 'Slide 4',
       title: 'DISEÑO',
       subtitle: 'visualización 3D',
@@ -197,34 +199,61 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     subtitle: string;
     hasModel?: boolean;
     image: string;
+    images: string[]; // Added for carousel
     year: string;
     type: string;
+    services?: string; // Added for carousel details
   }> = [
     {
       title: 'Casa Horizonte',
       subtitle: 'Residencial costera',
       hasModel: true,
       image: 'assets/pictures/first-image.png',
+      images: [
+        'assets/pictures/first-image.png',
+        'assets/pictures/piscina.png',
+        'assets/pictures/first-image.png',
+        'assets/pictures/piscina.png',
+        'assets/pictures/first-image.png'
+      ],
       year: '2024',
       type: 'Residencial',
+      services: 'Diseño arquitectónico, interiorismo, supervisión de obra'
     },
     {
       title: 'Torre Central',
       subtitle: 'Edificio corporativo',
       hasModel: false,
       image: 'assets/pictures/piscina.png',
+      images: [
+        'assets/pictures/piscina.png',
+        'assets/pictures/first-image.png',
+        'assets/pictures/piscina.png'
+      ],
       year: '2023',
       type: 'Comercial',
+      services: 'Diseño arquitectónico, visualización 3D'
     },
     {
       title: 'Jardín Interior',
       subtitle: 'Espacio verde privado',
       hasModel: true,
       image: 'assets/pictures/first-image.png',
+      images: [
+        'assets/pictures/first-image.png',
+        'assets/pictures/piscina.png',
+        'assets/pictures/first-image.png',
+        'assets/pictures/piscina.png'
+      ],
       year: '2024',
       type: 'Residencial',
+      services: 'Paisajismo, diseño de exteriores'
     },
   ];
+
+  // Carousel State
+  isCarouselOpen = false;
+  selectedProject: any = null;
 
   // Reveal image external text animation progress (0 full size, 1 fully shrunk)
   revealImageProgress: number = 0;
@@ -341,9 +370,22 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   onKey(event: KeyboardEvent) {
-    if (event.key === 'Escape' && this.showModel) {
-      this.closeModel();
+    if (event.key === 'Escape') {
+      if (this.showModel) this.closeModel();
+      if (this.isCarouselOpen) this.closeCarousel();
     }
+  }
+
+  openCarousel(project: any) {
+    this.selectedProject = project;
+    this.isCarouselOpen = true;
+    this.lockBodyScroll();
+  }
+
+  closeCarousel() {
+    this.isCarouselOpen = false;
+    this.selectedProject = null;
+    this.unlockBodyScroll();
   }
 
   onRevealImageProgress(p: number) {
