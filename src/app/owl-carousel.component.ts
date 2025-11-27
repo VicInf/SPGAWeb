@@ -750,6 +750,11 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       if (newProgress >= 1 - epsilon) {
         this.revealScaleCurrent = endScale;
         this.scaledUp = true;
+        // NOW we can set the lock - component is fully grown and must be fully visible
+        if (this.lockScrollY == null) {
+          this.lockScrollY = window.scrollY;
+          this.applyScrollLock();
+        }
       }
       this.cdr.markForCheck();
       return;

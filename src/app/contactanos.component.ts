@@ -4,6 +4,9 @@ import {
   ChangeDetectionStrategy,
   Inject,
   PLATFORM_ID,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 
@@ -24,13 +27,16 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
           <!-- Video -->
           <div class="relative h-64 md:h-40 lg:h-48 overflow-hidden rounded-lg">
             <video
+              #videoElement
               *ngIf="isBrowser"
               [src]="videoSrc"
               autoplay
               loop
               muted
               playsinline
+              preload="auto"
               class="h-full w-full object-cover"
+              (error)="onVideoError()"
             >
               Your browser does not support the video tag.
             </video>
@@ -115,7 +121,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ContactanosComponent {
+export class ContactanosComponent implements AfterViewInit {
+  @ViewChild('videoElement') videoElement?: ElementRef<HTMLVideoElement>;
   @Input() logoSrc: string = '/assets/svgs/SPGA.svg';
   @Input() videoSrc: string = '';
   @Input() fallbackImageSrc: string = '';
@@ -129,6 +136,28 @@ export class ContactanosComponent {
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
+  }
+
+  ngAfterViewInit(): void {
+    // Ensure video plays after view initialization
+    if (this.isBrowser && this.videoElement) {
+      const video = this.videoElement.nativeElement;
+      // Attempt to play, catching any promise rejection
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn('Video autoplay failed, will retry:', error);
+          // Retry after a short delay
+          setTimeout(() => {
+            video.play().catch((e) => console.error('Video play retry failed:', e));
+          }, 100);
+        });
+      }
+    }
+  }
+
+  onVideoError(): void {
+    console.error('Video failed to load, checking src:', this.videoSrc);
   }
 
   getWhatsAppUrl(): string {
