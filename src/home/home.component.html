@@ -1,9 +1,19 @@
 <div class="w-full overflow-x-hidden">
-  <header class="bg-black text-white fixed w-full" style="z-index: 50">
-    <div class="h-20">
+  <header 
+    #header
+    class="text-white fixed w-full transition-all duration-500" 
+    style="z-index: 50;">
+    <div 
+      #headerBg
+      class="absolute inset-0 bg-black transition-opacity duration-500"
+      style="opacity: 0;"
+    ></div>
+    <div class="h-20 relative z-10">
       <!-- Left: Logo -->
       <div
-        class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center"
+        #headerLogo
+        class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center transition-opacity duration-500"
+        style="opacity: 0;"
       >
         <div class="flex items-center gap-2 sm:gap-3">
           <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 sm:h-10 w-auto" />
@@ -179,6 +189,25 @@
           alt="Hero image"
           class="w-full h-full object-cover"
         />
+        
+        <!-- Hero Logo - Top Left (will transition to header) -->
+        <div 
+          #heroLogo
+          class="absolute top-12 left-12 z-10 text-white transition-all duration-700 ease-out"
+          style="transform-origin: top left;"
+        >
+          <div class="flex flex-col items-start gap-4">
+            <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-56 sm:h-72 md:h-80 w-auto drop-shadow-2xl" />
+            <span 
+              #heroText
+              class="text-2xl sm:text-3xl font-canela-deck font-light tracking-wide drop-shadow-lg transition-opacity duration-300"
+            >
+              Arquitectura
+              <span style="font-style: italic; font-weight: 100" class="mx-2">&amp;</span>
+              Interiorismo
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   </main>

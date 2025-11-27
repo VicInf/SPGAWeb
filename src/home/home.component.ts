@@ -1,4 +1,4 @@
-import { Component, signal, AfterViewInit, OnDestroy, ElementRef, ViewChildren, QueryList, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, signal, AfterViewInit, OnDestroy, ElementRef, ViewChildren, ViewChild, QueryList, Inject, PLATFORM_ID, HostListener, Renderer2 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -35,6 +35,79 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly title = signal('spga-group');
   protected readonly mobileMenuOpen = signal(false);
   private observer: IntersectionObserver | null = null;
+
+  @ViewChild('header') header!: ElementRef;
+  @ViewChild('heroLogo') heroLogo!: ElementRef;
+  @ViewChild('heroText') heroText!: ElementRef;
+  @ViewChild('headerBg') headerBg!: ElementRef;
+  @ViewChild('headerLogo') headerLogo!: ElementRef;
+
+  constructor(
+    private sanitizer: DomSanitizer, 
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private renderer: Renderer2
+  ) {
+    this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY'
+    );
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
+    const scrollY = window.scrollY;
+    const windowHeight = window.innerHeight;
+    
+    // Calculate progress: 0 at top, 1 when scrolled much less (faster transition)
+    // Changed to 0.125 for very fast scaling
+    const progress = Math.min(scrollY / (windowHeight * 0.125), 1);
+    
+    // Animate hero logo - smooth transition to header size/position
+    if (this.heroLogo) {
+      // Scale down from large (h-56/h-72/h-80) to header size (h-8/h-10)
+      // From ~224-320px down to ~32-40px = scale to about 0.12-0.15
+      const scale = 1 - (progress * 0.87); // Shrinks to ~13% of original
+      
+      // Move to align with header logo position (left side of header)
+      // Header logo is at left-2 sm:left-4 lg:left-8, hero starts at left-12
+      // Need to move left (negative X) and up (negative Y)
+      const translateX = progress * -30; // Move left to header position
+      const translateY = progress * -40; // Move up to header vertical center
+      
+      // Fade out as it approaches header position
+      const opacity = 1 - (progress * 1); // Complete fade out
+      
+      this.renderer.setStyle(
+        this.heroLogo.nativeElement, 
+        'transform', 
+        `scale(${scale}) translate(${translateX}px, ${translateY}px)`
+      );
+      this.renderer.setStyle(this.heroLogo.nativeElement, 'opacity', opacity);
+    }
+    
+    // Fade out hero text early (at 20% progress)
+    if (this.heroText) {
+      const textOpacity = progress < 0.2 ? 1 - (progress / 0.2) : 0;
+      this.renderer.setStyle(this.heroText.nativeElement, 'opacity', textOpacity);
+    }
+    
+    // Fade in header logo when animation completes (at 100% progress)
+    if (this.headerLogo) {
+      const headerOpacity = progress >= 1 ? 1 : 0;
+      this.renderer.setStyle(this.headerLogo.nativeElement, 'opacity', headerOpacity);
+    }
+    
+    // Fade in header background when reaching second section (80%+)
+    if (this.headerBg) {
+      if (scrollY > windowHeight * 0.8) {
+        const bgProgress = Math.min((scrollY - windowHeight * 0.8) / (windowHeight * 0.2), 1);
+        this.headerBg.nativeElement.style.opacity = bgProgress;
+      } else {
+        this.headerBg.nativeElement.style.opacity = '0';
+      }
+    }
+  }
 
   toggleMobileMenu() {
     this.mobileMenuOpen.update(v => !v);
@@ -262,15 +335,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   loadingModel: boolean = false;
   modelError: string | null = null;
   showModel = false;
-  private modelUrl =
-    'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY';
   safeModelUrl: SafeResourceUrl;
 
-  constructor(private sanitizer: DomSanitizer, @Inject(PLATFORM_ID) private platformId: Object) {
-    this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      this.modelUrl
-    );
-  }
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {

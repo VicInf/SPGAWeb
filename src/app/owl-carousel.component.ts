@@ -193,6 +193,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   private growthStarted = false; // anchor established and growth active
   private lockScrollY: number | null = null; // capture page scroll when locking
   private scaledUp = false; // reached full scale once
+  private isShrinking = false; // true while actively shrinking
   get revealTransform() {
     if (this.options.revealScrollDriven) {
       return `scale(${this.revealScaleCurrent})`;
@@ -298,10 +299,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       // Initialize scaling phase (start at configured start scale)
       requestAnimationFrame(() => {
         this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
-        this.scalingPhaseActive = true;
+        this.scalingPhaseActive = false; // Disable auto-scaling, use wheel control only
+        this.scaledUp = false; // Start unscaled
         this.cdr.markForCheck();
-        // First evaluation in case it's already fully visible
-        this.updateRevealGrowth();
+        // Don't call updateRevealGrowth - we use wheel-based scaling exclusively
       });
     } else if (this.options.revealOnEnter) {
       requestAnimationFrame(() => this.setupReveal());
@@ -367,7 +368,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       revealScrollDriven: true,
       revealScrollDistance: 500,
       revealVisibilityThreshold: 1,
-      revealAutoAfterFull: true,
+      revealAutoAfterFull: false,
       ...this.options,
     };
     this.transitionMs = this.options.transitionSpeed || 400;
@@ -415,7 +416,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       }
     }
 
-    if (this.options.revealScrollDriven) this.updateRevealGrowth();
+    // Disabled scroll-driven growth to use wheel-based scaling exclusively
+    // if (this.options.revealScrollDriven) this.updateRevealGrowth();
   }
 
   private getItemsPerView(): number {
@@ -593,6 +595,9 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   // Drag / Pointer
   onPointerDown(e: PointerEvent) {
     if (e.button !== 0) return;
+    // Prevent interaction while scaling
+    if (!this.scaledUp) return;
+    
     this.pointerActive = true;
     this.hasDragged = false;
     this.dragStartX = e.clientX;
@@ -656,6 +661,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     const atFirst = this.currentIndex === 0;
 
     if (!this.options.wheelControl || !count) return;
+
     if (!fullyVisible) {
       // Release any lock if leaving full visibility
       this.lockScrollY = null;
@@ -667,43 +673,93 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     const totalSpan = endScale - startScale;
     const currentProgress = (this.revealScaleCurrent - startScale) / totalSpan; // 0..1
 
-    // Shrink only if at first slide, scaledUp and scrolling up
+    // Prevent scaling while transitioning between slides
+    if (this.wheelAnimating) {
+      event.preventDefault();
+      return;
+    }
+
+    // If at minimum scale and scrolling up, allow page scroll to continue
     if (
       atFirst &&
-      this.scaledUp &&
       delta < 0 &&
-      this.revealScaleCurrent > startScale + epsilon
+      this.revealScaleCurrent <= startScale + epsilon
     ) {
+      this.releaseScrollLock(false);
+      this.lockScrollY = null;
+      this.boundaryPushAccumulator = 0;
+      return; // Allow page scroll
+    }
+
+    // Bidirectional scaling: Allow growing/shrinking at any point when at first slide
+    // Shrink when scrolling up AND we're above minimum scale
+    // AND we have negative momentum (explicitly trying to go back past start)
+    // Using -20 buffer to prevent accidental shrinking when wobbling near 0
+    if (
+      atFirst &&
+      delta < 0 &&
+      this.revealScaleCurrent > startScale + epsilon &&
+      (this.isShrinking || this.wheelAccumulator < -20)
+    ) {
+      // Reset accumulator and snap to center to prevent "space" or gaps while shrinking
+      if (this.wheelAccumulator !== 0) {
+        this.wheelAccumulator = 0;
+        this.updateStageTransform(false);
+      }
+      
       if (this.lockScrollY == null) {
         this.lockScrollY = window.scrollY;
         this.applyScrollLock();
       }
       event.preventDefault();
-      // Don't enforce position during shrink phase - let it stay where it is
-      const deltaProgress = Math.abs(delta) / distance; // linear
+      this.isShrinking = true;
+      const deltaProgress = Math.abs(delta) / distance;
       let newProgress = currentProgress - deltaProgress;
       if (newProgress < 0) newProgress = 0;
       this.revealScaleCurrent = startScale + totalSpan * newProgress;
       if (newProgress <= 0 + epsilon) {
         this.revealScaleCurrent = startScale;
         this.scaledUp = false;
-        // release lock so further upward scroll scrolls page
-        this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
+        this.isShrinking = false;
+        this.releaseScrollLock(false);
         this.lockScrollY = null;
       }
       this.cdr.markForCheck();
       return;
     }
 
-    // If not fully scaled (initial entrance or after shrink) grow BEFORE slide navigation
-    if (!this.scaledUp) {
+    // Grow when scrolling down AND we're below maximum scale
+    if (
+      atFirst &&
+      delta > 0 &&
+      this.revealScaleCurrent < endScale - epsilon
+    ) {
+      if (this.lockScrollY == null) {
+        this.lockScrollY = window.scrollY;
+        this.applyScrollLock();
+      }
+      event.preventDefault();
+      this.isShrinking = false;
+      const deltaProgress = Math.abs(delta) / distance;
+      let newProgress = currentProgress + deltaProgress;
+      if (newProgress > 1) newProgress = 1;
+      this.revealScaleCurrent = startScale + totalSpan * newProgress;
+      if (newProgress >= 1 - epsilon) {
+        this.revealScaleCurrent = endScale;
+        this.scaledUp = true;
+      }
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // If not at first slide and not fully scaled, only allow growing
+    if (!atFirst && !this.scaledUp) {
       if (delta > 0 && this.revealScaleCurrent < endScale - epsilon) {
         if (this.lockScrollY == null) {
           this.lockScrollY = window.scrollY;
           this.applyScrollLock();
         }
         event.preventDefault();
-        // Don't enforce position during grow phase - let it stay where it is
         const deltaProgress = Math.abs(delta) / distance;
         let newProgress = currentProgress + deltaProgress;
         if (newProgress > 1) newProgress = 1;
@@ -756,7 +812,9 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     }
     event.preventDefault();
     // No need to enforce position - position: fixed on body prevents scrolling
-    if (this.wheelAnimating) return; // keep lock but ignore until animation done
+    
+    // Prevent slide navigation while scaling
+    if (this.wheelAnimating || !this.scaledUp || this.isShrinking) return;
 
     const threshold = this.options.wheelThreshold || 280;
     const slideSpan = this.itemWidth + this.itemMargin;
