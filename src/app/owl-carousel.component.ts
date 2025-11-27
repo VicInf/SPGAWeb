@@ -404,15 +404,11 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (this.lockScrollY !== null && this.scaledUp) {
       const vp = this.viewportRef?.nativeElement;
       if (vp) {
-        const rect = vp.getBoundingClientRect();
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const fullyVisible = rect.top >= 0 && rect.bottom <= vh;
-
-        // Release lock if carousel is no longer fully visible
-        if (!fullyVisible) {
-          this.lockScrollY = null;
-          this.releaseScrollLock();
-        }
+        // Sticky Lock: We DO NOT release the lock here based on visibility.
+        // The lock is now "sticky" and will only be released by explicit logic
+        // in onWheel (shrinking or end of slides).
+        // This ensures that if the user scrolls up and pushes the component
+        // partially out of view, we still hold the lock.
       }
     }
 
@@ -662,8 +658,15 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
     if (!this.options.wheelControl || !count) return;
 
-    if (!fullyVisible) {
-      // Release any lock if leaving full visibility
+    // Sticky Lock Logic:
+    // If we already have the lock (lockScrollY != null) AND we are fully grown (scaledUp),
+    // we bypass the visibility check.
+    // This allows the interaction to continue even if the component is pushed slightly out of view,
+    // BUT only if we have finished the initial growth phase.
+    const isSticky = this.lockScrollY !== null && this.scaledUp;
+
+    if (!isSticky && !fullyVisible) {
+      // Release any lock if leaving full visibility (safety check)
       this.lockScrollY = null;
       this.releaseScrollLock();
       this.boundaryPushAccumulator = 0;
