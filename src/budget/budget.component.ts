@@ -3,6 +3,7 @@ import { Component, signal, WritableSignal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContactanosComponent } from '../app/contactanos.component';
 import emailjs from '@emailjs/browser';
+import { environment } from '../environments/environment';
 
 interface BudgetOption {
   label: string;
@@ -255,16 +256,16 @@ export class BudgetComponent {
     const emailMessage = this.formatEmailMessage(formData);
     
     // EmailJS configuration
-    const serviceID = 'service_tqqedyl';
-    const publicKey = 'hQlNCuG7N4s5xQUHt';
+    const serviceID = environment.emailjs.serviceID;
+    const publicKey = environment.emailjs.publicKey;
     
     // Prepare email data for direct API call
     const emailData = {
       service_id: serviceID,
-      template_id: 'template_zyrgwp8',
+      template_id: environment.emailjs.templateID,
       user_id: publicKey,
       template_params: {
-        to_email: 'vicentedev00@gmail.com',
+        to_email: environment.emailjs.toEmail,
         to_name: 'SPGA Group',
         from_name: formData.contactInfo['fullName'] || 'Cliente Potencial',
         from_email: formData.contactInfo['email'] || 'no-reply@spga.com',
@@ -303,7 +304,7 @@ export class BudgetComponent {
       })
       .catch((error) => {
         console.error('Failed to send email:', error);
-        this.showToast('Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a vicentedev00@gmail.com', 'error');
+        this.showToast(`Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a ${environment.emailjs.toEmail}`, 'error');
       });
   }
   
