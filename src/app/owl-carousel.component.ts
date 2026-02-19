@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
   Inject,
   PLATFORM_ID,
+  NgZone,
 } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -174,10 +175,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   announceMessage = '';
   private clonesPerSide = 0;
   private stageIndex = 0;
+  private boundWheelHandler: ((ev: WheelEvent) => void) | null = null;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
@@ -309,11 +312,24 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     } else {
       this.revealActive = true; // immediate
     }
+
+    // CRITICAL: Register wheel listener with { passive: false } so preventDefault() works.
+    // Angular @HostListener does NOT support passive: false, and Chrome 73+ defaults
+    // window-level wheel listeners to passive, silently ignoring preventDefault().
+    this.boundWheelHandler = this.onWheel.bind(this);
+    this.ngZone.runOutsideAngular(() => {
+      window.addEventListener('wheel', this.boundWheelHandler!, { passive: false });
+    });
   }
 
   ngOnDestroy(): void {
     this.stopAutoplay();
     this.releaseScrollLock();
+    // Clean up the manual wheel listener
+    if (this.boundWheelHandler) {
+      window.removeEventListener('wheel', this.boundWheelHandler);
+      this.boundWheelHandler = null;
+    }
   }
 
   private applyScrollLock() {
@@ -638,9 +654,15 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   // Global wheel handling: symmetric grow/shrink to/from start scale regardless of cursor hover
-  @HostListener('window:wheel', ['$event'])
-  onWheel(event: WheelEvent) {
+  // NOTE: This is now registered manually in ngAfterViewInit with { passive: false }
+  // instead of @HostListener, so preventDefault() works in Chrome 73+.
+  private onWheel(event: WheelEvent) {
     if (!this.isBrowser) return; // SSR safety
+    // Re-enter Angular zone so that state changes trigger change detection
+    this.ngZone.run(() => this.handleWheel(event));
+  }
+
+  private handleWheel(event: WheelEvent) {
     const vp = this.viewportRef?.nativeElement;
     let fullyVisible = false;
     if (vp) {
@@ -826,7 +848,20 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
     const threshold = this.options.wheelThreshold || 280;
     const slideSpan = this.itemWidth + this.itemMargin;
-    this.baseOffsetForWheel = -this.stageIndex * slideSpan;
+
+    // On direction reversal, reset accumulator from current visual position
+    if ((this.wheelAccumulator > 0 && delta < 0) || (this.wheelAccumulator < 0 && delta > 0)) {
+      this.wheelAccumulator = 0;
+      this.baseOffsetForWheel = this.getCurrentStageOffset();
+    }
+
+    // Only set base offset at start of a new accumulation cycle
+    if (this.wheelAccumulator === 0) {
+      this.baseOffsetForWheel = this.getCurrentStageOffset();
+    }
+
+    // Cancel any in-flight JS animation so it doesn't fight with wheel positioning
+    this.activeAnimation = null;
 
     // Process slide navigation
     this.wheelAccumulator += delta;
@@ -837,8 +872,9 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     const fraction = clamped / threshold;
     if (Math.abs(fraction) < 1) {
       const offset = this.baseOffsetForWheel - fraction * slideSpan;
-      this.stageTransition = '';
+      this.stageTransition = 'none';
       this.stageTransform = `translate3d(${offset}px,0,0)`;
+      this.cdr.markForCheck();
     }
     if (clamped >= threshold) {
       this.goTo(this.currentIndex + 1);

@@ -35,6 +35,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   protected readonly title = signal('spga-group');
   protected readonly mobileMenuOpen = signal(false);
   private observer: IntersectionObserver | null = null;
+  protected aboutUsBgColor = '#e0ddcb';
+  private readonly startColor = '#e0ddcb';
+  private readonly endColor = '#000000';
 
   @ViewChild('header') header!: ElementRef;
   @ViewChild('heroLogo') heroLogo!: ElementRef;
@@ -107,6 +110,39 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         this.headerBg.nativeElement.style.opacity = '0';
       }
     }
+
+    // Scroll-controlled background transition for About Us section
+    if (this.fadeInBackgrounds) {
+      const aboutUsSection = this.fadeInBackgrounds.find(el => el.nativeElement.id === 'sobre-nosotros');
+      if (aboutUsSection) {
+        const rect = aboutUsSection.nativeElement.getBoundingClientRect();
+        // Calculate progress: starts when top enters viewport, fully black when 50% through
+        // rect.top starts at windowHeight and goes down.
+        // We want 0 progress when rect.top = windowHeight
+        // and 1 progress when rect.top = windowHeight - (rect.height * 0.5)
+        const totalDistance = rect.height * 0.5;
+        const currentDistance = windowHeight - rect.top;
+        const bgProgress = Math.min(Math.max(currentDistance / totalDistance, 0), 1);
+        
+        this.aboutUsBgColor = this.interpolateColor(this.startColor, this.endColor, bgProgress);
+      }
+    }
+  }
+
+  private interpolateColor(color1: string, color2: string, progress: number): string {
+    const r1 = parseInt(color1.substring(1, 3), 16);
+    const g1 = parseInt(color1.substring(3, 5), 16);
+    const b1 = parseInt(color1.substring(5, 7), 16);
+
+    const r2 = parseInt(color2.substring(1, 3), 16);
+    const g2 = parseInt(color2.substring(3, 5), 16);
+    const b2 = parseInt(color2.substring(5, 7), 16);
+
+    const r = Math.round(r1 + (r2 - r1) * progress);
+    const g = Math.round(g1 + (g2 - g1) * progress);
+    const b = Math.round(b1 + (b2 - b1) * progress);
+
+    return `rgb(${r}, ${g}, ${b})`;
   }
 
   toggleMobileMenu() {

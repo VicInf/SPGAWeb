@@ -512,7 +512,8 @@
 <!-- New black 100vh section with image left and texts right -->
 <section
   id="sobre-nosotros"
-  class="w-full bg-black py-16 md:py-20 lg:py-24 scroll-mt-28 fade-background-section"
+  [style.background-color]="aboutUsBgColor"
+  class="w-full py-16 md:py-20 lg:py-24 scroll-mt-28 fade-background-section"
   #fadeInBackground
 >
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section" #fadeInElement>

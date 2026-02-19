@@ -67,11 +67,5 @@ owl-carousel {
 
 /* Background fade animation */
 .fade-background-section {
-  background-color: transparent; /* Start transparent to show previous section color/white */
-  transition: background-color 1s ease-out;
-  will-change: background-color;
-}
-
-.fade-background-section.is-visible {
-  background-color: #000;
+  background-color: #e0ddcb; /* Initial color matching previous section */
 }
