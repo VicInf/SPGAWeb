@@ -64,7 +64,7 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   // Now reversed: start at full scale (endScale) and shrink toward minScale
   @Input() endScale: number = 1; // full size initial
   @Input() minScale: number = 0.3; // smallest allowed scale when scrolling down (was startScale concept)
-  @Input() scrollDistance: number = 500; // px required while fully visible to reach full scale
+  @Input() scrollDistance: number = 250; // px required while fully visible to reach full scale
   @Input() autoAfterFull: boolean = true; // mimic owl revealAutoAfterFull
   @Input() shrinkWithScale: boolean = true; // enable shrinking host height
   // When true, move the image upward as it shrinks. Value is how many viewport
@@ -84,6 +84,7 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   private isBrowser = false;
   private lockScrollY: number | null = null; // scrollY when lock was acquired (same pattern as owl-carousel)
   private midScale = false; // true once we've started moving away from initial extreme
+  private hasEngagedOnce = false; // true after first successful engagement
   transform = 'scale(1)';
   private currentScale = this.endScale;
   // UI content animation state
@@ -159,7 +160,17 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
     const elHeight = rect.height || 1;
     const visiblePx = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
     const fractionVisible = visiblePx / elHeight;
-    const engaged = fractionVisible >= 0.75;
+
+    // Use stricter threshold for first engagement, then relax
+    const threshold = this.hasEngagedOnce
+      ? this.visibilityThreshold
+      : this.startVisibilityThreshold;
+    let engaged = fractionVisible >= threshold;
+
+    // Optional: require element top to be near viewport top
+    if (engaged && !this.hasEngagedOnce && this.requireTopNear > 0) {
+      engaged = rect.top >= 0 && rect.top <= this.requireTopNear;
+    }
 
     const delta = ev.deltaY;
     const span = this.endScale - this.minScale;
@@ -189,6 +200,7 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
       }
       ev.preventDefault();
       this.midScale = true;
+      this.hasEngagedOnce = true;
       this.applyScaleDelta(delta);
       return;
     }
