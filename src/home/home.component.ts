@@ -1,4 +1,17 @@
-import { Component, signal, AfterViewInit, OnDestroy, ElementRef, ViewChildren, ViewChild, QueryList, Inject, PLATFORM_ID, HostListener, Renderer2 } from '@angular/core';
+import {
+  Component,
+  signal,
+  AfterViewInit,
+  OnDestroy,
+  ElementRef,
+  ViewChildren,
+  ViewChild,
+  QueryList,
+  Inject,
+  PLATFORM_ID,
+  HostListener,
+  Renderer2,
+} from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -46,65 +59,76 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('headerLogo') headerLogo!: ElementRef;
 
   constructor(
-    private sanitizer: DomSanitizer, 
+    private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private renderer: Renderer2
+    private renderer: Renderer2,
   ) {
     this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY'
+      'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY',
     );
   }
 
   @HostListener('window:scroll', [])
   onWindowScroll() {
     if (!isPlatformBrowser(this.platformId)) return;
-    
+
     const scrollY = window.scrollY;
     const windowHeight = window.innerHeight;
-    
+
     // Calculate progress: 0 at top, 1 when scrolled much less (faster transition)
     // Changed to 0.125 for very fast scaling
     const progress = Math.min(scrollY / (windowHeight * 0.125), 1);
-    
+
     // Animate hero logo - smooth transition to header size/position
     if (this.heroLogo) {
       // Scale down from large (h-56/h-72/h-80) to header size (h-8/h-10)
       // From ~224-320px down to ~32-40px = scale to about 0.12-0.15
-      const scale = 1 - (progress * 0.87); // Shrinks to ~13% of original
-      
+      const scale = 1 - progress * 0.87; // Shrinks to ~13% of original
+
       // Move to align with header logo position (left side of header)
       // Header logo is at left-2 sm:left-4 lg:left-8, hero starts at left-12
       // Need to move left (negative X) and up (negative Y)
       const translateX = progress * -30; // Move left to header position
       const translateY = progress * -40; // Move up to header vertical center
-      
+
       // Fade out as it approaches header position
-      const opacity = 1 - (progress * 1); // Complete fade out
-      
+      const opacity = 1 - progress * 1; // Complete fade out
+
       this.renderer.setStyle(
-        this.heroLogo.nativeElement, 
-        'transform', 
-        `scale(${scale}) translate(${translateX}px, ${translateY}px)`
+        this.heroLogo.nativeElement,
+        'transform',
+        `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
       );
       this.renderer.setStyle(this.heroLogo.nativeElement, 'opacity', opacity);
     }
-    
+
     // Fade out hero text early (at 20% progress)
     if (this.heroText) {
-      const textOpacity = progress < 0.2 ? 1 - (progress / 0.2) : 0;
-      this.renderer.setStyle(this.heroText.nativeElement, 'opacity', textOpacity);
+      const textOpacity = progress < 0.2 ? 1 - progress / 0.2 : 0;
+      this.renderer.setStyle(
+        this.heroText.nativeElement,
+        'opacity',
+        textOpacity,
+      );
     }
-    
+
     // Fade in header logo when animation completes (at 100% progress)
     if (this.headerLogo) {
       const headerOpacity = progress >= 1 ? 1 : 0;
-      this.renderer.setStyle(this.headerLogo.nativeElement, 'opacity', headerOpacity);
+      this.renderer.setStyle(
+        this.headerLogo.nativeElement,
+        'opacity',
+        headerOpacity,
+      );
     }
-    
+
     // Fade in header background when reaching second section (80%+)
     if (this.headerBg) {
       if (scrollY > windowHeight * 0.8) {
-        const bgProgress = Math.min((scrollY - windowHeight * 0.8) / (windowHeight * 0.2), 1);
+        const bgProgress = Math.min(
+          (scrollY - windowHeight * 0.8) / (windowHeight * 0.2),
+          1,
+        );
         this.headerBg.nativeElement.style.opacity = bgProgress;
       } else {
         this.headerBg.nativeElement.style.opacity = '0';
@@ -113,7 +137,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     // Scroll-controlled background transition for About Us section
     if (this.fadeInBackgrounds) {
-      const aboutUsSection = this.fadeInBackgrounds.find(el => el.nativeElement.id === 'sobre-nosotros');
+      const aboutUsSection = this.fadeInBackgrounds.find(
+        (el) => el.nativeElement.id === 'sobre-nosotros',
+      );
       if (aboutUsSection) {
         const rect = aboutUsSection.nativeElement.getBoundingClientRect();
         // Calculate progress: starts when top enters viewport, fully black when 50% through
@@ -122,14 +148,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         // and 1 progress when rect.top = windowHeight - (rect.height * 0.5)
         const totalDistance = rect.height * 0.5;
         const currentDistance = windowHeight - rect.top;
-        const bgProgress = Math.min(Math.max(currentDistance / totalDistance, 0), 1);
-        
-        this.aboutUsBgColor = this.interpolateColor(this.startColor, this.endColor, bgProgress);
+        const bgProgress = Math.min(
+          Math.max(currentDistance / totalDistance, 0),
+          1,
+        );
+
+        this.aboutUsBgColor = this.interpolateColor(
+          this.startColor,
+          this.endColor,
+          bgProgress,
+        );
       }
     }
   }
 
-  private interpolateColor(color1: string, color2: string, progress: number): string {
+  private interpolateColor(
+    color1: string,
+    color2: string,
+    progress: number,
+  ): string {
     const r1 = parseInt(color1.substring(1, 3), 16);
     const g1 = parseInt(color1.substring(3, 5), 16);
     const b1 = parseInt(color1.substring(5, 7), 16);
@@ -146,14 +183,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleMobileMenu() {
-    this.mobileMenuOpen.update(v => !v);
+    this.mobileMenuOpen.update((v) => !v);
     if (this.mobileMenuOpen()) {
       this.lockBodyScroll();
     } else {
       this.unlockBodyScroll();
     }
   }
-  
+
   @ViewChildren('fadeInElement') fadeInElements!: QueryList<ElementRef>;
   @ViewChildren('fadeInBackground') fadeInBackgrounds!: QueryList<ElementRef>;
 
@@ -193,7 +230,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     autoplayHoverPause: false, // not needed now
     nav: false,
     dots: true, // still using progress bar implementation
-    transitionSpeed: 500,
+    transitionSpeed: 800,
+    wheelThreshold: 400,
     responsive: {
       0: { items: 1 },
       768: { items: 1 },
@@ -246,7 +284,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       src: 'assets/pictures/Servicio.png',
       alt: 'Diseño arquitectónico',
       title: 'Diseño arquitectónico',
-      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
+      description:
+        'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
     {
       src: 'assets/pictures/Servicio-1.png',
@@ -258,31 +297,36 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       src: 'assets/pictures/Servicio-2.png',
       alt: 'Modelado y visualización 3D',
       title: 'Modelado y visualización 3D',
-      description: 'Visualizaciones fotorrealistas para previsualizar cada detalle del proyecto.',
+      description:
+        'Visualizaciones fotorrealistas para previsualizar cada detalle del proyecto.',
     },
     {
       src: 'assets/pictures/Servicio-3.png',
       alt: 'Planificación de proyectos',
       title: 'Planificación de proyectos',
-      description: 'Elaboración de planos y documentos técnicos conforme a normativas.',
+      description:
+        'Elaboración de planos y documentos técnicos conforme a normativas.',
     },
     {
       src: 'assets/pictures/Servicio-4.png',
       alt: 'Supervisión de obras',
       title: 'Supervisión de obras',
-      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
+      description:
+        'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
     {
       src: 'assets/pictures/Servicio-5.png',
       alt: 'Consultoría y asesoramiento',
       title: 'Consultoría y asesoramiento',
-      description: 'Análisis de necesidades y entornos para soluciones efectivas.',
+      description:
+        'Análisis de necesidades y entornos para soluciones efectivas.',
     },
     {
       src: 'assets/pictures/Servicio-6.png',
       alt: 'Capacitaciones y talleres',
       title: 'Capacitaciones y talleres',
-      description: 'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
+      description:
+        'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
   ];
   servicesCarouselOptions: SimpleAutoCarouselOptions = {
@@ -323,11 +367,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         'assets/pictures/piscina.png',
         'assets/pictures/first-image.png',
         'assets/pictures/piscina.png',
-        'assets/pictures/first-image.png'
+        'assets/pictures/first-image.png',
       ],
       year: '2024',
       type: 'Residencial',
-      services: 'Diseño arquitectónico, interiorismo, supervisión de obra'
+      services: 'Diseño arquitectónico, interiorismo, supervisión de obra',
     },
     {
       title: 'Torre Central',
@@ -337,11 +381,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       images: [
         'assets/pictures/piscina.png',
         'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png'
+        'assets/pictures/piscina.png',
       ],
       year: '2023',
       type: 'Comercial',
-      services: 'Diseño arquitectónico, visualización 3D'
+      services: 'Diseño arquitectónico, visualización 3D',
     },
     {
       title: 'Jardín Interior',
@@ -352,11 +396,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         'assets/pictures/first-image.png',
         'assets/pictures/piscina.png',
         'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png'
+        'assets/pictures/piscina.png',
       ],
       year: '2024',
       type: 'Residencial',
-      services: 'Paisajismo, diseño de exteriores'
+      services: 'Paisajismo, diseño de exteriores',
     },
   ];
 
@@ -372,7 +416,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   modelError: string | null = null;
   showModel = false;
   safeModelUrl: SafeResourceUrl;
-
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -393,11 +436,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const options = {
       root: null,
       rootMargin: '0px',
-      threshold: 0.1
+      threshold: 0.1,
     };
 
     this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
           // Optional: Stop observing once visible if you want it to animate only once
@@ -407,18 +450,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     }, options);
 
     // Observe elements found by ViewChildren
-    this.fadeInElements.forEach(el => {
+    this.fadeInElements.forEach((el) => {
       this.observer?.observe(el.nativeElement);
     });
 
-    this.fadeInBackgrounds.forEach(el => {
+    this.fadeInBackgrounds.forEach((el) => {
       this.observer?.observe(el.nativeElement);
     });
 
     // Also observe elements by class name if they are not ViewChildren (e.g. static HTML)
     // This is a fallback/alternative way to grab elements
     const elements = document.querySelectorAll('.fade-in-section');
-    elements.forEach(el => {
+    elements.forEach((el) => {
       this.observer?.observe(el);
     });
   }

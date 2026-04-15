@@ -21,7 +21,7 @@ import { ChangeDetectorRef } from '@angular/core';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="reveal-image-viewport" #vp [style.transform]="transform">
+    <div class="reveal-image-viewport" #vp [style.transform]="transform" [style.transition]="'none'">
       <img
         [src]="src"
         [alt]="alt || 'Featured image'"
@@ -82,22 +82,25 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   // Optional: element top must be within this px distance from viewport top for first interaction (0 disables)
   @Input() requireTopNear: number = 0;
   private isBrowser = false;
-  private lockScrollY: number | null = null; // scrollY when lock was acquired (same pattern as owl-carousel)
-  private midScale = false; // true once we've started moving away from initial extreme
-  private hasEngagedOnce = false; // true after first successful engagement
+  private lockScrollY: number | null = null;
+  private midScale = false;
+  private hasEngagedOnce = false;
   transform = 'scale(1)';
   private currentScale = this.endScale;
   // UI content animation state
-  contentOpacity = 0; // fade in as image shrinks
-  contentTransform = 'translateY(40px)'; // move upward while appearing
+  contentOpacity = 0;
+  contentTransform = 'translateY(40px)';
   // Bound handler reference for cleanup
   private boundWheelHandler: ((ev: WheelEvent) => void) | null = null;
+  // Scale animation (smooth lerp for mouse wheel)
+  private _scaleTarget = this.endScale;
+  private _scaleRafId: number | null = null;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private el: ElementRef<HTMLElement>,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
@@ -118,16 +121,18 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
     // window-level wheel listeners to passive, which silently ignores preventDefault().
     this.boundWheelHandler = this.onWheel.bind(this);
     this.ngZone.runOutsideAngular(() => {
-      window.addEventListener('wheel', this.boundWheelHandler!, { passive: false });
+      window.addEventListener('wheel', this.boundWheelHandler!, {
+        passive: false,
+      });
     });
   }
 
   ngOnDestroy(): void {
-    // Clean up the manual wheel listener
     if (this.boundWheelHandler) {
       window.removeEventListener('wheel', this.boundWheelHandler);
       this.boundWheelHandler = null;
     }
+    this._stopScaleAnimation();
     this.releaseScrollLock();
   }
 
@@ -150,50 +155,49 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   }
 
   private handleWheel(ev: WheelEvent) {
-    const rect = this.el.nativeElement.getBoundingClientRect();
+    const hostRect = this.el.nativeElement.getBoundingClientRect();
     const vh = window.innerHeight || document.documentElement.clientHeight;
 
-    // Fraction-based visibility check.
-    // The strict fullyVisible check (rect.top >= 0 && rect.bottom <= vh) is
-    // IMPOSSIBLE for a 100vh element at scale(1): it requires rect.top === 0.
-    // Instead, check if at least 75% of the element is within the viewport.
-    const elHeight = rect.height || 1;
-    const visiblePx = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+    // ── Raw delta with line-mode normalization ──
+    let delta = ev.deltaY;
+    if (ev.deltaMode === 1) delta *= 16;
+
+    // ── Detect input device ──
+    const isMouse =
+      ev.deltaMode === 1 ||
+      (ev.deltaMode === 0 && Math.abs(ev.deltaY) >= 100);
+
+    // ── Visibility (host element, unscaled) ──
+    const elHeight = hostRect.height || 1;
+    const visiblePx = Math.max(
+      0,
+      Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
+    );
     const fractionVisible = visiblePx / elHeight;
 
-    // Use stricter threshold for first engagement, then relax
-    const threshold = this.hasEngagedOnce
-      ? this.visibilityThreshold
-      : this.startVisibilityThreshold;
-    let engaged = fractionVisible >= threshold;
-
-    // Optional: require element top to be near viewport top
-    if (engaged && !this.hasEngagedOnce && this.requireTopNear > 0) {
-      engaged = rect.top >= 0 && rect.top <= this.requireTopNear;
-    }
-
-    const delta = ev.deltaY;
     const span = this.endScale - this.minScale;
     if (span <= 0) return;
 
-    // ── Sticky Lock Logic (mirrors owl-carousel) ──────────────────────
-    // Once we have established a lock AND moved away from the starting extreme,
-    // we stay locked ("sticky") regardless of visibility changes.
-    // This prevents the page from scrolling while mid-scale.
+    // ── Sticky Lock Logic ──
     const isSticky = this.lockScrollY !== null && this.midScale;
 
-    if (!isSticky && !engaged) {
-      // Not sufficiently visible and not sticky → release and let page scroll
-      if (this.lockScrollY !== null) {
-        this.lockScrollY = null;
-        this.releaseScrollLock();
+    if (!isSticky) {
+      // Device-dependent engagement thresholds
+      const visThreshold = isMouse
+        ? (delta > 0 ? 0.85 : 0.80)
+        : (delta > 0 ? 0.95 : 0.90);
+
+      if (fractionVisible < visThreshold) {
+        if (this.lockScrollY !== null) {
+          this.lockScrollY = null;
+          this.releaseScrollLock();
+        }
+        return;
       }
-      return;
     }
 
-    // ── At full size scrolling DOWN → begin shrink, lock page ──────────
+    // ── At full size scrolling DOWN → begin shrink, lock page ──
     if (delta > 0 && this.isAtFullSize() && !this.midScale) {
-      // First scroll down while at full size → establish lock
       if (this.lockScrollY === null) {
         this.lockScrollY = window.scrollY;
         this.applyScrollLock();
@@ -201,27 +205,27 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
       ev.preventDefault();
       this.midScale = true;
       this.hasEngagedOnce = true;
-      this.applyScaleDelta(delta);
+      this.applyScaleDelta(delta, isMouse);
       return;
     }
 
-    // ── At min size scrolling DOWN → release lock, let page continue ──
+    // ── At min size scrolling DOWN → release lock ──
     if (delta > 0 && this.isAtMinSize()) {
       this.lockScrollY = null;
       this.midScale = false;
       this.releaseScrollLock();
-      return; // don't preventDefault → allow page scroll
+      return;
     }
 
-    // ── At full size scrolling UP → release lock, let page continue ───
+    // ── At full size scrolling UP → release lock ──
     if (delta < 0 && this.isAtFullSize()) {
       this.lockScrollY = null;
       this.midScale = false;
       this.releaseScrollLock();
-      return; // don't preventDefault → allow page scroll
+      return;
     }
 
-    // ── At min size scrolling UP → begin grow, lock page ──────────────
+    // ── At min size scrolling UP → begin grow, lock page ──
     if (delta < 0 && this.isAtMinSize() && !this.midScale) {
       if (this.lockScrollY === null) {
         this.lockScrollY = window.scrollY;
@@ -229,45 +233,97 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
       }
       ev.preventDefault();
       this.midScale = true;
-      this.applyScaleDelta(delta);
+      this.applyScaleDelta(delta, isMouse);
       return;
     }
 
-    // ── Mid-scale: always lock and prevent scroll ─────────────────────
+    // ── Mid-scale: always lock and prevent scroll ──
     if (this.lockScrollY === null) {
       this.lockScrollY = window.scrollY;
       this.applyScrollLock();
     }
     ev.preventDefault();
-    this.applyScaleDelta(delta);
+    this.applyScaleDelta(delta, isMouse);
   }
 
   /**
    * Apply wheel delta to the current scale, clamped to [minScale, endScale].
    * Scrolling down (delta > 0) shrinks, scrolling up (delta < 0) grows.
    */
-  private applyScaleDelta(delta: number) {
+  private applyScaleDelta(delta: number, isMouse: boolean) {
     const span = this.endScale - this.minScale;
-    const currentProgress = (this.currentScale - this.minScale) / span; // 0..1
-    const deltaProgress = Math.abs(delta) / this.scrollDistance;
-    // delta > 0 → shrink (decrease progress), delta < 0 → grow (increase progress)
-    let newProgress =
-      currentProgress + (delta < 0 ? deltaProgress : -deltaProgress);
-    if (newProgress < 0) newProgress = 0;
-    if (newProgress > 1) newProgress = 1;
-    const targetScale = this.minScale + span * newProgress;
+    const distance = this.scrollDistance * 1.2;
 
-    if (Math.abs(targetScale - this.currentScale) > 0.0001) {
-      this.currentScale = targetScale;
-      this.updateTransform();
-      this.updateContentReveal();
-      this.scaleProgress.emit(1 - newProgress); // 0 full → 1 min
+    if (isMouse) {
+      // Mouse: fixed step per notch (~14% of span), animated via lerp
+      const fixedStep = span * 0.14 * (delta < 0 ? 1 : -1);
+      this._scaleTarget += fixedStep;
+    } else {
+      // Touchpad: proportional to delta
+      const deltaProgress = Math.abs(delta) / distance;
+      const currentProgress = (this._scaleTarget - this.minScale) / span;
+      let newProgress =
+        currentProgress + (delta < 0 ? deltaProgress : -deltaProgress);
+      if (newProgress < 0) newProgress = 0;
+      if (newProgress > 1) newProgress = 1;
+      this._scaleTarget = this.minScale + span * newProgress;
     }
 
-    // If we just arrived at an extreme, clear midScale so next wheel event
-    // in the same direction will release the lock
+    // Clamp target
+    this._scaleTarget = Math.max(
+      this.minScale,
+      Math.min(this.endScale, this._scaleTarget),
+    );
+
+    if (isMouse) {
+      // Mouse: smooth lerp animation
+      this._startScaleAnimation();
+    } else {
+      // Touchpad: apply directly (continuous events, no lerp needed)
+      this._stopScaleAnimation();
+      this.currentScale = this._scaleTarget;
+      this.updateTransform();
+      this.updateContentReveal();
+    }
+
+    // If we just arrived at an extreme, clear midScale
     if (this.isAtFullSize() || this.isAtMinSize()) {
       this.midScale = false;
+    }
+  }
+
+  // ── Scale animation helpers (smooth lerp for mouse wheel) ──
+
+  private _startScaleAnimation() {
+    if (this._scaleRafId !== null) return;
+
+    const tick = () => {
+      const diff = this._scaleTarget - this.currentScale;
+
+      if (Math.abs(diff) < 0.002) {
+        this.currentScale = this._scaleTarget;
+        this._scaleRafId = null;
+        this.updateTransform();
+        this.updateContentReveal();
+        if (this.isAtFullSize() || this.isAtMinSize()) {
+          this.midScale = false;
+        }
+        return;
+      }
+
+      this.currentScale += diff * 0.18;
+      this.updateTransform();
+      this.updateContentReveal();
+      this._scaleRafId = requestAnimationFrame(tick);
+    };
+
+    this._scaleRafId = requestAnimationFrame(tick);
+  }
+
+  private _stopScaleAnimation() {
+    if (this._scaleRafId !== null) {
+      cancelAnimationFrame(this._scaleRafId);
+      this._scaleRafId = null;
     }
   }
 

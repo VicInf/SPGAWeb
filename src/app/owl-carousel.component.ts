@@ -59,6 +59,7 @@ export interface OwlCarouselOptions {
       class="owl-carousel-viewport"
       #viewport
       [style.transform]="revealTransform"
+      [style.transition]="viewportTransitionStyle"
       [attr.role]="'region'"
       [attr.aria-label]="options.ariaLabel || 'Image carousel'"
       tabindex="0"
@@ -96,18 +97,23 @@ export interface OwlCarouselOptions {
           />
         </div>
       </div>
-      
-      
+
       <!-- Centered text overlay (fixed position, shows active slide text) -->
       <div
         *ngIf="getActiveSlide()?.title || getActiveSlide()?.subtitle"
         class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
         [style.opacity]="getTextOpacity()"
       >
-        <span class="text-xl sm:text-2xl md:text-3xl" *ngIf="getActiveSlide()?.title">{{ getActiveSlide()?.title }}</span>
-        <span class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4" *ngIf="getActiveSlide()?.subtitle">{{
-          getActiveSlide()?.subtitle
-        }}</span>
+        <span
+          class="text-xl sm:text-2xl md:text-3xl"
+          *ngIf="getActiveSlide()?.title"
+          >{{ getActiveSlide()?.title }}</span
+        >
+        <span
+          class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4"
+          *ngIf="getActiveSlide()?.subtitle"
+          >{{ getActiveSlide()?.subtitle }}</span
+        >
       </div>
       <!-- Progress bar (replaces dots) -->
       <div
@@ -145,7 +151,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @Input() slides: OwlCarouselSlide[] = [];
   @Input() options: OwlCarouselOptions = {};
 
-  @ViewChild('viewport', { static: true }) viewportRef!: ElementRef<HTMLElement>;
+  @ViewChild('viewport', { static: true })
+  viewportRef!: ElementRef<HTMLElement>;
   @ViewChild('stage', { static: true }) stageRef!: ElementRef<HTMLElement>;
 
   // State
@@ -158,7 +165,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   stageTransform = 'translate3d(0,0,0)';
   private resizeObserver?: ResizeObserver;
   private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
-  
+
   // Restored properties
   private isBrowser = false;
   private dragStartX = 0;
@@ -169,7 +176,6 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   private autoplayTimer: any = null;
   private transitionMs = 400;
   private wheelAccumulator = 0;
-  private wheelAnimating = false;
   private baseOffsetForWheel = 0;
   private lastAnnounceIndex = -1;
   announceMessage = '';
@@ -180,23 +186,30 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
   }
 
   // Reveal state
-  revealActive = false; // becomes true once revealed
+  revealActive = false;
   private revealObserver?: IntersectionObserver;
-  private revealRatio = 0; // (legacy) intersection ratio
+  private revealRatio = 0;
   private revealScaleCurrent = 1;
-  private revealFullyVisibleAt: number | null = null; // scrollY when became fully visible
-  private scalingPhaseActive = false; // true while growing from start scale to end scale
-  private growthStarted = false; // anchor established and growth active
-  private lockScrollY: number | null = null; // capture page scroll when locking
-  private scaledUp = false; // reached full scale once
-  private isShrinking = false; // true while actively shrinking
+  private revealFullyVisibleAt: number | null = null;
+  private scalingPhaseActive = false;
+  private growthStarted = false;
+  private lockScrollY: number | null = null;
+  private scaledUp = false;
+
+  // Scroll-driven phase state machine
+  private _phase: 'idle' | 'scaling' | 'sliding' = 'idle';
+  private _scaleTarget = 0.5;
+  private _scaleRafId: number | null = null;
+  private _isTransitioning = false;
+  private _shrinkIntent = 0;
+  private _recentEscape: 'up' | 'down' | null = null;
   get revealTransform() {
     if (this.options.revealScrollDriven) {
       return `scale(${this.revealScaleCurrent})`;
@@ -207,20 +220,30 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       : `scale(${this.options.revealScaleStart || 0.5})`;
   }
 
+  get viewportTransitionStyle(): string {
+    // Disable CSS transition during scroll-driven scaling to prevent
+    // overlapping 450ms transitions from restarting every frame (= jitter)
+    if (this.options.revealScrollDriven) {
+      return 'none';
+    }
+    return '';
+  }
+
   getTextOpacity(): number {
     // 1. Initial Reveal Fade-in (Global Scale)
     // Map scale from start to end to opacity 0 to 1
     const startScale = this.options.revealScaleStart ?? 0.5;
     const endScale = this.options.revealScaleEnd ?? 1;
     const currentScale = this.revealScaleCurrent;
-    
+
     // Start fading in when 80% of the way to full scale
     const fadeStartScale = startScale + (endScale - startScale) * 0.8;
     let revealOpacity = 0;
-    
+
     if (currentScale >= fadeStartScale) {
-       const fadeProgress = (currentScale - fadeStartScale) / (endScale - fadeStartScale);
-       revealOpacity = Math.min(1, Math.max(0, fadeProgress));
+      const fadeProgress =
+        (currentScale - fadeStartScale) / (endScale - fadeStartScale);
+      revealOpacity = Math.min(1, Math.max(0, fadeProgress));
     }
 
     // 2. Scroll-Driven Cross-Fade (Slide Transition)
@@ -228,27 +251,27 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
     const stageOffset = match ? Math.abs(parseFloat(match[1])) : 0;
     const slideWidth = this.itemWidth + this.itemMargin;
-    
+
     let scrollOpacity = 1;
 
     if (slideWidth > 0) {
       const fractionalIndex = stageOffset / slideWidth;
       const remainder = fractionalIndex - Math.floor(fractionalIndex);
-      
+
       // If remainder < 0.5: We are showing current slide. Fade out as we approach 0.5.
       // Opacity goes 1 -> 0 as remainder goes 0 -> 0.5
       if (remainder < 0.5) {
-        scrollOpacity = 1 - (remainder * 2);
-      } 
+        scrollOpacity = 1 - remainder * 2;
+      }
       // If remainder >= 0.5: We are showing next slide. Fade in as we leave 0.5.
       // Opacity goes 0 -> 1 as remainder goes 0.5 -> 1.0
       else {
         scrollOpacity = (remainder - 0.5) * 2;
       }
     }
-    
+
     // Combine both opacities (multiply them)
-    // This ensures text is hidden if carousel hasn't revealed yet, 
+    // This ensures text is hidden if carousel hasn't revealed yet,
     // AND fades correctly during scroll.
     return revealOpacity * scrollOpacity;
   }
@@ -257,25 +280,25 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (!this.slides || this.slides.length === 0) {
       return null;
     }
-    
+
     // Calculate visual index from current transform to switch text at 50%
     const currentOffset = Math.abs(this.getCurrentStageOffset());
     const slideWidth = this.itemWidth + this.itemMargin;
-    
+
     if (slideWidth <= 0) {
       return this.slides[this.currentIndex] || null;
     }
-    
+
     const fractionalIndex = currentOffset / slideWidth;
     const visualPhysicalIndex = Math.round(fractionalIndex);
-    
+
     // Convert physical index to logical index
     let logicalIndex = visualPhysicalIndex - this.clonesPerSide;
-    
+
     // Normalize for loop
     const count = this.slides.length;
-    logicalIndex = (logicalIndex % count + count) % count;
-    
+    logicalIndex = ((logicalIndex % count) + count) % count;
+
     return this.slides[logicalIndex] || null;
   }
 
@@ -299,13 +322,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.rebuild();
     if (this.options.autoplay) this.startAutoplay();
     if (this.options.revealScrollDriven) {
-      // Initialize scaling phase (start at configured start scale)
       requestAnimationFrame(() => {
         this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
-        this.scalingPhaseActive = false; // Disable auto-scaling, use wheel control only
-        this.scaledUp = false; // Start unscaled
+        this._scaleTarget = this.revealScaleCurrent;
+        this._phase = 'idle';
+        this.scaledUp = false;
         this.cdr.markForCheck();
-        // Don't call updateRevealGrowth - we use wheel-based scaling exclusively
       });
     } else if (this.options.revealOnEnter) {
       requestAnimationFrame(() => this.setupReveal());
@@ -318,18 +340,20 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     // window-level wheel listeners to passive, silently ignoring preventDefault().
     this.boundWheelHandler = this.onWheel.bind(this);
     this.ngZone.runOutsideAngular(() => {
-      window.addEventListener('wheel', this.boundWheelHandler!, { passive: false });
+      window.addEventListener('wheel', this.boundWheelHandler!, {
+        passive: false,
+      });
     });
   }
 
   ngOnDestroy(): void {
     this.stopAutoplay();
     this.releaseScrollLock();
-    // Clean up the manual wheel listener
     if (this.boundWheelHandler) {
       window.removeEventListener('wheel', this.boundWheelHandler);
       this.boundWheelHandler = null;
     }
+    this._stopScaleAnimation();
   }
 
   private applyScrollLock() {
@@ -416,20 +440,42 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   onWindowScroll() {
     if (!this.isBrowser) return;
 
-    // Check if carousel left viewport and should release lock
-    if (this.lockScrollY !== null && this.scaledUp) {
-      const vp = this.viewportRef?.nativeElement;
-      if (vp) {
-        // Sticky Lock: We DO NOT release the lock here based on visibility.
-        // The lock is now "sticky" and will only be released by explicit logic
-        // in onWheel (shrinking or end of slides).
-        // This ensures that if the user scrolls up and pushes the component
-        // partially out of view, we still hold the lock.
+    // EXTREME LOCK: Rubber-band snap. If native browser smooth scrolling momentum
+    // (from heavy wheel clicks or middle-click drags) ignores `overflow: hidden`,
+    // instantly clamp the native scroll back to the strictly locked Y coordinate.
+    if (this.lockScrollY !== null) {
+      if (Math.abs(window.scrollY - this.lockScrollY) > 2) {
+        window.scrollTo({ top: this.lockScrollY, behavior: 'auto' });
       }
+      return; // Do not process other fallbacks while firmly locked
     }
 
-    // Disabled scroll-driven growth to use wheel-based scaling exclusively
-    // if (this.options.revealScrollDriven) this.updateRevealGrowth();
+    // Fallback trap for rapid native scrolling (e.g., scrollbar drag, middle-click auto-scroll, or extremely fast wheel)
+    // Sometimes native scroll skips the wheel loop's engagement window. This guarantees a catch if they land on it.
+    if (this._phase === 'idle' && this.lockScrollY === null && this._recentEscape === null) {
+      const vp = this.viewportRef?.nativeElement;
+      if (!vp) return;
+      
+      const hostEl = vp.parentElement || vp;
+      const hostRect = hostEl.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      const elHeight = hostRect.height || 1;
+      
+      const visiblePx = Math.max(0, Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0));
+      // Use Math.min(elHeight, vh) so a carousel taller than viewport still logically reaches 100% visible
+      const fractionVisible = visiblePx / Math.min(elHeight, vh);
+
+      if (fractionVisible >= 0.85) {
+        const centeredOffset = hostRect.top - (vh - elHeight) / 2;
+        const targetScrollY = Math.max(0, window.scrollY + centeredOffset);
+        this.lockScrollY = targetScrollY;
+        window.scrollTo({ top: targetScrollY, behavior: 'auto' });
+        
+        this._phase = this.scaledUp ? 'sliding' : 'scaling';
+        if (this._phase === 'scaling') this._scaleTarget = this.revealScaleCurrent;
+        this.applyScrollLock();
+      }
+    }
   }
 
   private getItemsPerView(): number {
@@ -488,7 +534,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   private updateStageTransform(animate = true) {
     const targetOffset = -this.stageIndex * (this.itemWidth + this.itemMargin);
-    
+
     // Always disable CSS transition since we control it via JS or it's instant
     this.stageTransition = 'transform 0s ease';
 
@@ -505,33 +551,34 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       startTime: performance.now(),
       startOffset,
       targetOffset,
-      duration: this.transitionMs
+      duration: this.transitionMs,
     };
 
     const step = (now: number) => {
       const anim = this.activeAnimation;
       if (!anim) return;
-      
+
       const elapsed = now - anim.startTime;
       let progress = elapsed / anim.duration;
-      
+
       if (progress >= 1) {
         progress = 1;
         this.activeAnimation = null;
       }
-      
+
       // Ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current = anim.startOffset + (anim.targetOffset - anim.startOffset) * eased;
-      
+      const current =
+        anim.startOffset + (anim.targetOffset - anim.startOffset) * eased;
+
       this.stageTransform = `translate3d(${current}px,0,0)`;
       this.cdr.markForCheck();
-      
+
       if (progress < 1) {
         requestAnimationFrame(step);
       }
     };
-    
+
     requestAnimationFrame(step);
   }
 
@@ -557,11 +604,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     }
     this.currentIndex = logicalIndex;
     this.stageIndex = this.logicalToPhysical(logicalIndex);
-    this.wheelAccumulator = 0; // reset wheel progression
-    this.boundaryPushAccumulator = 0; // reset boundary push
+    this.wheelAccumulator = 0;
+    this.boundaryPushAccumulator = 0;
+    this._shrinkIntent = 0;
     this.updateStageTransform(true);
-    this.wheelAnimating = true;
-    setTimeout(() => (this.wheelAnimating = false), this.transitionMs + 40);
+    this._isTransitioning = true;
+    setTimeout(() => (this._isTransitioning = false), this.transitionMs + 40);
     this.queueLoopAdjustment();
     this.updateAnnouncement();
   }
@@ -609,7 +657,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (e.button !== 0) return;
     // Prevent interaction while scaling
     if (!this.scaledUp) return;
-    
+
     this.pointerActive = true;
     this.hasDragged = false;
     this.dragStartX = e.clientX;
@@ -662,226 +710,350 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.ngZone.run(() => this.handleWheel(event));
   }
 
+
   private handleWheel(event: WheelEvent) {
     const vp = this.viewportRef?.nativeElement;
-    let fullyVisible = false;
-    if (vp) {
-      const rect = vp.getBoundingClientRect();
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      fullyVisible = rect.top >= 0 && rect.bottom <= vh;
-    }
-    const delta = event.deltaY;
+    if (!vp) return;
+    const rect = vp.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+
     const startScale = this.options.revealScaleStart ?? 0.5;
     const endScale = this.options.revealScaleEnd ?? 1;
-    const distance = this.options.revealScrollDistance || 500;
-    const epsilon = 0.0001;
     const count = this.slides.length;
-    const atFirst = this.currentIndex === 0;
+    const epsilon = 0.002;
 
     if (!this.options.wheelControl || !count) return;
 
-    // Sticky Lock Logic:
-    // If we already have the lock (lockScrollY != null) AND we are fully grown (scaledUp),
-    // we bypass the visibility check.
-    // This allows the interaction to continue even if the component is pushed slightly out of view,
-    // BUT only if we have finished the initial growth phase.
-    const isSticky = this.lockScrollY !== null && this.scaledUp;
+    // ── Raw delta with line-mode normalization ──
+    let delta = event.deltaY;
+    if (event.deltaMode === 1) delta *= 16; // line mode → pixels
 
-    if (!isSticky && !fullyVisible) {
-      // Release any lock if leaving full visibility (safety check)
-      this.lockScrollY = null;
-      this.releaseScrollLock();
-      this.boundaryPushAccumulator = 0;
-      return; // allow normal page scroll
-    }
-    // LINEAR progress approach for consistent feel both directions
-    const totalSpan = endScale - startScale;
-    const currentProgress = (this.revealScaleCurrent - startScale) / totalSpan; // 0..1
+    // ── Detect input device ──
+    // Mouse wheels: deltaMode 1 (Firefox lines) or large pixel values (Chrome 100-120)
+    // Touchpads: deltaMode 0 with small continuous values (1-40)
+    const isMouse =
+      event.deltaMode === 1 ||
+      (event.deltaMode === 0 && Math.abs(event.deltaY) >= 100);
 
-    // Prevent scaling while transitioning between slides
-    if (this.wheelAnimating) {
-      event.preventDefault();
-      return;
-    }
+    // ── Visibility calculation (use HOST element, not scaled viewport) ──
+    // The viewport div is scaled (e.g. 0.5×), making it report ~50vh height.
+    // The host <owl-carousel> element has h-full with NO scale, so its rect
+    // represents the actual section area that must fill the viewport.
+    const hostEl = vp.parentElement || vp;
+    const hostRect = hostEl.getBoundingClientRect();
+    const elHeight = hostRect.height || 1;
+    const visiblePx = Math.max(
+      0,
+      Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
+    );
+    // Use Math.min(elHeight, vh) so a carousel taller than the screen can mathematically reach 1.0 (100%) visible
+    const fractionVisible = visiblePx / Math.min(elHeight, vh);
+    const isLocked = this.lockScrollY !== null;
 
-    // If at minimum scale and scrolling up, allow page scroll to continue
-    if (
-      atFirst &&
-      delta < 0 &&
-      this.revealScaleCurrent <= startScale + epsilon
-    ) {
-      this.releaseScrollLock(false);
-      this.lockScrollY = null;
-      this.boundaryPushAccumulator = 0;
-      return; // Allow page scroll
-    }
+    // Reset escape state if user leaves element entirely or reverses direction
+    if (fractionVisible < 0.1) this._recentEscape = null;
+    if (delta > 0 && this._recentEscape === 'up') this._recentEscape = null;
+    if (delta < 0 && this._recentEscape === 'down') this._recentEscape = null;
 
-    // Bidirectional scaling: Allow growing/shrinking at any point when at first slide
-    // Shrink when scrolling up AND we're above minimum scale
-    // AND we have negative momentum (explicitly trying to go back past start)
-    // Using -20 buffer to prevent accidental shrinking when wobbling near 0
-    if (
-      atFirst &&
-      delta < 0 &&
-      this.revealScaleCurrent > startScale + epsilon &&
-      (this.isShrinking || this.wheelAccumulator < -20)
-    ) {
-      // Reset accumulator and snap to center to prevent "space" or gaps while shrinking
-      if (this.wheelAccumulator !== 0) {
-        this.wheelAccumulator = 0;
-        this.updateStageTransform(false);
+    // ══════════════════════════════════════════
+    // PHASE: IDLE — check whether to engage
+    // ══════════════════════════════════════════
+    if (this._phase === 'idle') {
+      const visThreshold = isMouse ? 0.85 : 0.95;
+
+      // Predict if this specific wheel event's momentum will push the carousel over the threshold.
+      // We must `preventDefault` BEFORE the browser initiates native smooth scrolling,
+      // because native smooth scrolling ignores `overflow: hidden` locks midway through the animation.
+      // We assume a standard mouse notch travels at least 150px to ensure we catch violent flicks.
+      const estimatedDelta = isMouse ? (Math.abs(delta) < 120 ? Math.sign(delta) * 150 : delta) : delta;
+      const futureTop = hostRect.top - estimatedDelta;
+      const futureBottom = hostRect.bottom - estimatedDelta;
+      const futureVisiblePx = Math.max(0, Math.min(futureBottom, vh) - Math.max(futureTop, 0));
+      const futureFraction = futureVisiblePx / Math.min(elHeight, vh);
+
+      // Unconditional escape priority if recently broke the lock
+      if (delta > 0 && this._recentEscape === 'down') return;
+      if (delta < 0 && this._recentEscape === 'up') return;
+
+      // Only allow the native scroll if the future position STILL won't cross our lock bounds!
+      if (fractionVisible < visThreshold && futureFraction < visThreshold && !isLocked) {
+        return; 
       }
-      
-      if (this.lockScrollY == null) {
-        this.lockScrollY = window.scrollY;
+
+      const centeredOffset = hostRect.top - (vh - elHeight) / 2;
+
+      const alignPerfectly = () => {
+        // Calculate the exact target pixel to perfectly center the carousel inside the frame.
+        // This ensures not a single pixel is misaligned.
+        const targetScrollY = Math.max(0, window.scrollY + centeredOffset);
+        this.lockScrollY = targetScrollY;
+        window.scrollTo({ top: targetScrollY, behavior: 'auto' });
+      };
+
+      if (delta > 0 && this.revealScaleCurrent < endScale - epsilon) {
+        // Scrolling down into unscaled carousel → start growing
+        event.preventDefault();
+        this._phase = 'scaling';
+        this._scaleTarget = this.revealScaleCurrent;
+        alignPerfectly();
         this.applyScrollLock();
+        // Fall through to scaling handler
+      } else if (
+        this.scaledUp &&
+        this.revealScaleCurrent >= endScale - epsilon
+      ) {
+        // Re-engage at full scale (scrolled back into carousel from either direction)
+        event.preventDefault();
+        this._phase = 'sliding';
+        alignPerfectly();
+        this.applyScrollLock();
+        // Fall through to sliding handler
+      } else {
+        return; // allow normal page scroll
       }
+    }
+
+    // ══════════════════════════════════════════
+    // PHASE: SCALING (growing or shrinking)
+    // ══════════════════════════════════════════
+    if (this._phase === 'scaling') {
       event.preventDefault();
-      this.isShrinking = true;
-      const deltaProgress = Math.abs(delta) / distance;
-      let newProgress = currentProgress - deltaProgress;
-      if (newProgress < 0) newProgress = 0;
-      this.revealScaleCurrent = startScale + totalSpan * newProgress;
-      if (newProgress <= 0 + epsilon) {
+
+      const distance = (this.options.revealScrollDistance || 500) * 1.2;
+      const totalSpan = endScale - startScale;
+
+      if (isMouse) {
+        // Fixed scale increment per mouse notch: ~14% of total span
+        // This gives ~7 notches for full growth (0.5 → 1.0), animated smoothly
+        const fixedStep = totalSpan * 0.14 * Math.sign(delta);
+        this._scaleTarget += fixedStep;
+      } else {
+        // Touchpad: proportional to delta magnitude (many small events)
+        const increment = (delta / distance) * totalSpan;
+        this._scaleTarget += increment;
+      }
+
+      this._scaleTarget = Math.max(
+        startScale,
+        Math.min(endScale, this._scaleTarget),
+      );
+
+      if (isMouse) {
+        // Mouse: use lerp animation for smooth interpolation between discrete notches
+        this._startScaleAnimation();
+      } else {
+        // Touchpad: apply directly (events are continuous, no lerp needed)
+        this._stopScaleAnimation();
+        this.revealScaleCurrent = this._scaleTarget;
+        this.cdr.markForCheck();
+        this._checkScalePhaseTransition();
+      }
+
+      // If shrunk all the way down → release to normal page scroll
+      if (
+        delta < 0 &&
+        this._scaleTarget <= startScale + epsilon
+      ) {
+        this._stopScaleAnimation();
         this.revealScaleCurrent = startScale;
+        this._scaleTarget = startScale;
         this.scaledUp = false;
-        this.isShrinking = false;
+        this._phase = 'idle';
+        this._recentEscape = 'up';
         this.releaseScrollLock(false);
         this.lockScrollY = null;
+        this.cdr.markForCheck();
       }
-      this.cdr.markForCheck();
+
       return;
     }
 
-    // Grow when scrolling down AND we're below maximum scale
+    // ══════════════════════════════════════════
+    // PHASE: SLIDING (navigating between slides)
+    // ══════════════════════════════════════════
+    if (this._phase === 'sliding') {
+      const atFirst = this.currentIndex === 0;
+      const atLast = this.currentIndex === count - 1;
+      const scrollingForward = delta > 0;
+
+      // ── Boundary escape: last slide + forward ──
+      // Escape immediately when at the last image, as requested, to smoothly continue page scroll downwards
+      if (atLast && scrollingForward) {
+        this._recentEscape = 'down';
+        this._phase = 'idle';
+        this.releaseScrollLock(false);
+        this.lockScrollY = null;
+        this.boundaryPushAccumulator = 0;
+        return; // DON'T preventDefault → allow page scroll to continue
+      }
+
+      if (!scrollingForward) {
+        this.boundaryPushAccumulator = 0;
+      }
+
+      // ── Shrink entry: first slide + scrolling up ──
+      if (atFirst && !scrollingForward) {
+        this._shrinkIntent += Math.abs(delta);
+        const shrinkThreshold = isMouse ? 40 : 15;
+        if (this._shrinkIntent >= shrinkThreshold) {
+          event.preventDefault();
+          // Reset slide state cleanly
+          this.wheelAccumulator = 0;
+          this.activeAnimation = null;
+          this.updateStageTransform(false);
+          // Transition to scaling (shrink direction)
+          this._phase = 'scaling';
+          this._scaleTarget = endScale;
+          this._shrinkIntent = 0;
+          // Apply initial shrink step
+          const distance = (this.options.revealScrollDistance || 500) * 1.2;
+          const totalSpan = endScale - startScale;
+          if (isMouse) {
+            this._scaleTarget -= totalSpan * 0.14;
+          } else {
+            this._scaleTarget += (delta / distance) * totalSpan;
+          }
+          this._scaleTarget = Math.max(
+            startScale,
+            Math.min(endScale, this._scaleTarget),
+          );
+          if (isMouse) {
+            this._startScaleAnimation();
+          } else {
+            this.revealScaleCurrent = this._scaleTarget;
+            this.cdr.markForCheck();
+            this._checkScalePhaseTransition();
+          }
+          return;
+        }
+        event.preventDefault();
+        return; // absorb while building shrink intent
+      }
+      this._shrinkIntent = 0;
+
+      // ── Prevent default for all other sliding interactions ──
+      event.preventDefault();
+
+      // Don't navigate while a slide transition is animating
+      if (this._isTransitioning) return;
+      if (this.pointerActive) return;
+
+      // ── Slide navigation ──
+      if (isMouse) {
+        // Mouse: one notch = one clean animated slide transition
+        if (scrollingForward) {
+          this.goTo(this.currentIndex + 1);
+        } else {
+          this.goTo(this.currentIndex - 1);
+        }
+      } else {
+        // Touchpad: accumulator with smooth partial slide preview
+        const threshold = this.options.wheelThreshold || 120;
+        const slideSpan = this.itemWidth + this.itemMargin;
+
+        // Direction reversal → reset accumulator
+        if (
+          (this.wheelAccumulator > 0 && delta < 0) ||
+          (this.wheelAccumulator < 0 && delta > 0)
+        ) {
+          this.wheelAccumulator = 0;
+          this.baseOffsetForWheel = this.getCurrentStageOffset();
+        }
+
+        if (this.wheelAccumulator === 0) {
+          this.baseOffsetForWheel = this.getCurrentStageOffset();
+        }
+
+        // Cancel any in-flight JS animation so it doesn't fight positioning
+        this.activeAnimation = null;
+
+        this.wheelAccumulator += delta;
+        const clamped = Math.max(
+          -threshold,
+          Math.min(threshold, this.wheelAccumulator),
+        );
+        const fraction = clamped / threshold;
+
+        if (Math.abs(fraction) < 1) {
+          const offset = this.baseOffsetForWheel - fraction * slideSpan;
+          this.stageTransition = 'none';
+          this.stageTransform = `translate3d(${offset}px,0,0)`;
+          this.cdr.markForCheck();
+        }
+
+        if (clamped >= threshold) {
+          this.goTo(this.currentIndex + 1);
+          this.wheelAccumulator = 0;
+        } else if (clamped <= -threshold) {
+          this.goTo(this.currentIndex - 1);
+          this.wheelAccumulator = 0;
+        }
+      }
+    }
+  }
+
+  // ── Scale animation helpers (smooth lerp for mouse wheel) ──
+
+  private _startScaleAnimation() {
+    if (this._scaleRafId !== null) return; // already running
+
+    const tick = () => {
+      const diff = this._scaleTarget - this.revealScaleCurrent;
+
+      if (Math.abs(diff) < 0.002) {
+        // Close enough — snap to target and stop
+        this.revealScaleCurrent = this._scaleTarget;
+        this._scaleRafId = null;
+        this.cdr.markForCheck();
+        this._checkScalePhaseTransition();
+        return;
+      }
+
+      // Lerp rate 0.18: smooth enough for mouse, fast enough overall
+      this.revealScaleCurrent += diff * 0.18;
+      this.cdr.markForCheck();
+      this._scaleRafId = requestAnimationFrame(tick);
+    };
+
+    this._scaleRafId = requestAnimationFrame(tick);
+  }
+
+  private _checkScalePhaseTransition() {
+    const startScale = this.options.revealScaleStart ?? 0.5;
+    const endScale = this.options.revealScaleEnd ?? 1;
+    const epsilon = 0.003;
+
     if (
-      atFirst &&
-      delta > 0 &&
-      this.revealScaleCurrent < endScale - epsilon
+      this._phase === 'scaling' &&
+      this.revealScaleCurrent >= endScale - epsilon
     ) {
+      this.revealScaleCurrent = endScale;
+      this._scaleTarget = endScale;
+      this.scaledUp = true;
+      this._phase = 'sliding';
       if (this.lockScrollY == null) {
         this.lockScrollY = window.scrollY;
         this.applyScrollLock();
       }
-      event.preventDefault();
-      this.isShrinking = false;
-      const deltaProgress = Math.abs(delta) / distance;
-      let newProgress = currentProgress + deltaProgress;
-      if (newProgress > 1) newProgress = 1;
-      this.revealScaleCurrent = startScale + totalSpan * newProgress;
-      if (newProgress >= 1 - epsilon) {
-        this.revealScaleCurrent = endScale;
-        this.scaledUp = true;
-        // NOW we can set the lock - component is fully grown and must be fully visible
-        if (this.lockScrollY == null) {
-          this.lockScrollY = window.scrollY;
-          this.applyScrollLock();
-        }
-      }
       this.cdr.markForCheck();
-      return;
-    }
-
-    // If not at first slide and not fully scaled, only allow growing
-    if (!atFirst && !this.scaledUp) {
-      if (delta > 0 && this.revealScaleCurrent < endScale - epsilon) {
-        if (this.lockScrollY == null) {
-          this.lockScrollY = window.scrollY;
-          this.applyScrollLock();
-        }
-        event.preventDefault();
-        const deltaProgress = Math.abs(delta) / distance;
-        let newProgress = currentProgress + deltaProgress;
-        if (newProgress > 1) newProgress = 1;
-        this.revealScaleCurrent = startScale + totalSpan * newProgress;
-        if (newProgress >= 1 - epsilon) {
-          this.revealScaleCurrent = endScale;
-          this.scaledUp = true;
-        }
-        this.cdr.markForCheck();
-      }
-      return; // while not scaledUp, never move slides
-    }
-
-    // At this point: fully scaledUp - prevent vertical scrolling while navigating carousel
-    if (this.pointerActive) return;
-
-    // Check if at boundaries (for non-looping carousels)
-    const atLast = this.currentIndex === count - 1;
-    // atFirst already declared above
-    const tryingToGoForward = delta > 0;
-
-    // ONLY allow escape if at the LAST slide and scrolling forward
-    if (!this.options.loop && atLast && tryingToGoForward) {
-      // At last slide, scrolling down -> release lock and allow page scroll to continue
-      this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
+    } else if (
+      this._phase === 'scaling' &&
+      this.revealScaleCurrent <= startScale + epsilon
+    ) {
+      this.revealScaleCurrent = startScale;
+      this._scaleTarget = startScale;
+      this.scaledUp = false;
+      this._phase = 'idle';
+      this.releaseScrollLock(false);
       this.lockScrollY = null;
-      this.boundaryPushAccumulator = 0;
-      return; // don't preventDefault, allow vertical scroll past carousel
-    }
-
-    // For looping carousels: allow escape after persistent forward scrolling
-    if (this.options.loop && tryingToGoForward) {
-      this.boundaryPushAccumulator += Math.abs(delta);
-      const loopEscapeThreshold = 1200; // need more persistent scrolling to escape loop
-      if (this.boundaryPushAccumulator >= loopEscapeThreshold) {
-        this.releaseScrollLock(false); // Don't restore position, let scroll continue naturally
-        this.lockScrollY = null;
-        this.boundaryPushAccumulator = 0;
-        return; // allow vertical scroll past carousel
-      }
-    } else if (!tryingToGoForward) {
-      // Reset accumulator when scrolling backward
-      this.boundaryPushAccumulator = 0;
-    }
-
-    // For all other cases: maintain scroll lock and prevent vertical scrolling
-    if (this.lockScrollY == null) {
-      this.lockScrollY = window.scrollY;
-      this.applyScrollLock();
-    }
-    event.preventDefault();
-    // No need to enforce position - position: fixed on body prevents scrolling
-    
-    // Prevent slide navigation while scaling
-    if (this.wheelAnimating || !this.scaledUp || this.isShrinking) return;
-
-    const threshold = this.options.wheelThreshold || 280;
-    const slideSpan = this.itemWidth + this.itemMargin;
-
-    // On direction reversal, reset accumulator from current visual position
-    if ((this.wheelAccumulator > 0 && delta < 0) || (this.wheelAccumulator < 0 && delta > 0)) {
-      this.wheelAccumulator = 0;
-      this.baseOffsetForWheel = this.getCurrentStageOffset();
-    }
-
-    // Only set base offset at start of a new accumulation cycle
-    if (this.wheelAccumulator === 0) {
-      this.baseOffsetForWheel = this.getCurrentStageOffset();
-    }
-
-    // Cancel any in-flight JS animation so it doesn't fight with wheel positioning
-    this.activeAnimation = null;
-
-    // Process slide navigation
-    this.wheelAccumulator += delta;
-    const clamped = Math.max(
-      -threshold,
-      Math.min(threshold, this.wheelAccumulator)
-    );
-    const fraction = clamped / threshold;
-    if (Math.abs(fraction) < 1) {
-      const offset = this.baseOffsetForWheel - fraction * slideSpan;
-      this.stageTransition = 'none';
-      this.stageTransform = `translate3d(${offset}px,0,0)`;
       this.cdr.markForCheck();
     }
-    if (clamped >= threshold) {
-      this.goTo(this.currentIndex + 1);
-      this.wheelAccumulator = 0;
-    } else if (clamped <= -threshold) {
-      this.goTo(this.currentIndex - 1);
-      this.wheelAccumulator = 0;
+  }
+
+  private _stopScaleAnimation() {
+    if (this._scaleRafId !== null) {
+      cancelAnimationFrame(this._scaleRafId);
+      this._scaleRafId = null;
     }
   }
 
@@ -943,15 +1115,15 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       // Set CSS custom properties for animation parameters
       vp.style.setProperty(
         '--reveal-scale-start',
-        String(this.options.revealScaleStart || 0.7)
+        String(this.options.revealScaleStart || 0.7),
       );
       vp.style.setProperty(
         '--reveal-duration',
-        `${this.options.revealDurationMs || 900}ms`
+        `${this.options.revealDurationMs || 900}ms`,
       );
       vp.style.setProperty(
         '--reveal-easing',
-        this.options.revealEasing || 'cubic-bezier(.22,.99,.36,1)'
+        this.options.revealEasing || 'cubic-bezier(.22,.99,.36,1)',
       );
       if (typeof IntersectionObserver === 'undefined') {
         this.revealActive = true;
@@ -971,7 +1143,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
             }
           }
         },
-        { threshold: 0.35 }
+        { threshold: 0.35 },
       );
       this.revealObserver.observe(vp);
     } catch {

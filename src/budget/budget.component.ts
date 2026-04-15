@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, signal, WritableSignal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ContactanosComponent } from '../app/contactanos.component';
-import emailjs from '@emailjs/browser';
 import { environment } from '../environments/environment';
+//import emailjs from '@emailjs/browser';
+//import { environment } from '../environments/environment';
 
 interface BudgetOption {
   label: string;
@@ -44,7 +45,7 @@ export class BudgetComponent {
   readonly showSuccess = signal(false);
 
   toggleMobileMenu() {
-    this.mobileMenuOpen.update(v => !v);
+    this.mobileMenuOpen.update((v) => !v);
     if (this.mobileMenuOpen()) {
       this.lockBodyScroll();
     } else {
@@ -110,9 +111,7 @@ export class BudgetComponent {
       id: 'budgetRange',
       order: '04',
       prompt: '¿Tienes un presupuesto estimado?',
-      options: [
-        { label: 'No, quiero que me orienten', value: 'orientacion' },
-      ],
+      options: [{ label: 'No, quiero que me orienten', value: 'orientacion' }],
       type: 'options',
     },
     {
@@ -179,26 +178,35 @@ export class BudgetComponent {
     },
   ];
 
-  private readonly defaultSelections = this.questions.reduce((acc, q) => {
-    if (q.type === 'options') {
-      acc[q.id] = [];
-    }
-    return acc;
-  }, {} as Record<string, string[]>);
+  private readonly defaultSelections = this.questions.reduce(
+    (acc, q) => {
+      if (q.type === 'options') {
+        acc[q.id] = [];
+      }
+      return acc;
+    },
+    {} as Record<string, string[]>,
+  );
 
-  private readonly defaultInputs = this.questions.reduce((acc, q) => {
-    if (q.type === 'inputs') {
-      const inputsArr = q.inputs ?? [];
-      acc[q.id] = inputsArr.reduce((inputAcc, input) => {
-        inputAcc[input.id] = '';
-        return inputAcc;
-      }, {} as Record<string, string>);
-    }
-    return acc;
-  }, {} as Record<string, Record<string, string>>);
+  private readonly defaultInputs = this.questions.reduce(
+    (acc, q) => {
+      if (q.type === 'inputs') {
+        const inputsArr = q.inputs ?? [];
+        acc[q.id] = inputsArr.reduce(
+          (inputAcc, input) => {
+            inputAcc[input.id] = '';
+            return inputAcc;
+          },
+          {} as Record<string, string>,
+        );
+      }
+      return acc;
+    },
+    {} as Record<string, Record<string, string>>,
+  );
 
   readonly selections: WritableSignal<Record<string, string[]>> = signal(
-    structuredClone(this.defaultSelections)
+    structuredClone(this.defaultSelections),
   );
   readonly inputs: WritableSignal<Record<string, Record<string, string>>> =
     signal(structuredClone(this.defaultInputs));
@@ -241,43 +249,43 @@ export class BudgetComponent {
 
   handleSubmit(event: Event) {
     event.preventDefault();
-    
+
     // Validate form
     const validationError = this.validateForm();
     if (validationError) {
       this.showToast(validationError, 'error');
       return;
     }
-    
+
     // Collect all form data
     const formData = this.collectFormData();
-    
+
     // Format the email message
     const emailMessage = this.formatEmailMessage(formData);
-    
+
     // EmailJS configuration
-    const serviceID = environment.emailjs.serviceID;
-    const publicKey = environment.emailjs.publicKey;
-    
+    //   const serviceID = environment.emailjs.serviceID;
+    //   const publicKey = environment.emailjs.publicKey;
+
     // Prepare email data for direct API call
     const emailData = {
-      service_id: serviceID,
-      template_id: environment.emailjs.templateID,
-      user_id: publicKey,
+      //    service_id: serviceID,
+      //   template_id: environment.emailjs.templateID,
+      // user_id: publicKey,
       template_params: {
-        to_email: environment.emailjs.toEmail,
+        //  to_email: environment.emailjs.toEmail,
         to_name: 'SPGA Group',
         from_name: formData.contactInfo['fullName'] || 'Cliente Potencial',
         from_email: formData.contactInfo['email'] || 'no-reply@spga.com',
         reply_to: 'no-reply@spga.com',
         subject: `Nueva Solicitud de Presupuesto - ${formData.contactInfo['fullName'] || 'Cliente'}`,
         message: emailMessage,
-      }
+      },
     };
-    
+
     // Show loading state
     this.showToast('Enviando solicitud...', 'info');
-    
+
     // Send email using direct HTTP POST to EmailJS API
     fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
@@ -297,51 +305,61 @@ export class BudgetComponent {
           }
           return Promise.resolve();
         } else {
-          return response.text().then(text => {
+          return response.text().then((text) => {
             throw new Error(`Error ${response.status}: ${text}`);
           });
         }
       })
       .catch((error) => {
         console.error('Failed to send email:', error);
-        this.showToast(`Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a ${environment.emailjs.toEmail}`, 'error');
+        //
+        this.showToast(
+          `Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a ${environment.emailjs.toEmail}`,
+          'error',
+        );
       });
   }
-  
+
   private validateForm(): string | null {
     const selections = this.selections();
     const inputs = this.inputs();
-    
+
     // Check Question 1: Project Type (must select option or fill "Otro")
-    if (!selections['projectType']?.length && !inputs['additionalInfo']?.['projectTypeOther']) {
+    if (
+      !selections['projectType']?.length &&
+      !inputs['additionalInfo']?.['projectTypeOther']
+    ) {
       return 'Por favor, selecciona qué deseas diseñar o construir';
     }
-    
+
     // Check Question 2: Services (must select at least one)
     if (!selections['projectStage']?.length) {
       return 'Por favor, selecciona al menos un servicio';
     }
-    
+
     // Check Question 3: Surface Area
     if (!selections['surface']?.length) {
       return 'Por favor, selecciona el área aproximada del proyecto';
     }
-    
+
     // Check Question 4: Budget (must have budget input or select "No, quiero que me orienten")
-    if (!inputs['additionalInfo']?.['budget'] && !selections['budgetRange']?.length) {
+    if (
+      !inputs['additionalInfo']?.['budget'] &&
+      !selections['budgetRange']?.length
+    ) {
       return 'Por favor, indica tu presupuesto o selecciona "No, quiero que me orienten"';
     }
-    
+
     // Check Question 5: Timeline
     if (!selections['timeline']?.length) {
       return 'Por favor, selecciona una fecha límite o plazo ideal';
     }
-    
+
     // Check Question 6: Comments
     if (!inputs['additionalInfo']?.['comments']) {
       return 'Por favor, cuéntanos brevemente tu idea o necesidad';
     }
-    
+
     // Check Question 7: Contact Info
     if (!inputs['contactInfo']?.['fullName']) {
       return 'Por favor, ingresa tu nombre completo';
@@ -356,20 +374,23 @@ export class BudgetComponent {
     if (!inputs['contactInfo']?.['phone']) {
       return 'Por favor, ingresa tu teléfono';
     }
-    
+
     // Check Question 8: Discovery Method (must select option or fill "Otro")
-    if (!selections['discoveryMethod']?.length && !inputs['additionalInfo']?.['discoveryOther']) {
+    if (
+      !selections['discoveryMethod']?.length &&
+      !inputs['additionalInfo']?.['discoveryOther']
+    ) {
       return 'Por favor, indícanos cómo nos conociste';
     }
-    
+
     // Check Question 9: Contact Preference
     if (!selections['contactPreference']?.length) {
       return 'Por favor, selecciona cómo prefieres que te contactemos';
     }
-    
+
     return null;
   }
-  
+
   clearSelection(questionId: string) {
     this.selections.update((current) => {
       const updated = { ...current };
@@ -377,28 +398,28 @@ export class BudgetComponent {
       return updated;
     });
   }
-  
+
   private showToast(message: string, type: 'success' | 'error' | 'info') {
     if (typeof document === 'undefined') return;
-    
+
     // Remove existing toasts
     const existingToast = document.querySelector('.custom-toast');
     if (existingToast) {
       existingToast.remove();
     }
-    
+
     // Create toast element
     const toast = document.createElement('div');
     toast.className = 'custom-toast';
     toast.textContent = message;
-    
+
     // Set color based on type
     const colors = {
       success: '#10b981',
       error: '#ef4444',
-      info: '#3b82f6'
+      info: '#3b82f6',
     };
-    
+
     toast.style.cssText = `
       position: fixed;
       top: 100px;
@@ -413,7 +434,7 @@ export class BudgetComponent {
       max-width: 400px;
       animation: slideIn 0.3s ease-out;
     `;
-    
+
     // Add animation
     const style = document.createElement('style');
     style.textContent = `
@@ -439,9 +460,9 @@ export class BudgetComponent {
       }
     `;
     document.head.appendChild(style);
-    
+
     document.body.appendChild(toast);
-    
+
     // Auto remove after 4 seconds
     setTimeout(() => {
       toast.style.animation = 'slideOut 0.3s ease-out';
@@ -456,11 +477,11 @@ export class BudgetComponent {
       existingToast.remove();
     }
   }
-  
+
   private collectFormData() {
     const selections = this.selections();
     const inputs = this.inputs();
-    
+
     return {
       projectType: this.getSelectedLabels('projectType'),
       services: this.getSelectedLabels('projectStage'), // Fixed: using correct question ID
@@ -472,23 +493,27 @@ export class BudgetComponent {
       additionalInfo: inputs['additionalInfo'] || {},
     };
   }
-  
+
   private getSelectedLabels(questionId: string): string {
-    const question = this.questions.find(q => q.id === questionId);
+    const question = this.questions.find((q) => q.id === questionId);
     if (!question || question.type !== 'options') return '';
-    
+
     const selectedValues = this.selections()[questionId] || [];
-    const selectedOptions = question.options?.filter(opt => 
-      selectedValues.includes(opt.value)
-    ) || [];
-    
-    return selectedOptions.map(opt => opt.label).join(', ');
+    const selectedOptions =
+      question.options?.filter((opt) => selectedValues.includes(opt.value)) ||
+      [];
+
+    return selectedOptions.map((opt) => opt.label).join(', ');
   }
-  
+
   private formatEmailMessage(data: any): string {
-    const projectTypeOther = data.additionalInfo?.projectTypeOther ? `\n      Otro: ${data.additionalInfo.projectTypeOther}` : '';
-    const discoveryOther = data.additionalInfo?.discoveryOther ? `\n      Otro: ${data.additionalInfo.discoveryOther}` : '';
-    
+    const projectTypeOther = data.additionalInfo?.projectTypeOther
+      ? `\n      Otro: ${data.additionalInfo.projectTypeOther}`
+      : '';
+    const discoveryOther = data.additionalInfo?.discoveryOther
+      ? `\n      Otro: ${data.additionalInfo.discoveryOther}`
+      : '';
+
     return `
 ═══════════════════════════════════════════════════════
     NUEVA SOLICITUD DE PRESUPUESTO
@@ -593,5 +618,4 @@ Enviado desde: SPGA Web - Formulario de Presupuesto
     this.showSuccess.set(false);
     this.router.navigate(['/']);
   }
-
 }

@@ -1,23 +1,30 @@
 <div class="w-full overflow-x-hidden">
-  <header 
+  <header
     #header
-    class="text-white fixed w-full transition-all duration-500" 
-    style="z-index: 50;">
-    <div 
+    class="text-white fixed w-full transition-all duration-500"
+    style="z-index: 50"
+  >
+    <div
       #headerBg
       class="absolute inset-0 bg-black transition-opacity duration-500"
-      style="opacity: 0;"
+      style="opacity: 0"
     ></div>
     <div class="h-20 relative z-10">
       <!-- Left: Logo -->
       <div
         #headerLogo
         class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center transition-opacity duration-500"
-        style="opacity: 0;"
+        style="opacity: 0"
       >
         <div class="flex items-center gap-2 sm:gap-3">
-          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 sm:h-10 w-auto" />
-          <span class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck">
+          <img
+            src="assets/svgs/SPGA.svg"
+            alt="SPGA"
+            class="h-8 sm:h-10 w-auto"
+          />
+          <span
+            class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck"
+          >
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
             Interiorismo
@@ -29,7 +36,9 @@
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
       >
-        <nav class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2">
+        <nav
+          class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2"
+        >
           <a
             href="#servicios"
             (click)="scrollToSection('servicios', $event)"
@@ -61,8 +70,7 @@
             (click)="toggleMobileMenu()"
             class="min-[900px]:hidden bg-white text-black focus:outline-none w-8 h-8 rounded-full flex items-center justify-center mr-4"
             aria-label="Menu"
-          >
-          </button>
+          ></button>
 
           <button
             (click)="scrollToSection('contacto', $event)"
@@ -107,7 +115,9 @@
     class="fixed inset-0 z-[100] bg-[#0a0a0a] text-white flex flex-col"
   >
     <!-- Header -->
-    <div class="h-20 px-4 flex items-center justify-between border-b border-white/20">
+    <div
+      class="h-20 px-4 flex items-center justify-between border-b border-white/20"
+    >
       <div class="flex items-center gap-3">
         <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
         <span class="text-sm font-light font-canela-deck">
@@ -116,7 +126,10 @@
           Interiorismo
         </span>
       </div>
-      <button (click)="toggleMobileMenu()" class="p-2 flex items-center justify-center">
+      <button
+        (click)="toggleMobileMenu()"
+        class="p-2 flex items-center justify-center"
+      >
         <!-- Diamond close icon -->
         <div class="w-6 h-6 bg-white transform rotate-45"></div>
       </button>
@@ -145,16 +158,20 @@
       >
         Sobre nosotros
       </a>
-      
+
       <!-- Contact Button -->
       <button
         (click)="toggleMobileMenu(); scrollToSection('contacto', $event)"
         class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
       >
         CONTÁCTANOS
-        <img src="assets/svgs/whatsapp_black.svg" alt="WhatsApp" class="h-6 w-6" />
+        <img
+          src="assets/svgs/whatsapp_black.svg"
+          alt="WhatsApp"
+          class="h-6 w-6"
+        />
       </button>
-      
+
       <!-- Budget Button -->
       <button
         routerLink="/budget"
@@ -189,21 +206,27 @@
           alt="Hero image"
           class="w-full h-full object-cover"
         />
-        
+
         <!-- Hero Logo - Top Left (will transition to header) -->
-        <div 
+        <div
           #heroLogo
           class="absolute top-12 left-12 z-10 text-white transition-all duration-700 ease-out"
-          style="transform-origin: top left;"
+          style="transform-origin: top left"
         >
           <div class="flex flex-col items-start gap-4">
-            <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-56 sm:h-72 md:h-80 w-auto drop-shadow-2xl" />
-            <span 
+            <img
+              src="assets/svgs/SPGA.svg"
+              alt="SPGA"
+              class="h-56 sm:h-72 md:h-80 w-auto drop-shadow-2xl"
+            />
+            <span
               #heroText
               class="text-2xl sm:text-3xl font-canela-deck font-light tracking-wide drop-shadow-lg transition-opacity duration-300"
             >
               Arquitectura
-              <span style="font-style: italic; font-weight: 100" class="mx-2">&amp;</span>
+              <span style="font-style: italic; font-weight: 100" class="mx-2"
+                >&amp;</span
+              >
               Interiorismo
             </span>
           </div>
@@ -249,10 +272,7 @@
       Servicios integrales
     </h2>
     <!-- Services integrales autoplay carousel (full width, 50vh height) -->
-    <div
-      class="w-full"
-      style="height: 50vh"
-    >
+    <div class="w-full" style="height: 50vh">
       <simple-auto-carousel
         class="w-full h-full block"
         [slides]="servicesSlides"
@@ -272,31 +292,33 @@
         Proyectos
       </h2>
       <!-- Three project cards row -->
-      <div class="mt-12 flex flex-col md:flex-row justify-center items-center gap-8">
+      <div
+        class="mt-12 flex flex-col md:flex-row justify-center items-center gap-8"
+      >
         <ng-container *ngFor="let p of projects; let i = index">
           <div
             class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden fade-in-section w-full max-w-md md:w-[420px] h-auto"
             #fadeInElement
             [ngClass]="{
               'md:h-[640px]': i === 1,
-              'md:h-[500px]': i !== 1
+              'md:h-[500px]': i !== 1,
             }"
           >
             <!-- Year and Type labels (above image) -->
-            <div class="w-full flex justify-between items-center  pt-4 pb-2">
+            <div class="w-full flex justify-between items-center pt-4 pb-2">
               <span class="text-sm font-light text-black">{{ p.year }}</span>
               <span class="text-sm font-light text-black">{{ p.type }}</span>
             </div>
-            
+
             <div
-            class="relative group cursor-pointer w-full h-[350px]"
-            [ngClass]="{
-              'md:h-[520px]': i === 1,
-              'md:h-[380px]': i !== 1
-            }"
-            (mouseenter)="i === 1 ? (revealImageProgress = 1) : null"
-            (mouseleave)="i === 1 ? (revealImageProgress = 0) : null"
-          >
+              class="relative group cursor-pointer w-full h-[350px]"
+              [ngClass]="{
+                'md:h-[520px]': i === 1,
+                'md:h-[380px]': i !== 1,
+              }"
+              (mouseenter)="i === 1 ? (revealImageProgress = 1) : null"
+              (mouseleave)="i === 1 ? (revealImageProgress = 0) : null"
+            >
               <img
                 [src]="p.image"
                 [alt]="p.title"
@@ -516,7 +538,10 @@
   class="w-full py-16 md:py-20 lg:py-24 scroll-mt-28 fade-background-section"
   #fadeInBackground
 >
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section" #fadeInElement>
+  <div
+    class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section"
+    #fadeInElement
+  >
     <div
       class="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-16"
     >
