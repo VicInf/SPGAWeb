@@ -21,7 +21,12 @@ import { ChangeDetectorRef } from '@angular/core';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="reveal-image-viewport" #vp [style.transform]="transform" [style.transition]="'none'">
+    <div
+      class="reveal-image-viewport"
+      #vp
+      [style.transform]="transform"
+      [style.transition]="'none'"
+    >
       <img
         [src]="src"
         [alt]="alt || 'Featured image'"
@@ -95,6 +100,22 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   // Scale animation (smooth lerp for mouse wheel)
   private _scaleTarget = this.endScale;
   private _scaleRafId: number | null = null;
+  public bypassActive = false;
+  private _recentEscape: 'up' | 'down' | null = null;
+
+  public bypassToShrunk() {
+    this.bypassActive = true;
+    this._stopScaleAnimation();
+    this.currentScale = this.minScale;
+    this.midScale = false;
+    this.lockScrollY = null;
+    this.releaseScrollLock();
+    this.updateTransform();
+    this.updateContentReveal();
+    setTimeout(() => {
+      this.bypassActive = false;
+    }, 1500);
+  }
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -155,7 +176,8 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   }
 
   private handleWheel(ev: WheelEvent) {
-    const hostRect = this.el.nativeElement.getBoundingClientRect();
+    if (this.bypassActive) return;
+    const vp = this.el.nativeElement;
     const vh = window.innerHeight || document.documentElement.clientHeight;
 
     // ── Raw delta with line-mode normalization ──
@@ -164,85 +186,104 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
 
     // ── Detect input device ──
     const isMouse =
-      ev.deltaMode === 1 ||
-      (ev.deltaMode === 0 && Math.abs(ev.deltaY) >= 100);
+      ev.deltaMode === 1 || (ev.deltaMode === 0 && Math.abs(ev.deltaY) >= 100);
 
     // ── Visibility (host element, unscaled) ──
+    const hostRect = vp.getBoundingClientRect();
     const elHeight = hostRect.height || 1;
     const visiblePx = Math.max(
       0,
       Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
     );
-    const fractionVisible = visiblePx / elHeight;
+    const fractionVisible = visiblePx / Math.min(elHeight, vh);
 
     const span = this.endScale - this.minScale;
     if (span <= 0) return;
 
-    // ── Sticky Lock Logic ──
-    const isSticky = this.lockScrollY !== null && this.midScale;
+    const isLocked = this.lockScrollY !== null;
 
-    if (!isSticky) {
-      // Device-dependent engagement thresholds
-      const visThreshold = isMouse
-        ? (delta > 0 ? 0.85 : 0.80)
-        : (delta > 0 ? 0.95 : 0.90);
+    // Reset escape state if user leaves element entirely or reverses direction
+    if (fractionVisible < 0.1) this._recentEscape = null;
+    if (delta > 0 && this._recentEscape === 'up') this._recentEscape = null;
+    if (delta < 0 && this._recentEscape === 'down') this._recentEscape = null;
 
-      if (fractionVisible < visThreshold) {
-        if (this.lockScrollY !== null) {
-          this.lockScrollY = null;
-          this.releaseScrollLock();
-        }
+    if (!isLocked) {
+      const visThreshold = isMouse ? 0.85 : 0.95;
+
+      // Predict if this specific wheel event's momentum will push the image over the threshold.
+      const estimatedDelta = isMouse
+        ? Math.abs(delta) < 120
+          ? Math.sign(delta) * 150
+          : delta
+        : delta;
+
+      const futureTop = hostRect.top - estimatedDelta;
+      const futureBottom = hostRect.bottom - estimatedDelta;
+      const futureVisiblePx = Math.max(
+        0,
+        Math.min(futureBottom, vh) - Math.max(futureTop, 0),
+      );
+      const futureFraction = futureVisiblePx / Math.min(elHeight, vh);
+
+      // Unconditional escape priority if recently broke the lock
+      if (delta > 0 && this._recentEscape === 'down') return;
+      if (delta < 0 && this._recentEscape === 'up') return;
+
+      // Only allow the native scroll if the future position STILL won't cross our lock bounds!
+      if (fractionVisible < visThreshold && futureFraction < visThreshold) {
         return;
+      }
+
+      // Engage!
+      const engageLock = () => {
+        this.lockScrollY = window.scrollY;
+        this.applyScrollLock();
+      };
+
+      if (delta > 0 && this.isAtFullSize()) {
+        // Scrolling down into full-sized image → begin shrink
+        ev.preventDefault();
+        engageLock();
+        this.midScale = true;
+        this.hasEngagedOnce = true;
+        return; // Absorb first click
+      } else if (delta < 0 && this.isAtMinSize()) {
+        // Scrolling up into shrunk image → begin grow
+        ev.preventDefault();
+        engageLock();
+        this.midScale = true;
+        return; // Absorb first click
+      } else {
+        return; // normal page scroll
       }
     }
 
-    // ── At full size scrolling DOWN → begin shrink, lock page ──
-    if (delta > 0 && this.isAtFullSize() && !this.midScale) {
-      if (this.lockScrollY === null) {
-        this.lockScrollY = window.scrollY;
-        this.applyScrollLock();
-      }
-      ev.preventDefault();
-      this.midScale = true;
-      this.hasEngagedOnce = true;
-      this.applyScaleDelta(delta, isMouse);
+    // ── Mid-scale / Locked Logic ──
+    ev.preventDefault();
+
+    // ── At full size scrolling UP → release lock ──
+    if (delta < 0 && this.isAtFullSize()) {
+      this._recentEscape = 'up';
+      this.lockScrollY = null;
+      this.midScale = false;
+      this.releaseScrollLock();
       return;
     }
 
     // ── At min size scrolling DOWN → release lock ──
     if (delta > 0 && this.isAtMinSize()) {
+      this._recentEscape = 'down';
       this.lockScrollY = null;
       this.midScale = false;
       this.releaseScrollLock();
       return;
     }
 
-    // ── At full size scrolling UP → release lock ──
-    if (delta < 0 && this.isAtFullSize()) {
-      this.lockScrollY = null;
-      this.midScale = false;
-      this.releaseScrollLock();
-      return;
-    }
-
-    // ── At min size scrolling UP → begin grow, lock page ──
-    if (delta < 0 && this.isAtMinSize() && !this.midScale) {
-      if (this.lockScrollY === null) {
-        this.lockScrollY = window.scrollY;
-        this.applyScrollLock();
-      }
-      ev.preventDefault();
+    // midScale state logic
+    if (!this.midScale) {
       this.midScale = true;
-      this.applyScaleDelta(delta, isMouse);
-      return;
     }
 
-    // ── Mid-scale: always lock and prevent scroll ──
-    if (this.lockScrollY === null) {
-      this.lockScrollY = window.scrollY;
-      this.applyScrollLock();
-    }
-    ev.preventDefault();
     this.applyScaleDelta(delta, isMouse);
   }
 

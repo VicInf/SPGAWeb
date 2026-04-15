@@ -165,6 +165,26 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   stageTransform = 'translate3d(0,0,0)';
   private resizeObserver?: ResizeObserver;
   private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
+  public bypassActive = false;
+
+  public bypassToLastSlide() {
+    this.bypassActive = true;
+    this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
+    this._scaleTarget = this.revealScaleCurrent;
+    this.scaledUp = true;
+    this._phase = 'sliding';
+    if (this.slides && this.slides.length > 0) {
+      this.ngZone.run(() => {
+        this.goTo(this.slides.length - 1);
+      });
+    }
+    this.lockScrollY = null;
+    this.releaseScrollLock();
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this.bypassActive = false;
+    }, 1500);
+  }
 
   // Restored properties
   private isBrowser = false;
@@ -438,7 +458,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:scroll')
   onWindowScroll() {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser || this.bypassActive) return;
 
     // EXTREME LOCK: Rubber-band snap. If native browser smooth scrolling momentum
     // (from heavy wheel clicks or middle-click drags) ignores `overflow: hidden`,
@@ -452,16 +472,23 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
     // Fallback trap for rapid native scrolling (e.g., scrollbar drag, middle-click auto-scroll, or extremely fast wheel)
     // Sometimes native scroll skips the wheel loop's engagement window. This guarantees a catch if they land on it.
-    if (this._phase === 'idle' && this.lockScrollY === null && this._recentEscape === null) {
+    if (
+      this._phase === 'idle' &&
+      this.lockScrollY === null &&
+      this._recentEscape === null
+    ) {
       const vp = this.viewportRef?.nativeElement;
       if (!vp) return;
-      
+
       const hostEl = vp.parentElement || vp;
       const hostRect = hostEl.getBoundingClientRect();
       const vh = window.innerHeight || document.documentElement.clientHeight;
       const elHeight = hostRect.height || 1;
-      
-      const visiblePx = Math.max(0, Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0));
+
+      const visiblePx = Math.max(
+        0,
+        Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
+      );
       // Use Math.min(elHeight, vh) so a carousel taller than viewport still logically reaches 100% visible
       const fractionVisible = visiblePx / Math.min(elHeight, vh);
 
@@ -470,9 +497,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
         const targetScrollY = Math.max(0, window.scrollY + centeredOffset);
         this.lockScrollY = targetScrollY;
         window.scrollTo({ top: targetScrollY, behavior: 'auto' });
-        
+
         this._phase = this.scaledUp ? 'sliding' : 'scaling';
-        if (this._phase === 'scaling') this._scaleTarget = this.revealScaleCurrent;
+        if (this._phase === 'scaling')
+          this._scaleTarget = this.revealScaleCurrent;
         this.applyScrollLock();
       }
     }
@@ -614,6 +642,48 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.updateAnnouncement();
   }
 
+  private applyFreeScrollOffset(newOffset: number) {
+    const count = this.slides.length;
+    const slideSpan = this.itemWidth + this.itemMargin;
+    if (slideSpan <= 0 || !count) return;
+
+    if (this.options.loop) {
+      // With clonesPerSide = 1:
+      // Real slides start at -1 * slideSpan.
+      const maxOffset = -0.5 * slideSpan;
+      const minOffset = -(count + 0.5) * slideSpan;
+
+      if (newOffset > maxOffset) {
+        newOffset -= count * slideSpan;
+      } else if (newOffset < minOffset) {
+        newOffset += count * slideSpan;
+      }
+    } else {
+      // Boundary resistance for non-looping
+      const maxOffset = 0;
+      const minOffset = -(count - this.getItemsPerView()) * slideSpan;
+      if (newOffset > maxOffset)
+        newOffset = maxOffset + (newOffset - maxOffset) * 0.25;
+      if (newOffset < minOffset)
+        newOffset = minOffset + (newOffset - minOffset) * 0.25;
+    }
+
+    this.stageTransition = 'none';
+    this.stageTransform = `translate3d(${newOffset}px,0,0)`;
+
+    // Update logic index
+    const fractionalIndex = Math.abs(newOffset) / slideSpan;
+    const visualPhysicalIndex = Math.round(fractionalIndex);
+    let logicalIndex = visualPhysicalIndex - this.clonesPerSide;
+    logicalIndex = ((logicalIndex % count) + count) % count;
+
+    this.currentIndex = logicalIndex;
+    this.stageIndex = visualPhysicalIndex;
+
+    this.updateAnnouncement();
+    this.cdr.markForCheck();
+  }
+
   private queueLoopAdjustment() {
     if (!this.options.loop) return;
     // After transition ends, detect if clone and jump
@@ -653,51 +723,60 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   // Drag / Pointer
+  private lastPointerY = 0;
+  private pointerIsVertical = false;
+
   onPointerDown(e: PointerEvent) {
-    if (e.button !== 0) return;
-    // Prevent interaction while scaling
-    if (!this.scaledUp) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
 
     this.pointerActive = true;
     this.hasDragged = false;
     this.dragStartX = e.clientX;
+    this.lastPointerY = e.clientY;
+    this.pointerIsVertical = false;
+
     const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
     this.dragStartTransform = match ? parseFloat(match[1]) : 0;
     (e.target as Element).setPointerCapture?.(e.pointerId);
     this.stageTransition = '';
     this.stopAutoplay();
   }
+
   onPointerMove(e: PointerEvent) {
     if (!this.pointerActive) return;
+
     const dx = e.clientX - this.dragStartX;
-    if (Math.abs(dx) > 3) this.hasDragged = true;
-    let next = this.dragStartTransform + dx;
-    if (!this.options.loop) {
-      const itemsPerView = this.getItemsPerView();
-      const total = this.slides.length;
-      const maxOffset = 0; // at first slide
-      const minOffset =
-        -Math.max(0, total - itemsPerView) * (this.itemWidth + this.itemMargin);
-      // Apply mild resistance when exceeding boundaries
-      if (next > maxOffset) next = maxOffset + (next - maxOffset) * 0.25;
-      if (next < minOffset) next = minOffset + (next - minOffset) * 0.25;
+    const dy = e.clientY - this.lastPointerY;
+
+    if (!this.hasDragged && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      this.hasDragged = true;
+      this.pointerIsVertical = Math.abs(dy) > Math.abs(dx);
     }
-    this.stageTransform = `translate3d(${next}px,0,0)`;
+
+    if (this.hasDragged) {
+      if (this.pointerIsVertical) {
+        const fakeWheelEvent = {
+          deltaY: -dy * 1.5,
+          deltaMode: 0,
+          preventDefault: () => {
+            e.preventDefault?.();
+          },
+        } as any;
+        this.handleWheel(fakeWheelEvent);
+        this.lastPointerY = e.clientY;
+      } else {
+        if (!this.scaledUp) return;
+        this.dragStartX = e.clientX;
+        const current = this.getCurrentStageOffset();
+        this.applyFreeScrollOffset(current + dx);
+      }
+    }
   }
+
   onPointerUp(e: PointerEvent) {
     if (!this.pointerActive) return;
     this.pointerActive = false;
-    const dx = e.clientX - this.dragStartX;
-    const threshold = (this.itemWidth + this.itemMargin) * 0.3;
-    let direction = 0;
-    if (dx < -threshold) direction = 1;
-    else if (dx > threshold) direction = -1;
-    if (direction !== 0) {
-      this.goTo(this.currentIndex + direction);
-    } else {
-      // snap back
-      this.updateStageTransform(true);
-    }
+    // No snapping! Just leave it where it was freely dragged.
     if (this.options.autoplay) this.startAutoplay();
   }
 
@@ -710,8 +789,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.ngZone.run(() => this.handleWheel(event));
   }
 
-
   private handleWheel(event: WheelEvent) {
+    if (this.bypassActive) return;
     const vp = this.viewportRef?.nativeElement;
     if (!vp) return;
     const rect = vp.getBoundingClientRect();
@@ -765,10 +844,17 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       // We must `preventDefault` BEFORE the browser initiates native smooth scrolling,
       // because native smooth scrolling ignores `overflow: hidden` locks midway through the animation.
       // We assume a standard mouse notch travels at least 150px to ensure we catch violent flicks.
-      const estimatedDelta = isMouse ? (Math.abs(delta) < 120 ? Math.sign(delta) * 150 : delta) : delta;
+      const estimatedDelta = isMouse
+        ? Math.abs(delta) < 120
+          ? Math.sign(delta) * 150
+          : delta
+        : delta;
       const futureTop = hostRect.top - estimatedDelta;
       const futureBottom = hostRect.bottom - estimatedDelta;
-      const futureVisiblePx = Math.max(0, Math.min(futureBottom, vh) - Math.max(futureTop, 0));
+      const futureVisiblePx = Math.max(
+        0,
+        Math.min(futureBottom, vh) - Math.max(futureTop, 0),
+      );
       const futureFraction = futureVisiblePx / Math.min(elHeight, vh);
 
       // Unconditional escape priority if recently broke the lock
@@ -776,8 +862,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       if (delta < 0 && this._recentEscape === 'up') return;
 
       // Only allow the native scroll if the future position STILL won't cross our lock bounds!
-      if (fractionVisible < visThreshold && futureFraction < visThreshold && !isLocked) {
-        return; 
+      if (
+        fractionVisible < visThreshold &&
+        futureFraction < visThreshold &&
+        !isLocked
+      ) {
+        return;
       }
 
       const centeredOffset = hostRect.top - (vh - elHeight) / 2;
@@ -807,7 +897,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
         this._phase = 'sliding';
         alignPerfectly();
         this.applyScrollLock();
-        // Fall through to sliding handler
+        return; // Absorb the wheel event so it doesn't immediately advance a slide!
       } else {
         return; // allow normal page scroll
       }
@@ -850,10 +940,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       }
 
       // If shrunk all the way down → release to normal page scroll
-      if (
-        delta < 0 &&
-        this._scaleTarget <= startScale + epsilon
-      ) {
+      if (delta < 0 && this._scaleTarget <= startScale + epsilon) {
         this._stopScaleAnimation();
         this.revealScaleCurrent = startScale;
         this._scaleTarget = startScale;
@@ -876,9 +963,19 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       const atLast = this.currentIndex === count - 1;
       const scrollingForward = delta > 0;
 
+      // Calculate perfect visual alignments
+      const slideSpan = this.itemWidth + this.itemMargin;
+      const currentOffset = this.getCurrentStageOffset();
+      const exactLastSlideOffset =
+        -(count - 1 + this.clonesPerSide) * slideSpan;
+      const exactFirstSlideOffset = -this.clonesPerSide * slideSpan;
+
+      const isLastFullyInFrame = currentOffset <= exactLastSlideOffset + 2;
+      const isFirstFullyInFrame = currentOffset >= exactFirstSlideOffset - 2;
+
       // ── Boundary escape: last slide + forward ──
-      // Escape immediately when at the last image, as requested, to smoothly continue page scroll downwards
-      if (atLast && scrollingForward) {
+      // Escape immediately when at the last image, but ONLY if it is entirely in frame
+      if (atLast && scrollingForward && isLastFullyInFrame) {
         this._recentEscape = 'down';
         this._phase = 'idle';
         this.releaseScrollLock(false);
@@ -892,7 +989,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       }
 
       // ── Shrink entry: first slide + scrolling up ──
-      if (atFirst && !scrollingForward) {
+      if (atFirst && !scrollingForward && isFirstFullyInFrame) {
         this._shrinkIntent += Math.abs(delta);
         const shrinkThreshold = isMouse ? 40 : 15;
         if (this._shrinkIntent >= shrinkThreshold) {
@@ -947,47 +1044,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
           this.goTo(this.currentIndex - 1);
         }
       } else {
-        // Touchpad: accumulator with smooth partial slide preview
-        const threshold = this.options.wheelThreshold || 120;
-        const slideSpan = this.itemWidth + this.itemMargin;
-
-        // Direction reversal → reset accumulator
-        if (
-          (this.wheelAccumulator > 0 && delta < 0) ||
-          (this.wheelAccumulator < 0 && delta > 0)
-        ) {
-          this.wheelAccumulator = 0;
-          this.baseOffsetForWheel = this.getCurrentStageOffset();
-        }
-
-        if (this.wheelAccumulator === 0) {
-          this.baseOffsetForWheel = this.getCurrentStageOffset();
-        }
-
-        // Cancel any in-flight JS animation so it doesn't fight positioning
+        // Touchpad: free drag
         this.activeAnimation = null;
-
-        this.wheelAccumulator += delta;
-        const clamped = Math.max(
-          -threshold,
-          Math.min(threshold, this.wheelAccumulator),
-        );
-        const fraction = clamped / threshold;
-
-        if (Math.abs(fraction) < 1) {
-          const offset = this.baseOffsetForWheel - fraction * slideSpan;
-          this.stageTransition = 'none';
-          this.stageTransform = `translate3d(${offset}px,0,0)`;
-          this.cdr.markForCheck();
-        }
-
-        if (clamped >= threshold) {
-          this.goTo(this.currentIndex + 1);
-          this.wheelAccumulator = 0;
-        } else if (clamped <= -threshold) {
-          this.goTo(this.currentIndex - 1);
-          this.wheelAccumulator = 0;
-        }
+        const currentOffset = this.getCurrentStageOffset();
+        this.applyFreeScrollOffset(currentOffset - delta);
       }
     }
   }

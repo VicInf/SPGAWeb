@@ -58,6 +58,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   @ViewChild('headerBg') headerBg!: ElementRef;
   @ViewChild('headerLogo') headerLogo!: ElementRef;
 
+  @ViewChild(OwlCarouselComponent) owlCarousel!: OwlCarouselComponent;
+  @ViewChild(RevealImageComponent) revealImage!: RevealImageComponent;
+
   constructor(
     private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: Object,
@@ -475,12 +478,20 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const target = document.getElementById(sectionId);
     if (!target) return;
 
+    if (this.owlCarousel) {
+      this.owlCarousel.bypassToLastSlide();
+    }
+
+    if (this.revealImage && (sectionId === 'sobre-nosotros' || sectionId === 'contacto')) {
+      this.revealImage.bypassToShrunk();
+    }
+
     const header = document.querySelector('header');
     const offset = header instanceof HTMLElement ? header.offsetHeight : 0;
     const targetPosition = target.getBoundingClientRect().top + window.scrollY;
     const scrollPosition = targetPosition - offset;
 
-    window.scrollTo({ top: scrollPosition, behavior: 'smooth' });
+    window.scrollTo({ top: scrollPosition, behavior: 'auto' });
   }
 
   openModel(index: number) {
