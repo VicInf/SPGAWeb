@@ -1,4 +1,11 @@
-import { Component, EventEmitter, Input, Output, HostListener, signal } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  HostListener,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -9,19 +16,44 @@ import { CommonModule } from '@angular/common';
     <div class="carousel-container">
       <!-- Close Button -->
       <button class="close-btn" (click)="onClose()">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
 
-      <!-- Main Image -->
+      <!-- Main Image/Video -->
       <div class="main-content">
         <div class="image-wrapper" *ngIf="images && images.length > 0">
-          <img 
-            [src]="images[currentIndex]" 
-            [alt]="title" 
-            class="main-image"
-          />
+          <ng-container
+            *ngIf="!isVideo(images[currentIndex]); else videoTemplate"
+          >
+            <img
+              [src]="images[currentIndex]"
+              [alt]="title"
+              loading="lazy"
+              class="main-image"
+            />
+          </ng-container>
+          <ng-template #videoTemplate>
+            <video
+              [src]="images[currentIndex]"
+              class="main-image"
+              autoplay
+              loop
+              [muted]="true"
+              playsinline
+              (loadstart)="silenceVideo($event)"
+            ></video>
+          </ng-template>
         </div>
       </div>
 
@@ -37,18 +69,34 @@ import { CommonModule } from '@angular/common';
         <!-- Center: Navigation -->
         <div class="navigation-controls">
           <button class="nav-btn prev" (click)="prev()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+              />
             </svg>
           </button>
-          
-          <div class="counter">
-            {{ currentIndex + 1 }}/{{ images.length }}
-          </div>
+
+          <div class="counter">{{ currentIndex + 1 }}/{{ images.length }}</div>
 
           <button class="nav-btn next" (click)="next()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+              />
             </svg>
           </button>
         </div>
@@ -60,7 +108,7 @@ import { CommonModule } from '@angular/common';
       </div>
     </div>
   `,
-  styleUrls: ['./project-carousel.component.css']
+  styleUrls: ['./project-carousel.component.css'],
 })
 export class ProjectCarouselComponent {
   @Input() images: string[] = [];
@@ -88,6 +136,18 @@ export class ProjectCarouselComponent {
     this.close.emit();
   }
 
+  silenceVideo(event: Event) {
+    const video = event.target as HTMLVideoElement;
+    video.muted = true;
+    video.volume = 0;
+  }
+
+  isVideo(url: string): boolean {
+    if (!url) return false;
+    const extension = url.split('.').pop()?.toLowerCase();
+    return ['mp4', 'webm', 'ogg', 'mov'].includes(extension || '');
+  }
+
   next() {
     if (!this.images.length) return;
     this.currentIndex = (this.currentIndex + 1) % this.images.length;
@@ -95,6 +155,7 @@ export class ProjectCarouselComponent {
 
   prev() {
     if (!this.images.length) return;
-    this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+    this.currentIndex =
+      (this.currentIndex - 1 + this.images.length) % this.images.length;
   }
 }

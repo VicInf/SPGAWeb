@@ -166,13 +166,20 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
   private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
   public bypassActive = false;
+  // Dormant: after navbar bypass, prevent re-engagement until the carousel
+  // is fully off-screen (< 10% visible). Only then does natural scroll
+  // engagement become possible again.
+  private _bypassDormant = false;
 
   public bypassToLastSlide() {
     this.bypassActive = true;
+    this._bypassDormant = true; // stay dormant until off-screen
     this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
     this._scaleTarget = this.revealScaleCurrent;
     this.scaledUp = true;
-    this._phase = 'sliding';
+    this._phase = 'idle'; // Set to idle to prevent any scroll engagement
+    this.scalingPhaseActive = false; // Disable scaling phase
+    this.growthStarted = true; // Mark growth as completed
     if (this.slides && this.slides.length > 0) {
       this.ngZone.run(() => {
         this.goTo(this.slides.length - 1);
@@ -184,6 +191,29 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.bypassActive = false;
     }, 1500);
+  }
+
+  public bypassToFirstSlide() {
+    this.bypassActive = true;
+    // Don't set _bypassDormant so the carousel can naturally engage when scrolling down
+    this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
+    this._scaleTarget = this.revealScaleCurrent;
+    this.scaledUp = false;
+    this._phase = 'idle';
+    this.scalingPhaseActive = false;
+    this.growthStarted = false;
+    if (this.slides && this.slides.length > 0) {
+      this.ngZone.run(() => {
+        this.goTo(0);
+      });
+    }
+    this.lockScrollY = null;
+    this.releaseScrollLock();
+    this.cdr.markForCheck();
+    // Shorter timeout since we want to allow immediate re-engagement
+    setTimeout(() => {
+      this.bypassActive = false;
+    }, 100);
   }
 
   // Restored properties
@@ -460,6 +490,27 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   onWindowScroll() {
     if (!this.isBrowser || this.bypassActive) return;
 
+    // ── Dormancy system: clear dormancy once carousel is off-screen ──
+    if (this._bypassDormant) {
+      const vp = this.viewportRef?.nativeElement;
+      if (vp) {
+        const hostEl = vp.parentElement || vp;
+        const hostRect = hostEl.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const elHeight = hostRect.height || 1;
+        const visiblePx = Math.max(
+          0,
+          Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
+        );
+        const fractionVisible = visiblePx / Math.min(elHeight, vh);
+        // Only wake up once the user scrolls away and the carousel is barely visible
+        if (fractionVisible < 0.1) {
+          this._bypassDormant = false;
+        }
+      }
+      return; // stay dormant, don't process any engagement logic
+    }
+
     // EXTREME LOCK: Rubber-band snap. If native browser smooth scrolling momentum
     // (from heavy wheel clicks or middle-click drags) ignores `overflow: hidden`,
     // instantly clamp the native scroll back to the strictly locked Y coordinate.
@@ -472,8 +523,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
     // Fallback trap for rapid native scrolling (e.g., scrollbar drag, middle-click auto-scroll, or extremely fast wheel)
     // Sometimes native scroll skips the wheel loop's engagement window. This guarantees a catch if they land on it.
+    // IMPORTANT: Only engage if carousel hasn't been scaled up yet (not bypassed)
     if (
       this._phase === 'idle' &&
+      !this.scaledUp &&
       this.lockScrollY === null &&
       this._recentEscape === null
     ) {
@@ -498,9 +551,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
         this.lockScrollY = targetScrollY;
         window.scrollTo({ top: targetScrollY, behavior: 'auto' });
 
-        this._phase = this.scaledUp ? 'sliding' : 'scaling';
-        if (this._phase === 'scaling')
-          this._scaleTarget = this.revealScaleCurrent;
+        this._phase = 'scaling';
+        this._scaleTarget = this.revealScaleCurrent;
         this.applyScrollLock();
       }
     }
@@ -790,7 +842,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   private handleWheel(event: WheelEvent) {
-    if (this.bypassActive) return;
+    if (this.bypassActive || this._bypassDormant) return;
     const vp = this.viewportRef?.nativeElement;
     if (!vp) return;
     const rect = vp.getBoundingClientRect();

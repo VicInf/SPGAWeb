@@ -13,8 +13,9 @@
       <!-- Left: Logo -->
       <div
         #headerLogo
-        class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center transition-opacity duration-500"
+        class="absolute left-2 sm:left-4 lg:left-8 top-1/2 transform -translate-y-1/2 flex items-center transition-opacity duration-500 cursor-pointer"
         style="opacity: 0"
+        (click)="scrollToTop()"
       >
         <div class="flex items-center gap-2 sm:gap-3">
           <img
@@ -204,6 +205,8 @@
         <img
           src="assets/pictures/first-image.png"
           alt="Hero image"
+          loading="eager"
+          fetchpriority="high"
           class="w-full h-full object-cover"
         />
 
@@ -283,7 +286,7 @@
   <!-- Proyectos section (same heading style, plain background, full viewport height) -->
   <section
     id="proyectos"
-    class="w-full flex items-center justify-center scroll-mt-28 min-h-screen py-12 md:py-0"
+    class="w-full flex items-center justify-center scroll-mt-28 min-h-screen pt-24 pb-12 lg:pt-24 lg:pb-24"
   >
     <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
       <h2
@@ -293,15 +296,15 @@
       </h2>
       <!-- Three project cards row -->
       <div
-        class="mt-12 flex flex-col md:flex-row justify-center items-center gap-8"
+        class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 lg:gap-y-20 justify-items-center"
       >
         <ng-container *ngFor="let p of projects; let i = index">
           <div
-            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-300 bg-white overflow-hidden fade-in-section w-full max-w-md md:w-[420px] h-auto"
+            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-500 bg-white overflow-hidden fade-in-section w-full max-w-md"
             #fadeInElement
             [ngClass]="{
-              'md:h-[640px]': i === 1,
-              'md:h-[500px]': i !== 1,
+              'lg:h-[640px] lg:mt-24': i % 3 === 1,
+              'lg:h-[500px]': i % 3 !== 1,
             }"
           >
             <!-- Year and Type labels (above image) -->
@@ -313,17 +316,27 @@
             <div
               class="relative group cursor-pointer w-full h-[350px]"
               [ngClass]="{
-                'md:h-[520px]': i === 1,
-                'md:h-[380px]': i !== 1,
+                'lg:h-[520px]': i % 3 === 1,
+                'lg:h-[380px]': i % 3 !== 1,
               }"
-              (mouseenter)="i === 1 ? (revealImageProgress = 1) : null"
-              (mouseleave)="i === 1 ? (revealImageProgress = 0) : null"
+              (mouseenter)="i % 3 === 1 ? (revealImageProgress = 1) : null"
+              (mouseleave)="i % 3 === 1 ? (revealImageProgress = 0) : null"
             >
               <img
                 [src]="p.image"
                 [alt]="p.title"
+                loading="lazy"
                 class="absolute inset-0 w-full h-full object-cover"
                 draggable="false"
+              />
+              <!-- Preload first carousel image in background when card is visible -->
+              <img
+                *ngIf="p.images.length"
+                [src]="p.images[0]"
+                loading="lazy"
+                fetchpriority="low"
+                aria-hidden="true"
+                class="sr-only"
               />
               <div
                 class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none"
@@ -349,7 +362,6 @@
                   *ngIf="p.hasModel"
                   (click)="openModel(i)"
                   class="flex-1 border border-black py-3 text-sm uppercase tracking-wide hover:bg-black hover:text-white transition"
-                  [disabled]="i !== 0"
                 >
                   Ver modelo 3D
                 </button>
@@ -550,6 +562,7 @@
         <img
           src="assets/pictures/about-us-image.png"
           alt="Equipo"
+          loading="lazy"
           class="w-full h-full object-cover"
         />
       </div>

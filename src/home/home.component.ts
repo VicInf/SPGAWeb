@@ -361,6 +361,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     services?: string; // Added for carousel details
   }> = [
     {
+      title: 'Edificio Áurea',
+      subtitle: 'Complejo residencial moderno',
+      hasModel: false,
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776437025/00_Portada_xii7we.webp',
+      images: [
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_01_yit6py.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_02_nv9uke.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_03_v69jlb.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_04_ovy7yz.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_05_cvzphi.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_06_vtftal.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_07_gk2jim.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436699/Imagen_08_arfybq.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_09_u6tlb2.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_4:3/v1776436697/Imagen_10_video_vn1wqk.mp4',
+      ],
+      year: '2025',
+      type: 'Residencial',
+      services: 'Diseño arquitectónico, visualización 3D',
+    },
+    {
       title: 'Casa Horizonte',
       subtitle: 'Residencial costera',
       hasModel: true,
@@ -404,6 +426,32 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       year: '2024',
       type: 'Residencial',
       services: 'Paisajismo, diseño de exteriores',
+    },
+    {
+      title: 'Residencia Luna',
+      subtitle: 'Hogar contemporáneo',
+      hasModel: false,
+      image: 'assets/pictures/piscina-2.png',
+      images: [
+        'assets/pictures/piscina-2.png',
+        'assets/pictures/piscina-3.png',
+      ],
+      year: '2024',
+      type: 'Residencial',
+      services: 'Diseño de interiores, amoblamiento',
+    },
+    {
+      title: 'Espacio Prisma',
+      subtitle: 'Oficinas corporativas',
+      hasModel: false,
+      image: 'assets/pictures/Servicio-1.png',
+      images: [
+        'assets/pictures/Servicio-1.png',
+        'assets/pictures/Servicio-2.png',
+      ],
+      year: '2024',
+      type: 'Comercial',
+      services: 'Diseño corporativo, planificación',
     },
   ];
 
@@ -482,7 +530,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.owlCarousel.bypassToLastSlide();
     }
 
-    if (this.revealImage && (sectionId === 'sobre-nosotros' || sectionId === 'contacto')) {
+    if (
+      this.revealImage &&
+      (sectionId === 'sobre-nosotros' || sectionId === 'contacto')
+    ) {
       this.revealImage.bypassToShrunk();
     }
 
@@ -494,9 +545,18 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     window.scrollTo({ top: scrollPosition, behavior: 'auto' });
   }
 
+  scrollToTop() {
+    if (typeof window === 'undefined') return;
+
+    if (this.owlCarousel) {
+      this.owlCarousel.bypassToFirstSlide();
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
   openModel(index: number) {
-    // Only open for first project as requested
-    if (index !== 0) return;
+    if (!this.projects[index]?.hasModel) return;
     this.loadingModel = true;
     this.modelError = null;
     this.showModel = true;
