@@ -315,7 +315,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       alt: 'Supervisión de obras',
       title: 'Supervisión de obras',
       description:
-        'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
+        'Aseguramos la correcta ejecución del proyecto, garantizando calidad, plazos y cumplimiento normativo.',
     },
     {
       src: 'assets/pictures/Servicio-5.png',
@@ -329,7 +329,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       alt: 'Capacitaciones y talleres',
       title: 'Capacitaciones y talleres',
       description:
-        'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
+        'Formación especializada enfocada en optimizar procesos y actualizar conocimientos técnicos.',
     },
   ];
   servicesCarouselOptions: SimpleAutoCarouselOptions = {

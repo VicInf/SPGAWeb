@@ -53,7 +53,7 @@ export interface OwlCarouselOptions {
 @Component({
   selector: 'owl-carousel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div
       class="owl-carousel-viewport"
@@ -73,75 +73,72 @@ export interface OwlCarouselOptions {
       (mouseleave)="onMouseLeave()"
       [class.dragging]="pointerActive"
     >
-      <div
-        class="owl-overlay-gradient"
-        *ngIf="options.nav || options.dots"
-      ></div>
+      @if (options.nav || options.dots) {
+        <div class="owl-overlay-gradient"></div>
+      }
       <div
         #stage
         class="owl-carousel-stage"
         [style.transition]="stageTransition"
         [style.transform]="stageTransform"
       >
-        <div
-          class="owl-item"
-          *ngFor="let slide of renderedSlides; let i = index"
-          [style.width.px]="itemWidth"
-          [style.marginRight.px]="itemMargin"
-          [attr.data-index]="slide._realIndex"
-        >
-          <img
-            [src]="slide.src"
-            [alt]="slide.alt || 'Slide ' + (slide._realIndex + 1)"
-            draggable="false"
-          />
-        </div>
+        @for (slide of renderedSlides; track slide._realIndex; let i = $index) {
+          <div
+            class="owl-item"
+            [style.width.px]="itemWidth"
+            [style.marginRight.px]="itemMargin"
+            [attr.data-index]="slide._realIndex"
+          >
+            <img
+              [src]="slide.src"
+              [alt]="slide.alt || 'Slide ' + (slide._realIndex + 1)"
+              draggable="false"
+            />
+          </div>
+        }
       </div>
 
       <!-- Centered text overlay (fixed position, shows active slide text) -->
-      <div
-        *ngIf="getActiveSlide()?.title || getActiveSlide()?.subtitle"
-        class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
-        [style.opacity]="getTextOpacity()"
-      >
-        <span
-          class="text-xl sm:text-2xl md:text-3xl"
-          *ngIf="getActiveSlide()?.title"
-          >{{ getActiveSlide()?.title }}</span
-        >
-        <span
-          class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4"
-          *ngIf="getActiveSlide()?.subtitle"
-          >{{ getActiveSlide()?.subtitle }}</span
-        >
-      </div>
-      <!-- Progress bar (replaces dots) -->
-      <div
-        *ngIf="options.dots"
-        class="owl-progress-wrapper"
-        aria-label="Carousel progress"
-      >
+      @if (getActiveSlide()?.title || getActiveSlide()?.subtitle) {
         <div
-          class="owl-progress-track"
-          (click)="onProgressClick($event)"
-          [class.clickable]="options.progressClickable"
+          class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
+          [style.opacity]="getTextOpacity()"
         >
-          <div
-            class="owl-progress-bar"
-            [style.width.%]="
-              slides.length ? ((currentIndex + 1) / slides.length) * 100 : 0
-            "
-          ></div>
+          @if (getActiveSlide()?.title) {
+            <span class="text-xl sm:text-2xl md:text-3xl">{{
+              getActiveSlide()?.title
+            }}</span>
+          }
+          @if (getActiveSlide()?.subtitle) {
+            <span
+              class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4"
+              >{{ getActiveSlide()?.subtitle }}</span
+            >
+          }
         </div>
-      </div>
-      <div
-        *ngIf="options.announce"
-        class="visually-hidden"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        Slide {{ currentIndex + 1 }} of {{ slides.length }}
-      </div>
+      }
+      <!-- Progress bar (replaces dots) -->
+      @if (options.dots) {
+        <div class="owl-progress-wrapper" aria-label="Carousel progress">
+          <div
+            class="owl-progress-track"
+            (click)="onProgressClick($event)"
+            [class.clickable]="options.progressClickable"
+          >
+            <div
+              class="owl-progress-bar"
+              [style.width.%]="
+                slides.length ? ((currentIndex + 1) / slides.length) * 100 : 0
+              "
+            ></div>
+          </div>
+        </div>
+      }
+      @if (options.announce) {
+        <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+          Slide {{ currentIndex + 1 }} of {{ slides.length }}
+        </div>
+      }
     </div>
   `,
   styleUrls: ['./owl-carousel.component.css'],
@@ -408,9 +405,21 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   private applyScrollLock() {
     if (!this.isBrowser || typeof document === 'undefined') return;
+    // Calculate scrollbar width before hiding it
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
     // Simple overflow hidden - no position manipulation
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+    // Compensate for scrollbar width to prevent layout shift
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      // Also apply to fixed header to prevent it from shifting
+      const header = document.querySelector('header');
+      if (header instanceof HTMLElement) {
+        header.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    }
   }
 
   private releaseScrollLock(restorePosition: boolean = true) {
@@ -418,6 +427,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     // Just remove overflow lock - no scroll position changes
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    // Remove padding from header
+    const header = document.querySelector('header');
+    if (header instanceof HTMLElement) {
+      header.style.paddingRight = '';
+    }
   }
 
   @HostListener('window:resize') onResize() {

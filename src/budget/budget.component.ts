@@ -355,11 +355,6 @@ export class BudgetComponent {
       return 'Por favor, selecciona una fecha límite o plazo ideal';
     }
 
-    // Check Question 6: Comments
-    if (!inputs['additionalInfo']?.['comments']) {
-      return 'Por favor, cuéntanos brevemente tu idea o necesidad';
-    }
-
     // Check Question 7: Contact Info
     if (!inputs['contactInfo']?.['fullName']) {
       return 'Por favor, ingresa tu nombre completo';

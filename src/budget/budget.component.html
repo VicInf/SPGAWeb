@@ -7,7 +7,9 @@
       >
         <div class="flex items-center gap-3">
           <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-10 w-auto" />
-          <span class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck">
+          <span
+            class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck"
+          >
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
             Interiorismo
@@ -19,7 +21,9 @@
       <div
         class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center"
       >
-        <nav class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2">
+        <nav
+          class="hidden min-[900px]:flex min-[900px]:space-x-6 xl:space-x-20 mt-2"
+        >
           <a
             href="/"
             (click)="handleNav(null, $event)"
@@ -57,8 +61,7 @@
             (click)="toggleMobileMenu()"
             class="min-[900px]:hidden bg-white text-black focus:outline-none w-8 h-8 rounded-full flex items-center justify-center mr-4"
             aria-label="Menu"
-          >
-          </button>
+          ></button>
 
           <button
             type="button"
@@ -102,7 +105,9 @@
     class="fixed inset-0 z-[100] bg-[#0a0a0a] text-white flex flex-col"
   >
     <!-- Header -->
-    <div class="h-20 px-4 flex items-center justify-between border-b border-white/20">
+    <div
+      class="h-20 px-4 flex items-center justify-between border-b border-white/20"
+    >
       <div class="flex items-center gap-3">
         <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
         <span class="text-sm font-light font-canela-deck">
@@ -111,7 +116,10 @@
           Interiorismo
         </span>
       </div>
-      <button (click)="toggleMobileMenu()" class="p-2 flex items-center justify-center">
+      <button
+        (click)="toggleMobileMenu()"
+        class="p-2 flex items-center justify-center"
+      >
         <!-- Diamond close icon -->
         <div class="w-6 h-6 bg-white transform rotate-45"></div>
       </button>
@@ -147,16 +155,20 @@
       >
         Sobre nosotros
       </a>
-      
+
       <!-- Contact Button -->
       <button
         (click)="toggleMobileMenu(); scrollToContact()"
         class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
       >
         CONTÁCTANOS
-        <img src="assets/svgs/whatsapp_black.svg" alt="WhatsApp" class="h-6 w-6" />
+        <img
+          src="assets/svgs/whatsapp_black.svg"
+          alt="WhatsApp"
+          class="h-6 w-6"
+        />
       </button>
-      
+
       <!-- Budget Button (Disabled/Active state since we are on budget page) -->
       <button
         class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide opacity-50 cursor-default"
@@ -215,7 +227,10 @@
               type="text"
               class="flex-1 border-b border-black bg-transparent py-1 text-sm focus:outline-none"
               placeholder=""
-              (input)="onInputChange('additionalInfo', 'projectTypeOther', $event); clearSelection('projectType')"
+              (input)="
+                onInputChange('additionalInfo', 'projectTypeOther', $event);
+                clearSelection('projectType')
+              "
             />
           </div>
         </div>
@@ -319,7 +334,7 @@
         <!-- Question 6: Additional Comments -->
         <div class="space-y-4">
           <h3 class="text-base font-light">
-            Cuéntanos brevemente tu idea o necesidad*
+            Cuéntanos brevemente tu idea o necesidad
           </h3>
           <textarea
             class="w-full border-b border-black bg-transparent py-2 text-sm focus:outline-none resize-none"
@@ -334,7 +349,7 @@
           <h3 class="text-base font-light">Tus datos de contacto*</h3>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm mb-1">Nombre completo</label>
+              <label class="block text-sm mb-1">Nombre y apellido</label>
               <input
                 type="text"
                 required
@@ -390,14 +405,19 @@
               type="text"
               class="flex-1 border-b border-black bg-transparent py-1 text-sm focus:outline-none"
               placeholder=""
-              (input)="onInputChange('additionalInfo', 'discoveryOther', $event); clearSelection('discoveryMethod')"
+              (input)="
+                onInputChange('additionalInfo', 'discoveryOther', $event);
+                clearSelection('discoveryMethod')
+              "
             />
           </div>
         </div>
 
         <!-- Contact Preference -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">¿Cómo prefieres que te contactemos?*</h3>
+          <h3 class="text-base font-light">
+            ¿Cómo prefieres que te contactemos?*
+          </h3>
           <div class="flex flex-wrap gap-3">
             <button
               type="button"
@@ -428,7 +448,10 @@
     </section>
 
     <!-- Success Section (Inline) -->
-    <section *ngIf="showSuccess()" class="max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in">
+    <section
+      *ngIf="showSuccess()"
+      class="max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in"
+    >
       <!-- Checkmark Icon -->
       <div class="mb-8">
         <img
@@ -438,13 +461,18 @@
         />
       </div>
 
-      <h2 class="text-5xl sm:text-6xl md:text-7xl font-canela-deck font-light mb-8 text-black">
+      <h2
+        class="text-5xl sm:text-6xl md:text-7xl font-canela-deck font-light mb-8 text-black"
+      >
         Recibimos tu solicitud
       </h2>
 
-      <div class="text-base sm:text-lg font-light text-black/80 max-w-3xl mx-auto leading-relaxed">
+      <div
+        class="text-base sm:text-lg font-light text-black/80 max-w-3xl mx-auto leading-relaxed"
+      >
         <p class="mb-2">
-          Gracias por tu interés, pronto nos pondremos en contacto con la información solicitada.
+          Gracias por tu interés, pronto nos pondremos en contacto con la
+          información solicitada.
         </p>
         <p>
           Si deseas comunicarte con nosotros, también puedes contactarnos por
@@ -465,12 +493,10 @@
       logoSrc="/assets/svgs/SPGA.svg"
       videoSrc="/assets/videos/Design your post.mp4"
       fallbackImageSrc="/assets/pictures/first-image.png"
-      whatsappNumber="+58000-00000"
-      email="spgagroup@gmail.com"
-      designCredit="Maya Bottino"
+      whatsappNumber="+584143350763"
+      email="groupspga@gmail.com"
+      designCredit="Mayra Bottino"
       devCredit="Vicente Perez"
     ></contactanos-section>
   </section>
-  
-
 </div>

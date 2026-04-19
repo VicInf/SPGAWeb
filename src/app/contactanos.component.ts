@@ -18,7 +18,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
     <section class="w-full bg-black text-white py-16 md:py-24">
       <div class="container mx-auto px-6 md:px-12 lg:px-20">
         <!-- First Row: Logo and Video with space between -->
-        <div class="flex flex-col lg:flex-row lg:justify-between items-center gap-12 mb-12">
+        <div
+          class="flex flex-col lg:flex-row lg:justify-between items-center gap-12 mb-12"
+        >
           <!-- Logo -->
           <div class="flex items-center justify-center h-64 md:h-40 lg:h-48">
             <img [src]="logoSrc" alt="SPGA Logo" class="h-full w-auto" />
@@ -51,7 +53,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         </div>
 
         <!-- Second Row: Title and Contact Info aligned with logo/video above -->
-        <div class="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-12 mb-8">
+        <div
+          class="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-12 mb-8"
+        >
           <!-- Contactanos Title (aligned with logo) -->
           <h2
             class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center lg:text-left"
@@ -103,8 +107,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         <div
           class="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70 text-center md:text-left"
         >
-          <p>© Copyright SPGA Group. Venezuela</p>
-          <div class="flex flex-col lg:flex-row gap-1 lg:gap-8 items-center lg:items-end">
+          <p>© Copyright SPGA GROUP. Venezuela</p>
+          <div
+            class="flex flex-col lg:flex-row gap-1 lg:gap-8 items-center lg:items-end"
+          >
             <p *ngIf="designCredit">Diseño por {{ designCredit }}</p>
             <p *ngIf="devCredit">Desarrollo por {{ devCredit }}</p>
           </div>
@@ -126,9 +132,9 @@ export class ContactanosComponent implements AfterViewInit {
   @Input() logoSrc: string = '/assets/svgs/SPGA.svg';
   @Input() videoSrc: string = '';
   @Input() fallbackImageSrc: string = '';
-  @Input() whatsappNumber: string = '+58000-00000';
-  @Input() email: string = 'spgagroup@gmail.com';
-  @Input() designCredit: string = 'Maya Bottino';
+  @Input() whatsappNumber: string = '+584143350763';
+  @Input() email: string = 'groupspga@gmail.com';
+  @Input() designCredit: string = 'Mayra Bottino';
   @Input() devCredit: string = 'Vicente Perez';
 
   isBrowser = false;
@@ -149,7 +155,9 @@ export class ContactanosComponent implements AfterViewInit {
           console.warn('Video autoplay failed, will retry:', error);
           // Retry after a short delay
           setTimeout(() => {
-            video.play().catch((e) => console.error('Video play retry failed:', e));
+            video
+              .play()
+              .catch((e) => console.error('Video play retry failed:', e));
           }, 100);
         });
       }

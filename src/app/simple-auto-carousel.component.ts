@@ -67,7 +67,9 @@ export interface SimpleAutoCarouselOptions {
             </div>
             <div class="sac-content">
               <h3 class="sac-title" *ngIf="slide.title">{{ slide.title }}</h3>
-              <p class="sac-description" *ngIf="slide.description">{{ slide.description }}</p>
+              <p class="sac-description" *ngIf="slide.description">
+                {{ slide.description }}
+              </p>
             </div>
           </div>
         </div>
@@ -164,8 +166,9 @@ export interface SimpleAutoCarouselOptions {
         font-size: 1rem;
         font-weight: 100;
         line-height: 1.5;
-        margin: 0;
+        margin: 0 auto;
         max-width: 400px;
+        text-align: center;
       }
       .sac-nav {
         display: flex;
@@ -189,7 +192,9 @@ export interface SimpleAutoCarouselOptions {
         font-size: 1.1rem;
         line-height: 1;
         padding: 0;
-        transition: background 0.2s ease, color 0.2s ease;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
       }
       .sac-nav-btn:hover:not(:disabled) {
         background: #000;
@@ -395,7 +400,7 @@ export class SimpleAutoCarouselComponent
     if (this.options.continuous) return; // continuous handled by RAF
     this.autoplayTimer = setInterval(
       () => this.next(),
-      this.options.autoplayInterval || 4000
+      this.options.autoplayInterval || 4000,
     );
   }
 
