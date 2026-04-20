@@ -84,7 +84,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               class="flex items-center gap-4 text-lg md:text-xl hover:opacity-70 transition-opacity"
             >
               <img
-                src="/assets/svgs/whatsapp.svg"
+                src="assets/svgs/whatsapp.svg"
                 alt="WhatsApp"
                 class="w-6 h-6 md:w-7 md:h-7"
               />
