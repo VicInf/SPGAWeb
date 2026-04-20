@@ -93,6 +93,9 @@ export interface OwlCarouselOptions {
               [src]="slide.src"
               [alt]="slide.alt || 'Slide ' + (slide._realIndex + 1)"
               draggable="false"
+              loading="lazy"
+              width="1920"
+              height="1080"
             />
           </div>
         }

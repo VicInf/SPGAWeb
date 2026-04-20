@@ -199,25 +199,25 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   slides: OwlCarouselSlide[] = [
     {
-      src: 'assets/pictures/piscina.png',
+      src: 'assets/pictures/piscina.webp',
       alt: 'Slide 1',
       title: 'DISEÑO',
       subtitle: 'residencial',
     },
     {
-      src: 'assets/pictures/piscina-1.png',
+      src: 'assets/pictures/piscina-1.webp',
       alt: 'Slide 2',
       title: 'DISEÑO',
       subtitle: 'comercial',
     },
     {
-      src: 'assets/pictures/piscina-2.png',
+      src: 'assets/pictures/piscina-2.webp',
       alt: 'Slide 3',
       title: 'DISEÑO',
       subtitle: 'corporativo',
     },
     {
-      src: 'assets/pictures/piscina-3.png',
+      src: 'assets/pictures/piscina-3.webp',
       alt: 'Slide 4',
       title: 'DISEÑO',
       subtitle: 'visualización 3D',
@@ -244,9 +244,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   // Mini carousel (pale section)
   // miniSlides: OwlCarouselSlide[] = [
-  //   { src: 'assets/pictures/first-image.png', alt: 'Mini 1' },
-  //   { src: 'assets/pictures/piscina.png', alt: 'Mini 2' },
-  //   { src: 'assets/pictures/first-image.png', alt: 'Mini 3' },
+  //   { src: 'assets/pictures/first-image.webp', alt: 'Mini 1' },
+  //   { src: 'assets/pictures/piscina.webp', alt: 'Mini 2' },
+  //   { src: 'assets/pictures/first-image.webp', alt: 'Mini 3' },
   // ];
   // miniIndex = 0;
   // private miniTimer: any = null;
@@ -284,48 +284,48 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   // Services integrales auto carousel (independent from owl carousel)
   servicesSlides: SimpleAutoCarouselSlide[] = [
     {
-      src: 'assets/pictures/Servicio.png',
+      src: 'assets/pictures/Servicio.webp',
       alt: 'Diseño arquitectónico',
       title: 'Diseño arquitectónico',
       description:
         'Propuestas innovadoras y funcionales adaptadas a la visión del cliente.',
     },
     {
-      src: 'assets/pictures/Servicio-1.png',
+      src: 'assets/pictures/Servicio-1.webp',
       alt: 'Diseño de interiores',
       title: 'Diseño de interiores',
       description: 'Selección de materiales, colores, mobiliario y decoración.',
     },
     {
-      src: 'assets/pictures/Servicio-2.png',
+      src: 'assets/pictures/Servicio-2.webp',
       alt: 'Modelado y visualización 3D',
       title: 'Modelado y visualización 3D',
       description:
         'Visualizaciones fotorrealistas para previsualizar cada detalle del proyecto.',
     },
     {
-      src: 'assets/pictures/Servicio-3.png',
+      src: 'assets/pictures/Servicio-3.webp',
       alt: 'Planificación de proyectos',
       title: 'Planificación de proyectos',
       description:
         'Elaboración de planos y documentos técnicos conforme a normativas.',
     },
     {
-      src: 'assets/pictures/Servicio-4.png',
+      src: 'assets/pictures/Servicio-4.webp',
       alt: 'Supervisión de obras',
       title: 'Supervisión de obras',
       description:
         'Aseguramos la correcta ejecución del proyecto, garantizando calidad, plazos y cumplimiento normativo.',
     },
     {
-      src: 'assets/pictures/Servicio-5.png',
+      src: 'assets/pictures/Servicio-5.webp',
       alt: 'Consultoría y asesoramiento',
       title: 'Consultoría y asesoramiento',
       description:
         'Análisis de necesidades y entornos para soluciones efectivas.',
     },
     {
-      src: 'assets/pictures/Servicio-6.png',
+      src: 'assets/pictures/Servicio-6.webp',
       alt: 'Capacitaciones y talleres',
       title: 'Capacitaciones y talleres',
       description:
@@ -386,13 +386,22 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       title: 'Casa Horizonte',
       subtitle: 'Residencial costera',
       hasModel: true,
-      image: 'assets/pictures/first-image.png',
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/00_Portada_erb4kd.webp',
       images: [
-        'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png',
-        'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png',
-        'assets/pictures/first-image.png',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_01_anwmka.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_02_qyvkxt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643744/Imagen_03_h3sphb.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_04_ygfmkn.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_05_fxgvjt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_06_jk6jud.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_07_xnbk4i.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643747/Imagen_08_drq4xf.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_09_p3jqfk.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_10_gludsm.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643746/Imagen_11_video_mo0if7.mp4',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643750/Imagen_12_videos_vc1atj.mp4',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643747/Imagen_13_video_ccvetx.mp4',
       ],
       year: '2024',
       type: 'Residencial',
@@ -402,11 +411,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       title: 'Torre Central',
       subtitle: 'Edificio corporativo',
       hasModel: false,
-      image: 'assets/pictures/piscina.png',
+      image: 'assets/pictures/piscina.webp',
       images: [
-        'assets/pictures/piscina.png',
-        'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png',
+        'assets/pictures/piscina.webp',
+        'assets/pictures/first-image.webp',
+        'assets/pictures/piscina.webp',
       ],
       year: '2023',
       type: 'Comercial',
@@ -416,12 +425,12 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       title: 'Jardín Interior',
       subtitle: 'Espacio verde privado',
       hasModel: true,
-      image: 'assets/pictures/first-image.png',
+      image: 'assets/pictures/first-image.webp',
       images: [
-        'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png',
-        'assets/pictures/first-image.png',
-        'assets/pictures/piscina.png',
+        'assets/pictures/first-image.webp',
+        'assets/pictures/piscina.webp',
+        'assets/pictures/first-image.webp',
+        'assets/pictures/piscina.webp',
       ],
       year: '2024',
       type: 'Residencial',
@@ -431,10 +440,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       title: 'Residencia Luna',
       subtitle: 'Hogar contemporáneo',
       hasModel: false,
-      image: 'assets/pictures/piscina-2.png',
+      image: 'assets/pictures/piscina-2.webp',
       images: [
-        'assets/pictures/piscina-2.png',
-        'assets/pictures/piscina-3.png',
+        'assets/pictures/piscina-2.webp',
+        'assets/pictures/piscina-3.webp',
       ],
       year: '2024',
       type: 'Residencial',
@@ -444,10 +453,10 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       title: 'Espacio Prisma',
       subtitle: 'Oficinas corporativas',
       hasModel: false,
-      image: 'assets/pictures/Servicio-1.png',
+      image: 'assets/pictures/Servicio-1.webp',
       images: [
-        'assets/pictures/Servicio-1.png',
-        'assets/pictures/Servicio-2.png',
+        'assets/pictures/Servicio-1.webp',
+        'assets/pictures/Servicio-2.webp',
       ],
       year: '2024',
       type: 'Comercial',

@@ -62,6 +62,9 @@ export interface SimpleAutoCarouselOptions {
                 [src]="slide.src"
                 [alt]="slide.alt || 'Slide ' + (i + 1)"
                 draggable="false"
+                loading="lazy"
+                width="400"
+                height="300"
                 class="sac-icon"
               />
             </div>

@@ -21,6 +21,8 @@
           <img
             src="assets/svgs/SPGA.svg"
             alt="SPGA"
+            width="40"
+            height="40"
             class="h-8 sm:h-10 w-auto"
           />
           <span
@@ -81,6 +83,8 @@
             <img
               src="assets/svgs/whatsapp.svg"
               alt="WhatsApp"
+              width="20"
+              height="20"
               class="h-4 sm:h-5 w-4 sm:w-5 ml-2 sm:ml-3"
             />
           </button>
@@ -118,7 +122,13 @@
         class="h-20 px-4 flex items-center justify-between border-b border-white/20"
       >
         <div class="flex items-center gap-3">
-          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
+          <img
+            src="assets/svgs/SPGA.svg"
+            alt="SPGA"
+            width="32"
+            height="32"
+            class="h-8 w-auto"
+          />
           <span class="text-sm font-light font-canela-deck">
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
@@ -169,6 +179,8 @@
           <img
             src="assets/svgs/whatsapp_black.svg"
             alt="WhatsApp"
+            width="24"
+            height="24"
             class="h-6 w-6"
           />
         </button>
@@ -204,10 +216,12 @@
     <section class="w-full h-full">
       <div class="w-full h-full overflow-hidden">
         <img
-          src="assets/pictures/first-image.png"
+          src="assets/pictures/first-image.webp"
           alt="Hero image"
           loading="eager"
           fetchpriority="high"
+          width="1920"
+          height="1080"
           class="w-full h-full object-cover"
         />
 
@@ -221,6 +235,8 @@
             <img
               src="assets/svgs/SPGA.svg"
               alt="SPGA"
+              width="320"
+              height="320"
               class="h-56 sm:h-72 md:h-80 w-auto drop-shadow-2xl"
             />
             <span
@@ -326,6 +342,9 @@
                 [src]="p.image"
                 [alt]="p.title"
                 loading="lazy"
+                crossorigin="anonymous"
+                width="400"
+                height="500"
                 class="absolute inset-0 w-full h-full object-cover"
                 draggable="false"
               />
@@ -336,6 +355,9 @@
                   loading="lazy"
                   fetchpriority="low"
                   aria-hidden="true"
+                  crossorigin="anonymous"
+                  width="1"
+                  height="1"
                   class="sr-only"
                 />
               }
@@ -442,6 +464,7 @@
           loading="lazy"
           allowfullscreen
           referrerpolicy="no-referrer"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           style="border: 0"
           (load)="onModelLoad()"
           (error)="onModelError($event)"
@@ -463,7 +486,7 @@
   "
 >
   <reveal-image
-    src="assets/pictures/piscina.png"
+    src="assets/pictures/piscina.webp"
     alt="Featured"
     [endScale]="1"
     [scrollDistance]="250"
@@ -562,7 +585,7 @@
       <!-- Left image -->
       <div class="w-full lg:w-[45%] h-[500px] lg:h-[650px]">
         <img
-          src="assets/pictures/about-us-image.png"
+          src="assets/pictures/about-us-image.webp"
           alt="Equipo"
           loading="lazy"
           class="w-full h-full object-cover"
@@ -606,7 +629,7 @@
   <contactanos-section
     logoSrc="/assets/svgs/SPGA.svg"
     videoSrc="/assets/videos/Design your post.mp4"
-    fallbackImageSrc="/assets/pictures/first-image.png"
+    fallbackImageSrc="/assets/pictures/first-image.webp"
     whatsappNumber="+584143350763"
     email="groupspga@gmail.com"
     designCredit="Mayra Bottino"

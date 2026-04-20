@@ -23,7 +23,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         >
           <!-- Logo -->
           <div class="flex items-center justify-center h-64 md:h-40 lg:h-48">
-            <img [src]="logoSrc" alt="SPGA Logo" class="h-full w-auto" />
+            <img
+              [src]="logoSrc"
+              alt="SPGA Logo"
+              width="200"
+              height="200"
+              class="h-full w-auto"
+            />
           </div>
 
           <!-- Video -->
@@ -37,6 +43,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               muted
               playsinline
               preload="auto"
+              width="400"
+              height="200"
+              crossorigin="anonymous"
               class="h-full w-full object-cover"
               (error)="onVideoError()"
             >
@@ -47,6 +56,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               *ngIf="!isBrowser || fallbackImageSrc"
               [src]="fallbackImageSrc"
               alt="Contact"
+              width="400"
+              height="200"
               class="h-full w-full object-cover"
             />
           </div>

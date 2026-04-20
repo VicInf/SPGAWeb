@@ -40,6 +40,7 @@ import { CommonModule } from '@angular/common';
               [src]="images[currentIndex]"
               [alt]="title"
               loading="lazy"
+              crossorigin="anonymous"
               class="main-image"
             />
           </ng-container>
@@ -51,6 +52,7 @@ import { CommonModule } from '@angular/common';
               loop
               [muted]="true"
               playsinline
+              crossorigin="anonymous"
               (loadstart)="silenceVideo($event)"
             ></video>
           </ng-template>
