@@ -156,6 +156,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @ViewChild('stage', { static: true }) stageRef!: ElementRef<HTMLElement>;
 
   // State
+  private _isMobile = false; // true on mobile: disables grow/shrink, shows plain carousel
   itemWidth = 0;
   itemMargin = 0;
   renderedSlides: any[] = [];
@@ -367,11 +368,30 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       this.revealActive = true;
       return;
     }
+
+    // ── Mobile detection ──
+    // On mobile (narrow viewport OR primary touch input), disable the
+    // grow/shrink scaling effect entirely and show a plain swipeable carousel.
+    this._isMobile =
+      window.innerWidth <= 768 ||
+      window.matchMedia('(pointer: coarse)').matches;
+
     // Ensure structural directives available if using legacy *ngIf/*ngFor by dynamic import of CommonModule not needed in Angular >=17 if using @if/@for
     this.applyDefaultOptions();
     this.rebuild();
     if (this.options.autoplay) this.startAutoplay();
-    if (this.options.revealScrollDriven) {
+
+    if (this._isMobile) {
+      // Mobile: skip grow/shrink, start at full scale immediately
+      requestAnimationFrame(() => {
+        this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
+        this._scaleTarget = this.revealScaleCurrent;
+        this._phase = 'sliding'; // go straight to slide mode
+        this.scaledUp = true;
+        this.revealActive = true;
+        this.cdr.markForCheck();
+      });
+    } else if (this.options.revealScrollDriven) {
       requestAnimationFrame(() => {
         this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
         this._scaleTarget = this.revealScaleCurrent;
@@ -408,34 +428,17 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   private applyScrollLock() {
     if (!this.isBrowser || typeof document === 'undefined') return;
-    // Calculate scrollbar width before hiding it
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
-    // Simple overflow hidden - no position manipulation
+    // Simple overflow hidden — no padding compensation.
+    // Adding paddingRight to compensate for scrollbar width was causing a
+    // visible white strip next to the carousel.
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    // Compensate for scrollbar width to prevent layout shift
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-      // Also apply to fixed header to prevent it from shifting
-      const header = document.querySelector('header');
-      if (header instanceof HTMLElement) {
-        header.style.paddingRight = `${scrollbarWidth}px`;
-      }
-    }
   }
 
   private releaseScrollLock(restorePosition: boolean = true) {
     if (!this.isBrowser || typeof document === 'undefined') return;
-    // Just remove overflow lock - no scroll position changes
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-    // Remove padding from header
-    const header = document.querySelector('header');
-    if (header instanceof HTMLElement) {
-      header.style.paddingRight = '';
-    }
   }
 
   @HostListener('window:resize') onResize() {
@@ -506,7 +509,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('window:scroll')
   onWindowScroll() {
-    if (!this.isBrowser || this.bypassActive) return;
+    if (!this.isBrowser || this.bypassActive || this._isMobile) return;
 
     // ── Dormancy system: clear dormancy once carousel is off-screen ──
     if (this._bypassDormant) {
@@ -823,30 +826,47 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       this.pointerIsVertical = Math.abs(dy) > Math.abs(dx);
     }
 
-    if (this.hasDragged) {
-      if (this.pointerIsVertical) {
-        const fakeWheelEvent = {
-          deltaY: -dy * 1.5,
-          deltaMode: 0,
-          preventDefault: () => {
-            e.preventDefault?.();
-          },
-        } as any;
-        this.handleWheel(fakeWheelEvent);
-        this.lastPointerY = e.clientY;
-      } else {
-        if (!this.scaledUp) return;
-        this.dragStartX = e.clientX;
-        const current = this.getCurrentStageOffset();
-        this.applyFreeScrollOffset(current + dx);
-      }
+    if (!this.hasDragged) return;
+
+    if (this.pointerIsVertical) {
+      // Mobile: let the page scroll normally
+      if (this._isMobile) return;
+      // Desktop: route vertical drag through wheel handler for grow/shrink
+      const fakeWheelEvent = {
+        deltaY: -dy * 1.5,
+        deltaMode: 0,
+        preventDefault: () => { e.preventDefault?.(); },
+      } as any;
+      this.handleWheel(fakeWheelEvent);
+      this.lastPointerY = e.clientY;
+    } else {
+      // Desktop: only allow when scaled up
+      if (!this._isMobile && !this.scaledUp) return;
+      // Show drag feedback (stage follows finger)
+      this.stageTransform = `translate3d(${this.dragStartTransform + dx}px,0,0)`;
+      this.stageTransition = 'none';
+      this.cdr.markForCheck();
     }
   }
 
   onPointerUp(e: PointerEvent) {
     if (!this.pointerActive) return;
     this.pointerActive = false;
-    // No snapping! Just leave it where it was freely dragged.
+
+    // Simple swipe: if dragged > 50px horizontally, go next/prev
+    if (this.hasDragged && !this.pointerIsVertical) {
+      const totalDx = e.clientX - (this.dragStartTransform ? this.dragStartX : this.dragStartX);
+      const swipeThreshold = 50;
+      if (totalDx < -swipeThreshold) {
+        this.next();
+      } else if (totalDx > swipeThreshold) {
+        this.prev();
+      } else {
+        // Didn't swipe far enough — snap back
+        this.updateStageTransform(true);
+      }
+    }
+
     if (this.options.autoplay) this.startAutoplay();
   }
 
@@ -860,7 +880,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   private handleWheel(event: WheelEvent) {
-    if (this.bypassActive || this._bypassDormant) return;
+    if (this.bypassActive || this._bypassDormant || this._isMobile) return;
     const vp = this.viewportRef?.nativeElement;
     if (!vp) return;
     const rect = vp.getBoundingClientRect();

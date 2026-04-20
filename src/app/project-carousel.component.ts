@@ -33,6 +33,7 @@ import { CommonModule } from '@angular/common';
       <!-- Main Image/Video -->
       <div class="main-content">
         <div class="image-wrapper" *ngIf="images && images.length > 0">
+          <div class="carousel-spinner" *ngIf="isLoading"></div>
           <ng-container
             *ngIf="!isVideo(images[currentIndex]); else videoTemplate"
           >
@@ -42,6 +43,8 @@ import { CommonModule } from '@angular/common';
               loading="lazy"
               crossorigin="anonymous"
               class="main-image"
+              (load)="onMediaLoad()"
+              [style.opacity]="isLoading ? 0 : 1"
             />
           </ng-container>
           <ng-template #videoTemplate>
@@ -54,6 +57,8 @@ import { CommonModule } from '@angular/common';
               playsinline
               crossorigin="anonymous"
               (loadstart)="silenceVideo($event)"
+              (loadeddata)="onMediaLoad()"
+              [style.opacity]="isLoading ? 0 : 1"
             ></video>
           </ng-template>
         </div>
@@ -122,6 +127,7 @@ export class ProjectCarouselComponent {
   @Output() close = new EventEmitter<void>();
 
   currentIndex: number = 0;
+  isLoading: boolean = true;
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
@@ -138,6 +144,10 @@ export class ProjectCarouselComponent {
     this.close.emit();
   }
 
+  onMediaLoad() {
+    this.isLoading = false;
+  }
+
   silenceVideo(event: Event) {
     const video = event.target as HTMLVideoElement;
     video.muted = true;
@@ -152,11 +162,13 @@ export class ProjectCarouselComponent {
 
   next() {
     if (!this.images.length) return;
+    this.isLoading = true;
     this.currentIndex = (this.currentIndex + 1) % this.images.length;
   }
 
   prev() {
     if (!this.images.length) return;
+    this.isLoading = true;
     this.currentIndex =
       (this.currentIndex - 1 + this.images.length) % this.images.length;
   }

@@ -31,7 +31,8 @@ import { ChangeDetectorRef } from '@angular/core';
         [src]="src"
         [alt]="alt || 'Featured image'"
         draggable="false"
-        class="w-full h-full object-cover select-none"
+        class="w-full h-full select-none"
+        [class.object-cover]="!isMobileClass"
       />
       <!-- Overlay headline (buttons removed) -->
       <div
@@ -51,12 +52,20 @@ import { ChangeDetectorRef } from '@angular/core';
         overflow: hidden;
         position: relative;
       }
+
       .reveal-image-viewport {
         width: 100%;
         height: 100%;
         will-change: transform;
         transition: transform 0.05s linear;
         position: relative;
+      }
+
+      @media (max-width: 767px) {
+        .reveal-image-viewport {
+          height: 50%;
+          margin-top: 35%;
+        }
       }
     `,
   ],
@@ -87,6 +96,13 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   // Optional: element top must be within this px distance from viewport top for first interaction (0 disables)
   @Input() requireTopNear: number = 0;
   private isBrowser = false;
+  private _isMobile = false;
+
+  @HostBinding('class.is-mobile')
+  get isMobileClass(): boolean {
+    return this._isMobile;
+  }
+
   private lockScrollY: number | null = null;
   private midScale = false;
   private hasEngagedOnce = false;
@@ -125,6 +141,11 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   ) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
+    if (this.isBrowser) {
+      this._isMobile =
+        window.innerWidth <= 768 ||
+        window.matchMedia('(pointer: coarse)').matches;
+    }
   }
 
   ngAfterViewInit(): void {
@@ -133,6 +154,19 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
       this.updateTransform();
       return;
     }
+
+    // Mobile detection: already evaluated in constructor (if browser)
+
+    if (this._isMobile) {
+      // Fix at minScale, no scroll-driven interaction
+      this.currentScale = this.minScale;
+      this._scaleTarget = this.minScale;
+      this.midScale = false;
+      this.updateTransform();
+      this.updateContentReveal();
+      return; // Skip wheel listener — no grow/shrink on mobile
+    }
+
     // Initialize at full scale
     this.currentScale = this.endScale;
     this.updateTransform();
@@ -369,6 +403,11 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateTransform() {
+    if (this._isMobile) {
+      this.transform = 'none';
+      this.cdr.markForCheck();
+      return;
+    }
     // Calculate shrink progress: 0 at full size, 1 at minScale
     const span = this.endScale - this.minScale;
     const progress =

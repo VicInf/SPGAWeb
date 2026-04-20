@@ -110,7 +110,8 @@
 .reveal-active {
   transform: scale(1);
   opacity: 1;
-  transition: transform var(--reveal-duration, 900ms)
+  transition:
+    transform var(--reveal-duration, 900ms)
       var(--reveal-easing, cubic-bezier(0.22, 0.99, 0.36, 1)),
     opacity 400ms ease-out;
 }
@@ -128,5 +129,22 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Mobile: slider mode — let images dictate height, horizontal swipe handled by JS */
+@media (max-width: 768px) {
+  :host {
+    touch-action: pan-y; /* allow vertical scroll, capture horizontal for slider */
+  }
+  :host,
+  .owl-carousel-viewport,
+  .owl-carousel-stage,
+  .owl-item {
+    height: auto;
+  }
+  .owl-item img {
+    height: auto;
+    object-fit: contain;
   }
 }

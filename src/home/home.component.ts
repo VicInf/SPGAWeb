@@ -359,108 +359,149 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     year: string;
     type: string;
     services?: string; // Added for carousel details
+    modelUrl?: string; // Specific model URL override
   }> = [
     {
-      title: 'Edificio Áurea',
-      subtitle: 'Complejo residencial moderno',
-      hasModel: false,
-      image:
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776437025/00_Portada_xii7we.webp',
-      images: [
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_01_yit6py.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_02_nv9uke.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_03_v69jlb.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_04_ovy7yz.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_05_cvzphi.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_06_vtftal.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436697/Imagen_07_gk2jim.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436699/Imagen_08_arfybq.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_4:3/v1776436698/Imagen_09_u6tlb2.webp',
-        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_4:3/v1776436697/Imagen_10_video_vn1wqk.mp4',
-      ],
-      year: '2025',
-      type: 'Residencial',
-      services: 'Diseño arquitectónico, visualización 3D',
-    },
-    {
-      title: 'Casa Horizonte',
-      subtitle: 'Residencial costera',
+      title: 'HABITACIÓN AA',
+      subtitle: 'Nursery Design',
       hasModel: true,
+      modelUrl:
+        'https://cloud.chaos.com/collaboration/n/SdMECnSMasJKFLmhupeW4e?t=pan',
       image:
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/00_Portada_erb4kd.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776437025/00_Portada_xii7we.webp',
       images: [
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_01_anwmka.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_02_qyvkxt.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643744/Imagen_03_h3sphb.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_04_ygfmkn.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_05_fxgvjt.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_06_jk6jud.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_07_xnbk4i.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643747/Imagen_08_drq4xf.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643745/Imagen_09_p3jqfk.webp',
-        'https://res.cloudinary.com/djlqtotxb/image/upload/v1776643746/Imagen_10_gludsm.webp',
-        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643746/Imagen_11_video_mo0if7.mp4',
-        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643750/Imagen_12_videos_vc1atj.mp4',
-        'https://res.cloudinary.com/djlqtotxb/video/upload/v1776643747/Imagen_13_video_ccvetx.mp4',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436697/Imagen_01_yit6py.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436697/Imagen_02_nv9uke.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436697/Imagen_03_v69jlb.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436698/Imagen_04_ovy7yz.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436697/Imagen_05_cvzphi.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436698/Imagen_06_vtftal.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436697/Imagen_07_gk2jim.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436699/Imagen_08_arfybq.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776436698/Imagen_09_u6tlb2.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776436697/Imagen_10_video_vn1wqk.mp4',
       ],
       year: '2024',
       type: 'Residencial',
+      services: 'Diseño arquitectónico e interiorismo.',
+    },
+    {
+      title: 'SOUL BIKE',
+      subtitle: 'BikeHub',
+      hasModel: false,
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643746/00_Portada_erb4kd.webp',
+      images: [
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643746/Imagen_01_anwmka.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643745/Imagen_02_qyvkxt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643744/Imagen_03_h3sphb.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643745/Imagen_04_ygfmkn.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643746/Imagen_05_fxgvjt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643745/Imagen_06_jk6jud.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643746/Imagen_07_xnbk4i.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643747/Imagen_08_drq4xf.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643745/Imagen_09_p3jqfk.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776643746/Imagen_10_gludsm.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776643746/Imagen_11_video_mo0if7.mp4',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776643750/Imagen_12_videos_vc1atj.mp4',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776643747/Imagen_13_video_ccvetx.mp4',
+      ],
+      year: '2024',
+      type: 'Comercial',
       services: 'Diseño arquitectónico, interiorismo, supervisión de obra',
     },
     {
-      title: 'Torre Central',
-      subtitle: 'Edificio corporativo',
+      title: 'LOBBY PETROCEDEÑO',
+      subtitle: 'Corporate Hall & Gallery',
       hasModel: false,
-      image: 'assets/pictures/piscina.webp',
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/00_PORTADA_ytsivp.webp',
       images: [
-        'assets/pictures/piscina.webp',
-        'assets/pictures/first-image.webp',
-        'assets/pictures/piscina.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_01_cxg89o.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_02_gclkfh.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_03_qpseb5.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_04_csvbti.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_05_obxulu.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_06_ythbcj.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_07_cablav.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694626/IMAGEN_08_ufmieo.webp',
       ],
-      year: '2023',
-      type: 'Comercial',
-      services: 'Diseño arquitectónico, visualización 3D',
+      year: '2022',
+      type: 'Corporativo',
+      services: 'Diseño arquitectónico, interiorismo, supervisión de obra',
     },
     {
-      title: 'Jardín Interior',
-      subtitle: 'Espacio verde privado',
+      title: 'APARTAMENTO IP',
+      subtitle: 'Residential Interior & Concept Design',
+      hasModel: false,
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694743/00_PORTADA_eypqo0.webp',
+      images: [
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694743/IMAGEN_01_rdvsai.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694742/IMAGEN_02_mbynbt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694743/IMAGEN_03_q4optj.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694741/IMAGEN_04_crvptn.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694741/IMAGEN_05_keiure.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694741/IMAGEN_06_l52od2.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776694745/IMAGEN_07_video_qm2nkz.mp4',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694741/IMAGEN_08_ahgich.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694741/IMAGEN_09_n7h1hx.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776694744/IMAGEN_10_video_pu0eyr.mp4',
+      ],
+      year: '2022',
+      type: 'Residencial',
+      services: 'Diseño arquitectónico, interiorismo.',
+    },
+    {
+      title: 'CASA AV',
+      subtitle: 'Residential Interior & Concept Design',
+      hasModel: false,
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694915/00_Portada_waz9ej.webp',
+      images: [
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694914/Imagen_01_jw7smm.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694914/Imagen_02_z8hdgv.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776694916/Imagen_03_video_uf0tyi.mp4',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694914/Imagen_04_f51fkq.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694913/Imagen_05_lihwzz.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694913/Imagen_06_hyev44.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694912/Imagen_07_ufjtrf.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694912/Imagen_08_my8ste.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694912/Imagen_09_cobznt.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694912/Imagen_10_lqkuvi.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694911/Imagen_11_nfuuyz.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694911/Imagen_12_gs5tu9.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694910/Imagen_13_rm6xix.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694910/Imagen_14_zbz9sq.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776694910/Imagen_15_hspx3u.webp',
+      ],
+      year: '2022',
+      type: 'Residencial',
+      services: 'Interiorismo.',
+    },
+    {
+      title: 'LA SUITE SOCIAL',
+      subtitle: 'High-End Interior Architecture',
       hasModel: true,
-      image: 'assets/pictures/first-image.webp',
+      modelUrl:
+        'https://cloud.chaos.com/collaboration/n/5gXq6XejU89DRvkqhyoLRZ?t=pan',
+      image:
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695123/00_Portada_zphb83.webp',
       images: [
-        'assets/pictures/first-image.webp',
-        'assets/pictures/piscina.webp',
-        'assets/pictures/first-image.webp',
-        'assets/pictures/piscina.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695123/Imagen_01_xehpee.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695122/Imagen_02_sarw6g.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695123/Imagen_03_kfnjvv.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695121/Imagen_04_ygcv4f.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695122/Imagen_05_yba9u0.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776695138/Imagen_06_video_w9awjz.mp4',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695121/Imagen_07_bow7fl.webp',
+        'https://res.cloudinary.com/djlqtotxb/video/upload/c_crop,ar_16:9/v1776695142/Imagen_08_video_tdl6tv.mp4',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695121/Imagen_09_sgh9u4.webp',
+        'https://res.cloudinary.com/djlqtotxb/image/upload/c_crop,ar_16:9/v1776695121/Imagen_10_gyafc6.webp',
       ],
       year: '2024',
       type: 'Residencial',
-      services: 'Paisajismo, diseño de exteriores',
-    },
-    {
-      title: 'Residencia Luna',
-      subtitle: 'Hogar contemporáneo',
-      hasModel: false,
-      image: 'assets/pictures/piscina-2.webp',
-      images: [
-        'assets/pictures/piscina-2.webp',
-        'assets/pictures/piscina-3.webp',
-      ],
-      year: '2024',
-      type: 'Residencial',
-      services: 'Diseño de interiores, amoblamiento',
-    },
-    {
-      title: 'Espacio Prisma',
-      subtitle: 'Oficinas corporativas',
-      hasModel: false,
-      image: 'assets/pictures/Servicio-1.webp',
-      images: [
-        'assets/pictures/Servicio-1.webp',
-        'assets/pictures/Servicio-2.webp',
-      ],
-      year: '2024',
-      type: 'Comercial',
-      services: 'Diseño corporativo, planificación',
+      services: 'Arquitectura, interiorismo.',
     },
   ];
 
@@ -565,7 +606,17 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   openModel(index: number) {
-    if (!this.projects[index]?.hasModel) return;
+    const project = this.projects[index];
+    if (!project?.hasModel) return;
+
+    const url =
+      project.modelUrl ||
+      'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY';
+    console.log(
+      `[DEBUG] Attempting to open model for index ${index}. Project Name: "${project.title}". URL: ${url}`,
+    );
+    this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+
     this.loadingModel = true;
     this.modelError = null;
     this.showModel = true;
