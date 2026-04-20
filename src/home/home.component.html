@@ -270,7 +270,7 @@
   </section>
 
   <!-- Owl-like Carousel Component -->
-  <section class="w-full h-auto md:h-screen pt-8 md:pt-0">
+  <section class="w-full h-auto min-[1025px]:h-screen pt-8 min-[1025px]:pt-0">
     <owl-carousel
       class="w-full h-full block"
       [slides]="slides"
@@ -282,16 +282,16 @@
   <!-- New pale background section -->
   <section
     id="servicios"
-    class="w-full flex flex-col items-center justify-center scroll-mt-28"
-    style="background: #e0ddcb; height: 100vh"
+    class="w-full flex flex-col items-center justify-start min-[1025px]:justify-center scroll-mt-28 pt-8 md:pt-24 pb-8 min-[1025px]:py-0 min-[1025px]:min-h-screen"
+    style="background: #e0ddcb"
   >
     <h2
-      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center mb-10"
+      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center mb-4 min-[1025px]:mb-10"
     >
       Servicios integrales
     </h2>
-    <!-- Services integrales autoplay carousel (full width, 50vh height) -->
-    <div class="w-full" style="height: 50vh">
+    <!-- Services integrales autoplay carousel (full width, responsive height) -->
+    <div class="w-full h-[40vh] min-[1025px]:h-[50vh] max-h-[500px]">
       <simple-auto-carousel
         class="w-full h-full block"
         [slides]="servicesSlides"
@@ -583,7 +583,7 @@
       class="flex flex-col lg:flex-row justify-between items-center gap-12 lg:gap-16"
     >
       <!-- Left image -->
-      <div class="w-full lg:w-[45%] h-[500px] lg:h-[650px]">
+      <div class="w-full lg:w-[45%] h-full">
         <img
           src="assets/pictures/about-us-image.webp"
           alt="Equipo"

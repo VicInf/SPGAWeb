@@ -173,6 +173,16 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   private _bypassDormant = false;
 
   public bypassToLastSlide() {
+    // On mobile/tablet, carousel is always full scale — just navigate slides
+    if (this._isMobile) {
+      if (this.slides && this.slides.length > 0) {
+        this.ngZone.run(() => {
+          this.goTo(this.slides.length - 1);
+        });
+      }
+      this.cdr.markForCheck();
+      return;
+    }
     this.bypassActive = true;
     this._bypassDormant = true; // stay dormant until off-screen
     this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
@@ -195,6 +205,16 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   }
 
   public bypassToFirstSlide() {
+    // On mobile/tablet, carousel is always full scale — just navigate slides
+    if (this._isMobile) {
+      if (this.slides && this.slides.length > 0) {
+        this.ngZone.run(() => {
+          this.goTo(0);
+        });
+      }
+      this.cdr.markForCheck();
+      return;
+    }
     this.bypassActive = true;
     // Don't set _bypassDormant so the carousel can naturally engage when scrolling down
     this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
@@ -373,7 +393,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     // On mobile (narrow viewport OR primary touch input), disable the
     // grow/shrink scaling effect entirely and show a plain swipeable carousel.
     this._isMobile =
-      window.innerWidth <= 768 ||
+      window.innerWidth <= 1024 ||
       window.matchMedia('(pointer: coarse)').matches;
 
     // Ensure structural directives available if using legacy *ngIf/*ngFor by dynamic import of CommonModule not needed in Angular >=17 if using @if/@for

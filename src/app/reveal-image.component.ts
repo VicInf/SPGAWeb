@@ -61,7 +61,7 @@ import { ChangeDetectorRef } from '@angular/core';
         position: relative;
       }
 
-      @media (max-width: 767px) {
+      @media (max-width: 1024px) {
         .reveal-image-viewport {
           height: 50%;
           margin-top: 35%;
@@ -143,7 +143,7 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
     if (this.isBrowser) {
       this._isMobile =
-        window.innerWidth <= 768 ||
+        window.innerWidth <= 1024 ||
         window.matchMedia('(pointer: coarse)').matches;
     }
   }

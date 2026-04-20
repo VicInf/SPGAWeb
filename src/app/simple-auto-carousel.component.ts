@@ -214,6 +214,53 @@ export interface SimpleAutoCarouselOptions {
         font-weight: 500;
         letter-spacing: 0.5px;
       }
+
+      /* Mobile / Tablet responsive adjustments */
+      @media (max-width: 1024px) {
+        .sac-item {
+          height: auto;
+          min-height: 300px;
+        }
+        .sac-card {
+          padding: 1.5rem 1rem;
+        }
+        .sac-icon-container {
+          max-width: 120px;
+          max-height: 120px;
+          margin-bottom: 1rem;
+        }
+        .sac-title {
+          font-size: 1.25rem;
+          margin: 0 0 0.5rem 0;
+        }
+        .sac-description {
+          font-size: 0.85rem;
+          line-height: 1.4;
+        }
+        .sac-nav {
+          margin-top: 1rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .sac-item {
+          min-height: 260px;
+        }
+        .sac-card {
+          padding: 1.25rem 0.75rem;
+        }
+        .sac-icon-container {
+          max-width: 90px;
+          max-height: 90px;
+          margin-bottom: 0.75rem;
+        }
+        .sac-title {
+          font-size: 1.1rem;
+        }
+        .sac-description {
+          font-size: 0.8rem;
+        }
+      }
     `,
   ],
 })
