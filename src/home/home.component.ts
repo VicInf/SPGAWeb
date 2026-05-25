@@ -51,12 +51,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   protected aboutUsBgColor = '#e0ddcb';
   private readonly startColor = '#e0ddcb';
   private readonly endColor = '#000000';
+  isBrowser = false;
 
   @ViewChild('header') header!: ElementRef;
   @ViewChild('heroLogo') heroLogo!: ElementRef;
   @ViewChild('heroText') heroText!: ElementRef;
   @ViewChild('headerBg') headerBg!: ElementRef;
   @ViewChild('headerLogo') headerLogo!: ElementRef;
+  @ViewChild('heroVideo') heroVideo?: ElementRef<HTMLVideoElement>;
 
   @ViewChild(OwlCarouselComponent) owlCarousel!: OwlCarouselComponent;
   @ViewChild(RevealImageComponent) revealImage!: RevealImageComponent;
@@ -66,6 +68,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: Object,
     private renderer: Renderer2,
   ) {
+    this.isBrowser =
+      typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
     this.safeModelUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       'https://cloud.chaos.com/collaboration/file/EFLiJhedGoTwo59qLXL2tY',
     );
@@ -219,7 +223,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     {
       src: 'assets/pictures/piscina-3.webp',
       alt: 'Slide 4',
-      title: 'DISEÑO',
+      title: '',
       subtitle: 'visualización 3D',
     },
   ];
@@ -346,6 +350,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       0: { items: 1 },
       640: { items: 2 },
       1024: { items: 3 },
+      1920: { items: 4 },
     },
   };
 
@@ -512,6 +517,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   // Reveal image external text animation progress (0 full size, 1 fully shrunk)
   revealImageProgress: number = 0;
 
+  heroVideoPlaying = false;
+
   // Fullscreen 3D model overlay state
   loadingModel: boolean = false;
   modelError: string | null = null;
@@ -523,6 +530,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       // Use setTimeout to ensure DOM is fully rendered before observing
       setTimeout(() => {
         this.setupIntersectionObserver();
+        this.setupHeroVideo();
       }, 0);
     }
   }
@@ -666,6 +674,34 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   onRevealImageProgress(p: number) {
     this.revealImageProgress = p;
+  }
+
+  private setupHeroVideo(): void {
+    if (!this.isBrowser) return;
+    const video = this.heroVideo?.nativeElement;
+    if (!video) return;
+
+    video.muted = true;
+
+    const play = () => video.play().catch(() => {});
+
+    // Retry at intervals in case the 48MB video takes time to load
+    setTimeout(play, 500);
+    setTimeout(play, 2000);
+    setTimeout(play, 5000);
+
+    // Fallback: try on first user interaction if autoplay is blocked
+    const onInteraction = () => {
+      play();
+      document.removeEventListener('click', onInteraction);
+      document.removeEventListener('touchstart', onInteraction);
+    };
+    document.addEventListener('click', onInteraction, { passive: true });
+    document.addEventListener('touchstart', onInteraction, { passive: true });
+  }
+
+  onHeroVideoError(event: Event) {
+    console.error('Hero video failed to load');
   }
 
   private lockBodyScroll() {

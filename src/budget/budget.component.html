@@ -6,13 +6,13 @@
         class="absolute left-4 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 flex items-center"
       >
         <div class="flex items-center gap-3">
-          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-10 w-auto" />
+          <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-11 w-auto" />
           <span
-            class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck"
+            class="text-base sm:text-[22px] font-medium font-canela-deck"
           >
-            Arquitectura
+            Arquitectura 
             <span style="font-style: italic; font-weight: 100">&amp;</span>
-            Interiorismo
+             Interiorismo
           </span>
         </div>
       </div>
@@ -27,25 +27,25 @@
           <a
             href="/"
             (click)="handleNav(null, $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Inicio</a
           >
           <a
             href="/servicios"
             (click)="handleNav('servicios', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
             href="/proyectos"
             (click)="handleNav('proyectos', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
             href="/sobre-nosotros"
             (click)="handleNav('sobre-nosotros', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
         </nav>
@@ -66,7 +66,7 @@
           <button
             type="button"
             (click)="scrollToContact()"
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white rounded hover:border-transparent transition min-[900px]:text-xs xl:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white font-canela-deck font-medium text-sm rounded hover:border-transparent transition"
           >
             Contáctanos
             <img
@@ -76,7 +76,7 @@
             />
           </button>
           <span
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black rounded min-[900px]:text-xs xl:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black font-canela-deck font-medium text-sm rounded"
           >
             Presupuesta
             <svg
@@ -89,7 +89,7 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
+                stroke-width="0.5"
                 d="M5 12h14M12 5l7 7-7 7"
               />
             </svg>
@@ -109,8 +109,8 @@
       class="h-20 px-4 flex items-center justify-between border-b border-white/20"
     >
       <div class="flex items-center gap-3">
-        <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-8 w-auto" />
-        <span class="text-sm font-light font-canela-deck">
+        <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-9 w-auto" />
+        <span class="text-base font-medium font-canela-deck">
           Arquitectura
           <span style="font-style: italic; font-weight: 100">&amp;</span>
           Interiorismo
@@ -159,7 +159,7 @@
       <!-- Contact Button -->
       <button
         (click)="toggleMobileMenu(); scrollToContact()"
-        class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
+        class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-canela-deck font-light uppercase tracking-wide border-t border-white/20"
       >
         CONTÁCTANOS
         <img
@@ -171,7 +171,7 @@
 
       <!-- Budget Button (Disabled/Active state since we are on budget page) -->
       <button
-        class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide opacity-50 cursor-default"
+        class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-canela-deck font-light uppercase tracking-wide opacity-50 cursor-default"
       >
         PRESUPUESTA
         <svg
@@ -184,7 +184,7 @@
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-width="2"
+            stroke-width="0.5"
             d="M5 12h14M12 5l7 7-7 7"
           />
         </svg>
@@ -491,8 +491,8 @@
   <section id="budget-contact" class="bg-black">
     <contactanos-section
       logoSrc="assets/svgs/SPGA.svg"
-      videoSrc="assets/videos/Design your post.mp4"
-      fallbackImageSrc="assets/pictures/first-image.webp"
+      videoSrc="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666797/Video_para_seccion_de_Cont%C3%A1ctanos_famnnk.mp4"
+      fallbackImageSrc="assets/pictures/portada.webp"
       whatsappNumber="+584143350763"
       email="groupspga@gmail.com"
       designCredit="Mayra Bottino"

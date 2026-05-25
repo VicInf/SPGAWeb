@@ -1,10 +1,40 @@
 {
   "version": 1,
   "skills": {
+    "adev-writing-guide": {
+      "source": "angular/angular",
+      "sourceType": "autoskills-registry",
+      "computedHash": "b8933a369cba1517ae21800f9f108cbdb3ca4e7b4eacd850103117ed51039795"
+    },
     "angular-developer": {
       "source": "angular/skills",
       "sourceType": "github",
       "computedHash": "13f864392379685bb8935f93989ac3c08c74e36391499d2748e8e0657ef0ee90"
+    },
+    "pr_review": {
+      "source": "angular/angular",
+      "sourceType": "autoskills-registry",
+      "computedHash": "7fe60167662a2a7df0f81af064d22298cffe1a13164f250f75cac8d71a452cfd"
+    },
+    "reference-compiler-cli": {
+      "source": "angular/angular",
+      "sourceType": "autoskills-registry",
+      "computedHash": "69549be6dce5f8439ae946a3041ad428cf6897e98005270fc3ca4aa6cfc4a88e"
+    },
+    "reference-core": {
+      "source": "angular/angular",
+      "sourceType": "autoskills-registry",
+      "computedHash": "c58f7263272eef8b59bccbb62887ac82c57e6eb3cee2b4a8dbc15e3887e12774"
+    },
+    "reference-signal-forms": {
+      "source": "angular/angular",
+      "sourceType": "autoskills-registry",
+      "computedHash": "af28226f655ee620b5ece85e7bcf0950f86542cc77cc316fb699ec998e198475"
+    },
+    "tailwind-css-patterns": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "autoskills-registry",
+      "computedHash": "8fd534b64b3f305ade80c207e2f9ba4338d5e409e355af9f724c36764b6709c1"
     }
   }
 }

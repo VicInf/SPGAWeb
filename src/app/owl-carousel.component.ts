@@ -108,13 +108,13 @@ export interface OwlCarouselOptions {
           [style.opacity]="getTextOpacity()"
         >
           @if (getActiveSlide()?.title) {
-            <span class="text-xl sm:text-2xl md:text-3xl">{{
+            <span class="text-base font-neue font-medium leading-none -mb-3">{{
               getActiveSlide()?.title
             }}</span>
           }
           @if (getActiveSlide()?.subtitle) {
             <span
-              class="text-4xl sm:text-6xl md:text-7xl font-normal italic text-center px-4"
+              class="text-[64px] font-[200] italic text-center px-4"
               >{{ getActiveSlide()?.subtitle }}</span
             >
           }

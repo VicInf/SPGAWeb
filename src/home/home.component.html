@@ -9,7 +9,7 @@
       class="absolute inset-0 bg-black transition-opacity duration-500"
       style="opacity: 0"
     ></div>
-    <div class="h-20 relative z-10">
+    <div class="h-16 relative z-10">
       <!-- Left: Logo -->
       <div
         #headerLogo
@@ -17,19 +17,17 @@
         style="opacity: 0"
         (click)="scrollToTop()"
       >
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-4 sm:gap-6">
           <img
             src="assets/svgs/SPGA.svg"
             alt="SPGA"
-            width="40"
-            height="40"
-            class="h-8 sm:h-10 w-auto"
+            width="44"
+            height="44"
+            class="h-9 sm:h-11 w-auto"
           />
-          <span
-            class="text-sm min-[900px]:text-base xl:text-xl font-light font-canela-deck"
-          >
+          <span class="text-base font-medium font-canela-deck">
             Arquitectura
-            <span style="font-style: italic; font-weight: 100">&amp;</span>
+            <span style="font-style: italic; font-weight: 100"> &amp; </span>
             Interiorismo
           </span>
         </div>
@@ -45,19 +43,19 @@
           <a
             href="#servicios"
             (click)="scrollToSection('servicios', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Servicios</a
           >
           <a
             href="#proyectos"
             (click)="scrollToSection('proyectos', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Proyectos</a
           >
           <a
             href="#sobre-nosotros"
             (click)="scrollToSection('sobre-nosotros', $event)"
-            class="min-[900px]:text-sm xl:text-lg text-white border-b-2 border-transparent pb-2 hover:border-white"
+            class="text-base text-white font-canela-deck font-thin border-b-2 border-transparent pb-2 hover:border-white"
             >Sobre Nosotros</a
           >
         </nav>
@@ -77,7 +75,7 @@
 
           <button
             (click)="scrollToSection('contacto', $event)"
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white rounded hover:border-transparent transition min-[900px]:text-xs xl:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white font-canela-deck font-medium text-sm rounded-none hover:border-transparent transition"
           >
             Contáctanos
             <img
@@ -91,7 +89,7 @@
 
           <button
             routerLink="/budget"
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black rounded hover:opacity-90 transition min-[900px]:text-xs xl:text-base"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black font-canela-deck font-medium text-sm rounded-none hover:opacity-90 transition"
           >
             Presupuesta
             <svg
@@ -104,7 +102,7 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
+                stroke-width="0.5"
                 d="M5 12h14M12 5l7 7-7 7"
               />
             </svg>
@@ -119,9 +117,9 @@
     <div class="fixed inset-0 z-[100] bg-[#0a0a0a] text-white flex flex-col">
       <!-- Header -->
       <div
-        class="h-20 px-4 flex items-center justify-between border-b border-white/20"
+        class="h-16 px-4 flex items-center justify-between border-b border-white/20"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
           <img
             src="assets/svgs/SPGA.svg"
             alt="SPGA"
@@ -129,7 +127,7 @@
             height="32"
             class="h-8 w-auto"
           />
-          <span class="text-sm font-light font-canela-deck">
+          <span class="text-base font-medium font-canela-deck">
             Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
             Interiorismo
@@ -173,7 +171,7 @@
         <!-- Contact Button -->
         <button
           (click)="toggleMobileMenu(); scrollToSection('contacto', $event)"
-          class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide border-t border-white/20"
+          class="w-full h-24 bg-white text-black flex items-center justify-center px-8 gap-3 text-lg font-canela-deck font-light uppercase tracking-wide border-t border-white/20"
         >
           CONTÁCTANOS
           <img
@@ -189,7 +187,7 @@
         <button
           routerLink="/budget"
           (click)="toggleMobileMenu()"
-          class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-medium uppercase tracking-wide"
+          class="w-full h-24 bg-black text-white border-t border-white/20 flex items-center justify-center px-8 gap-3 text-lg font-canela-deck font-light uppercase tracking-wide"
         >
           PRESUPUESTA
           <svg
@@ -202,7 +200,7 @@
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
+              stroke-width="0.5"
               d="M5 12h14M12 5l7 7-7 7"
             />
           </svg>
@@ -214,15 +212,25 @@
   <!-- Hero image below the header -->
   <main class="w-full h-screen bg-gray-50">
     <section class="w-full h-full">
-      <div class="w-full h-full overflow-hidden">
+      <div class="relative w-full h-full overflow-hidden">
+        <video
+          #heroVideo
+          src="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666812/01_Im%C3%A1gen_de_portada_Video_1_gj0wjw.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="auto"
+          crossorigin="anonymous"
+          class="h-full w-full object-cover"
+          (playing)="heroVideoPlaying = true"
+          (error)="onHeroVideoError($event)"
+        ></video>
         <img
-          src="assets/pictures/first-image.webp"
-          alt="Hero image"
-          loading="eager"
-          fetchpriority="high"
-          width="1920"
-          height="1080"
-          class="w-full h-full object-cover"
+          [hidden]="isBrowser && heroVideoPlaying"
+          src="assets/pictures/portada.webp"
+          alt="SPGA"
+          class="absolute inset-0 h-full w-full object-cover"
         />
 
         <!-- Hero Logo - Top Left (will transition to header) -->
@@ -231,7 +239,7 @@
           class="absolute top-12 left-12 z-10 text-white transition-all duration-700 ease-out"
           style="transform-origin: top left"
         >
-          <div class="flex flex-col items-start gap-4">
+          <div class="flex flex-col items-start gap-1.5">
             <img
               src="assets/svgs/SPGA.svg"
               alt="SPGA"
@@ -241,13 +249,12 @@
             />
             <span
               #heroText
-              class="text-2xl sm:text-3xl font-canela-deck font-light tracking-wide drop-shadow-lg transition-opacity duration-300"
+              class="w-full text-center text-base sm:text-[22px] font-canela-deck font-medium drop-shadow-lg transition-opacity duration-300 whitespace-nowrap tracking-wide"
             >
-              Arquitectura
-              <span style="font-style: italic; font-weight: 100" class="mx-2"
+              <span>Arquitectura</span
+              ><span style="font-style: italic; font-weight: 100" class="mx-1.5"
                 >&amp;</span
-              >
-              Interiorismo
+              ><span>Interiorismo</span>
             </span>
           </div>
         </div>
@@ -256,7 +263,9 @@
   </main>
 
   <!-- Intro text below hero -->
-  <section class="w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8 pt-12">
+  <section
+    class="w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8 pt-12 pb-6 min-[1025px]:absolute min-[1025px]:top-[100vh] min-[1025px]:pt-20"
+  >
     <div class="w-full">
       <h2
         class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck thin-visual text-left"
@@ -270,7 +279,9 @@
   </section>
 
   <!-- Owl-like Carousel Component -->
-  <section class="w-full h-auto min-[1025px]:h-screen pt-8 min-[1025px]:pt-0">
+  <section
+    class="w-full h-auto min-[1025px]:min-h-screen pt-4 min-[1025px]:pt-16"
+  >
     <owl-carousel
       class="w-full h-full block"
       [slides]="slides"
@@ -282,22 +293,19 @@
   <!-- New pale background section -->
   <section
     id="servicios"
-    class="w-full flex flex-col items-center justify-start min-[1025px]:justify-center scroll-mt-28 pt-8 md:pt-24 pb-8 min-[1025px]:py-0 min-[1025px]:min-h-screen"
+    class="w-full flex flex-col items-center justify-start scroll-mt-28 pt-8 md:pt-24 pb-20 min-[1025px]:pt-24 min-[1025px]:pb-24"
     style="background: #e0ddcb"
   >
     <h2
-      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center mb-4 min-[1025px]:mb-10"
+      class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-tight font-canela-deck font-thin thin-visual text-center mb-6 min-[1025px]:mb-12"
     >
       Servicios integrales
     </h2>
-    <!-- Services integrales autoplay carousel (full width, responsive height) -->
-    <div class="w-full h-[40vh] min-[1025px]:h-[50vh] max-h-[500px]">
-      <simple-auto-carousel
-        class="w-full h-full block"
-        [slides]="servicesSlides"
-        [options]="servicesCarouselOptions"
-      ></simple-auto-carousel>
-    </div>
+    <simple-auto-carousel
+      class="w-full"
+      [slides]="servicesSlides"
+      [options]="servicesCarouselOptions"
+    ></simple-auto-carousel>
   </section>
   <!-- Proyectos section (same heading style, plain background, full viewport height) -->
   <section
@@ -486,7 +494,7 @@
   "
 >
   <reveal-image
-    src="assets/pictures/piscina.webp"
+    src="assets/pictures/shrinking.webp"
     alt="Featured"
     [endScale]="1"
     [scrollDistance]="250"
@@ -517,7 +525,7 @@
       >
         <button
           (click)="scrollToSection('contacto', $event)"
-          class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
+          class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
           [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
         >
           <span class="mr-2">Contáctanos</span>
@@ -534,7 +542,7 @@
         </button>
         <button
           routerLink="/budget"
-          class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] uppercase tracking-wide hover:opacity-85 transition"
+          class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:opacity-85 transition"
           [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
         >
           <span class="mr-2">Presupuesta</span>
@@ -548,7 +556,7 @@
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
+              stroke-width="0.5"
               d="M5 12h14M12 5l7 7-7 7"
             />
           </svg>
@@ -628,8 +636,8 @@
 <div id="contacto" class="scroll-mt-28">
   <contactanos-section
     logoSrc="assets/svgs/SPGA.svg"
-    videoSrc="assets/videos/Design your post.mp4"
-    fallbackImageSrc="assets/pictures/first-image.webp"
+    videoSrc="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666797/Video_para_seccion_de_Cont%C3%A1ctanos_famnnk.mp4"
+    fallbackImageSrc="assets/pictures/portada.webp"
     whatsappNumber="+584143350763"
     email="groupspga@gmail.com"
     designCredit="Mayra Bottino"

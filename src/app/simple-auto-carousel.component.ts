@@ -103,23 +103,29 @@ export interface SimpleAutoCarouselOptions {
   styles: [
     `
       :host {
-        display: block;
+        display: flex;
+        flex-direction: column;
         width: 100%;
+        height: auto;
       }
       .sac-viewport {
         position: relative;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: visible;
         width: 100%;
       }
       .sac-track {
         display: flex;
+        align-items: stretch;
         will-change: transform;
+        height: auto;
       }
       .sac-item {
         position: relative;
+        display: flex;
         flex: 0 0 auto;
         user-select: none;
-        height: 50vh;
+        height: auto;
         padding: 0;
         margin-left: -1px;
       }
@@ -128,21 +134,22 @@ export interface SimpleAutoCarouselOptions {
       }
       .sac-card {
         width: 100%;
-        height: 100%;
+        height: auto;
+        flex: 1;
         background: #e0ddcb;
         border: 1px solid #000;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 3rem 2rem;
+        justify-content: flex-start;
+        padding: 2.5rem 2rem 3rem;
         box-sizing: border-box;
       }
       .sac-icon-container {
         flex: 0 0 auto;
-        margin-bottom: 2rem;
-        max-width: 200px;
-        max-height: 200px;
+        margin-bottom: 1.75rem;
+        max-width: 180px;
+        max-height: 180px;
       }
       .sac-icon {
         width: 100%;
@@ -155,22 +162,21 @@ export interface SimpleAutoCarouselOptions {
         text-align: center;
         color: #000;
         width: 100%;
-        align-self: flex-start;
       }
       .sac-title {
         font-family: 'Canela Deck', serif;
-        font-size: 2rem;
+        font-size: clamp(1.1rem, 2vw, 2rem);
         font-weight: 300;
         line-height: 1.2;
         margin: 0 0 1rem 0;
       }
       .sac-description {
         font-family: inherit;
-        font-size: 1rem;
+        font-size: clamp(0.8rem, 1.1vw, 1rem);
         font-weight: 100;
         line-height: 1.5;
         margin: 0 auto;
-        max-width: 400px;
+        max-width: 22rem;
         text-align: center;
       }
       .sac-nav {
@@ -179,6 +185,8 @@ export interface SimpleAutoCarouselOptions {
         justify-content: center;
         gap: 12px;
         margin-top: 2rem;
+        padding-bottom: 0.25rem;
+        flex-shrink: 0;
         font-family: inherit;
         user-select: none;
       }
@@ -217,48 +225,38 @@ export interface SimpleAutoCarouselOptions {
 
       /* Mobile / Tablet responsive adjustments */
       @media (max-width: 1024px) {
-        .sac-item {
-          height: auto;
-          min-height: 300px;
-        }
         .sac-card {
-          padding: 1.5rem 1rem;
+          padding: 2rem 1.25rem 2.5rem;
         }
         .sac-icon-container {
           max-width: 120px;
           max-height: 120px;
-          margin-bottom: 1rem;
-        }
-        .sac-title {
-          font-size: 1.25rem;
-          margin: 0 0 0.5rem 0;
-        }
-        .sac-description {
-          font-size: 0.85rem;
-          line-height: 1.4;
+          margin-bottom: 1.25rem;
         }
         .sac-nav {
-          margin-top: 1rem;
+          margin-top: 1.5rem;
         }
       }
 
-      @media (max-width: 480px) {
-        .sac-item {
-          min-height: 260px;
-        }
+      @media (max-width: 375px) {
         .sac-card {
-          padding: 1.25rem 0.75rem;
+          padding: 1.5rem 1rem 2rem;
         }
         .sac-icon-container {
           max-width: 90px;
           max-height: 90px;
-          margin-bottom: 0.75rem;
+          margin-bottom: 1rem;
         }
-        .sac-title {
-          font-size: 1.1rem;
+      }
+
+      @media (min-width: 1440px) {
+        .sac-card {
+          padding: 3rem 2rem 3.5rem;
         }
-        .sac-description {
-          font-size: 0.8rem;
+        .sac-icon-container {
+          max-width: 200px;
+          max-height: 200px;
+          margin-bottom: 2rem;
         }
       }
     `,

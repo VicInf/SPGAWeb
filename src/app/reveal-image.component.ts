@@ -428,11 +428,13 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
     const translateY = 40 - 40 * Math.min(1, progress * 1.2);
     this.contentOpacity = opacity;
     this.contentTransform = `translateY(${translateY}px)`;
-    try {
-      this.scaleProgress.emit(Math.min(1, Math.max(0, progress)));
-    } catch (e) {
-      // no-op
-    }
+    this.ngZone.runOutsideAngular(() => {
+      try {
+        this.scaleProgress.emit(Math.min(1, Math.max(0, progress)));
+      } catch (e) {
+        // no-op
+      }
+    });
   }
 
   private isAtFullSize(): boolean {

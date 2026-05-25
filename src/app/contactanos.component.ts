@@ -42,18 +42,20 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               loop
               muted
               playsinline
+              disablePictureInPicture
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
               preload="auto"
               width="400"
               height="200"
               crossorigin="anonymous"
-              class="h-full w-full object-cover"
+              class="hide-native-controls h-full w-full object-cover"
               (error)="onVideoError()"
             >
               Your browser does not support the video tag.
             </video>
-            <!-- Fallback image for SSR or if video doesn't load -->
+            <!-- Fallback image for SSR only -->
             <img
-              *ngIf="!isBrowser || fallbackImageSrc"
+              *ngIf="!isBrowser"
               [src]="fallbackImageSrc"
               alt="Contact"
               width="400"
@@ -81,7 +83,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               [href]="getWhatsAppUrl()"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center gap-4 text-lg md:text-xl hover:opacity-70 transition-opacity"
+              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity"
             >
               <img
                 src="assets/svgs/whatsapp.svg"
@@ -94,7 +96,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
             <!-- Email -->
             <a
               [href]="'mailto:' + email"
-              class="flex items-center gap-4 text-lg md:text-xl hover:opacity-70 transition-opacity"
+              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity"
             >
               <svg
                 class="w-6 h-6 md:w-7 md:h-7"
@@ -156,23 +158,24 @@ export class ContactanosComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Ensure video plays after view initialization
-    if (this.isBrowser && this.videoElement) {
-      const video = this.videoElement.nativeElement;
-      // Attempt to play, catching any promise rejection
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.warn('Video autoplay failed, will retry:', error);
-          // Retry after a short delay
-          setTimeout(() => {
-            video
-              .play()
-              .catch((e) => console.error('Video play retry failed:', e));
-          }, 100);
-        });
-      }
-    }
+    if (!this.isBrowser) return;
+    const video = this.videoElement?.nativeElement;
+    if (!video) return;
+
+    video.controls = false;
+    video.disablePictureInPicture = true;
+
+    // Try autoplay after a short delay when the page is settled
+    setTimeout(() => video.play().catch(() => {}), 500);
+
+    // Also attempt on first user interaction in case autoplay is blocked
+    const onInteraction = () => {
+      video.play().catch(() => {});
+      document.removeEventListener('click', onInteraction);
+      document.removeEventListener('touchstart', onInteraction);
+    };
+    document.addEventListener('click', onInteraction);
+    document.addEventListener('touchstart', onInteraction);
   }
 
   onVideoError(): void {
