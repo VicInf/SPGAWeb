@@ -682,6 +682,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (!video) return;
 
     video.muted = true;
+    video.defaultMuted = true;
+    video.controls = false;
+    video.removeAttribute('controls');
+    video.disablePictureInPicture = true;
+    video.disableRemotePlayback = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+
+    const stripControls = () => {
+      video.controls = false;
+      video.removeAttribute('controls');
+    };
+    for (const event of [
+      'loadedmetadata',
+      'loadeddata',
+      'canplay',
+      'play',
+      'playing',
+      'pause',
+    ] as const) {
+      video.addEventListener(event, stripControls);
+    }
 
     const play = () => video.play().catch(() => {});
 

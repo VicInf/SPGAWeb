@@ -33,7 +33,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
           </div>
 
           <!-- Video -->
-          <div class="relative h-64 md:h-40 lg:h-48 overflow-hidden rounded-lg">
+          <div class="relative h-64 md:h-40 lg:h-48 overflow-hidden">
             <video
               #videoElement
               *ngIf="isBrowser"
