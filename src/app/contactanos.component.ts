@@ -16,24 +16,28 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   imports: [CommonModule],
   template: `
     <section class="w-full bg-black text-white py-16 md:py-24">
-      <div class="container mx-auto px-6 md:px-12 lg:px-20">
+      <div class="mx-auto w-[90vw]">
         <!-- First Row: Logo and Video with space between -->
         <div
-          class="flex flex-col lg:flex-row lg:justify-between items-center gap-12 mb-12"
+          class="flex flex-col md:grid md:grid-cols-2 items-center gap-12 mb-12"
         >
           <!-- Logo -->
-          <div class="flex items-center justify-center h-64 md:h-40 lg:h-48">
+          <div
+            class="flex items-center md:justify-start justify-center h-[195px] md:h-[200px] lg:h-[280px]"
+          >
             <img
               [src]="logoSrc"
               alt="SPGA Logo"
-              width="200"
-              height="200"
-              class="h-full w-auto"
+              width="280"
+              height="280"
+              class="h-full w-auto ml-4"
             />
           </div>
 
           <!-- Video -->
-          <div class="relative h-64 md:h-40 lg:h-48 overflow-hidden">
+          <div
+            class="relative w-[320px] md:w-[330px] lg:w-[460px] h-[195px] md:h-[200px] lg:h-[280px] overflow-hidden ml-auto mr-4"
+          >
             <video
               #videoElement
               *ngIf="isBrowser"
@@ -45,8 +49,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               disablePictureInPicture
               controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
               preload="auto"
-              width="400"
-              height="200"
+              width="460"
+              height="280"
               crossorigin="anonymous"
               class="hide-native-controls h-full w-full object-cover"
               (error)="onVideoError()"
@@ -58,8 +62,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               *ngIf="!isBrowser"
               [src]="fallbackImageSrc"
               alt="Contact"
-              width="400"
-              height="200"
+              width="460"
+              height="280"
               class="h-full w-full object-cover"
             />
           </div>
@@ -67,17 +71,17 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 
         <!-- Second Row: Title and Contact Info aligned with logo/video above -->
         <div
-          class="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-12 mb-8"
+          class="flex flex-col md:grid md:grid-cols-2 items-center md:items-start gap-12 mb-8"
         >
           <!-- Contactanos Title (aligned with logo) -->
           <h2
-            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center lg:text-left"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center md:text-left ml-4"
           >
             Contáctanos
           </h2>
 
           <!-- Contact Info (aligned with video) -->
-          <div class="flex flex-col gap-6 items-center lg:items-start lg:mr-24">
+          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] ml-auto mr-4">
             <!-- WhatsApp -->
             <a
               [href]="getWhatsAppUrl()"
@@ -115,17 +119,25 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
             </a>
           </div>
         </div>
+      </div>
 
-        <!-- Footer Text -->
-        <div
-          class="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/70 text-center md:text-left"
-        >
-          <p>© Copyright SPGA GROUP. Venezuela</p>
+      <!-- Footer -->
+      <div class="w-full bg-black flex justify-center mt-8">
+        <div class="w-[90vw]">
           <div
-            class="flex flex-col lg:flex-row gap-1 lg:gap-8 items-center lg:items-end"
+            class="flex w-full flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 text-sm text-white/70 md:flex-row md:items-center"
           >
-            <p *ngIf="designCredit">Diseño por {{ designCredit }}</p>
-            <p *ngIf="devCredit">Desarrollo por {{ devCredit }}</p>
+            <p class="text-center md:text-left">© Copyright SPGA GROUP. Venezuela</p>
+            <div
+              class="flex flex-col items-center gap-1 lg:flex-row lg:gap-8 lg:items-center"
+            >
+              <p *ngIf="designCredit" class="text-center md:text-right">
+                Diseño por {{ designCredit }}
+              </p>
+              <p *ngIf="devCredit" class="text-center md:text-right">
+                Desarrollo por {{ devCredit }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -135,6 +147,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
     `
       :host {
         display: block;
+        width: 100%;
       }
     `,
   ],
