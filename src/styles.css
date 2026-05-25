@@ -242,8 +242,13 @@ video.hide-native-controls::-webkit-media-controls-time-remaining-display,
 video.hide-native-controls::-webkit-media-controls-mute-button,
 video.hide-native-controls::-webkit-media-controls-toggle-closed-captions-button,
 video.hide-native-controls::-webkit-media-controls-volume-slider,
-video.hide-native-controls::-webkit-media-controls-fullscreen-button {
+video.hide-native-controls::-webkit-media-controls-fullscreen-button,
+video.hide-native-controls::-webkit-media-controls-picture-in-picture-button,
+video.hide-native-controls::-webkit-media-controls-wireless-playback-picker-button,
+video.hide-native-controls::-webkit-media-controls-overlay-cast-button {
   display: none !important;
   -webkit-appearance: none;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }

@@ -212,7 +212,7 @@
   <!-- Hero image below the header -->
   <main class="w-full h-screen bg-gray-50">
     <section class="w-full h-full">
-      <div class="relative w-full h-full overflow-hidden">
+      <div class="hero-video-shell relative w-full h-full overflow-hidden">
         <video
           #heroVideo
           src="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666812/01_Im%C3%A1gen_de_portada_Video_1_gj0wjw.mp4"
@@ -220,18 +220,18 @@
           loop
           muted
           playsinline
+          webkit-playsinline
+          disablePictureInPicture
+          disableRemotePlayback
+          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
           preload="auto"
           crossorigin="anonymous"
-          class="h-full w-full object-cover"
+          tabindex="-1"
+          class="hide-native-controls hero-video object-cover"
           (playing)="heroVideoPlaying = true"
           (error)="onHeroVideoError($event)"
         ></video>
-        <img
-          [hidden]="isBrowser && heroVideoPlaying"
-          src="assets/pictures/portada.webp"
-          alt="SPGA"
-          class="absolute inset-0 h-full w-full object-cover"
-        />
+        <div class="hero-video-overlay" aria-hidden="true"></div>
 
         <!-- Hero Logo - Top Left (will transition to header) -->
         <div
@@ -318,34 +318,24 @@
       >
         Proyectos
       </h2>
-      <!-- Three project cards row -->
+      <!-- Project cards row -->
       <div
-        class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 lg:gap-y-20 justify-items-center"
+        class="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 lg:gap-y-16 items-stretch"
       >
         @for (p of projects; track p.title; let i = $index) {
           <div
-            class="group relative flex flex-col items-center justify-between rounded-sm transition-all duration-500 bg-white overflow-hidden fade-in-section w-full max-w-md"
+            class="project-card group relative flex h-full w-full max-w-md mx-auto flex-col bg-white fade-in-section"
             #fadeInElement
-            [ngClass]="{
-              'lg:h-[640px] lg:mt-24': i % 3 === 1,
-              'lg:h-[500px]': i % 3 !== 1,
-            }"
+            (mouseenter)="i % 3 === 1 ? (revealImageProgress = 1) : null"
+            (mouseleave)="i % 3 === 1 ? (revealImageProgress = 0) : null"
           >
             <!-- Year and Type labels (above image) -->
-            <div class="w-full flex justify-between items-center pt-4 pb-2">
+            <div class="flex w-full items-center justify-between pb-2 pt-4">
               <span class="text-sm font-light text-black">{{ p.year }}</span>
               <span class="text-sm font-light text-black">{{ p.type }}</span>
             </div>
 
-            <div
-              class="relative group cursor-pointer w-full h-[350px]"
-              [ngClass]="{
-                'lg:h-[520px]': i % 3 === 1,
-                'lg:h-[380px]': i % 3 !== 1,
-              }"
-              (mouseenter)="i % 3 === 1 ? (revealImageProgress = 1) : null"
-              (mouseleave)="i % 3 === 1 ? (revealImageProgress = 0) : null"
-            >
+            <div class="relative w-full aspect-[4/5] overflow-hidden">
               <img
                 [src]="p.image"
                 [alt]="p.title"
@@ -353,7 +343,7 @@
                 crossorigin="anonymous"
                 width="400"
                 height="500"
-                class="absolute inset-0 w-full h-full object-cover"
+                class="h-full w-full object-cover"
                 draggable="false"
               />
               <!-- Preload first carousel image in background when card is visible -->
@@ -369,40 +359,39 @@
                   class="sr-only"
                 />
               }
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none"
-              ></div>
             </div>
-            <div class="w-full px-6 pt-6 flex flex-col">
+
+            <div class="flex flex-1 flex-col px-6 pb-6 pt-6">
               <h3
-                class="text-2xl font-canela-deck font-light mb-2 tracking-wide"
+                class="mb-2 text-2xl font-canela-deck font-light uppercase tracking-wide"
               >
                 {{ p.title }}
               </h3>
-              <p class="text-base font-light text-gray-700 mb-4">
-                {{ p.subtitle }}
+              <p class="mb-6 text-base font-light text-gray-700">
+                — {{ p.subtitle }}
               </p>
-              <div class="flex items-center gap-4 mt-auto pb-6">
+              <div
+                class="mt-auto flex gap-0"
+                [class.justify-center]="!p.hasModel"
+              >
                 <button
                   (click)="openCarousel(p)"
-                  class="flex-1 bg-black text-white py-3 text-sm uppercase tracking-wide hover:opacity-85 transition"
+                  class="project-btn project-btn-primary"
+                  [class.flex-1]="p.hasModel"
+                  [class.w-full]="!p.hasModel"
                 >
                   Ver proyecto
                 </button>
                 @if (p.hasModel) {
                   <button
                     (click)="openModel(i)"
-                    class="flex-1 border border-black py-3 text-sm uppercase tracking-wide hover:bg-black hover:text-white transition"
+                    class="project-btn project-btn-secondary flex-1"
                   >
-                    Ver modelo 3D
+                    Explorar 3D
                   </button>
                 }
               </div>
             </div>
-            <!-- subtle emphasis on center card -->
-            @if (i === 1) {
-              <div class="absolute inset-0 -z-10 rounded-sm"></div>
-            }
           </div>
         }
       </div>
