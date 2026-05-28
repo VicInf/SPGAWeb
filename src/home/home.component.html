@@ -329,12 +329,7 @@
             (mouseenter)="i % 3 === 1 ? (revealImageProgress = 1) : null"
             (mouseleave)="i % 3 === 1 ? (revealImageProgress = 0) : null"
           >
-            <!-- Year and Type labels (above image) -->
-            <div class="flex w-full items-center justify-between pb-2 pt-4">
-              <span class="text-sm font-light text-black">{{ p.year }}</span>
-              <span class="text-sm font-light text-black">{{ p.type }}</span>
-            </div>
-
+            <!-- Image -->
             <div class="relative w-full aspect-[4/5] overflow-hidden">
               <img
                 [src]="p.image"
@@ -361,13 +356,23 @@
               }
             </div>
 
-            <div class="flex flex-1 flex-col px-6 pb-6 pt-6">
+            <!-- Year and Type labels (below image) -->
+            <div
+              class="flex w-full items-center justify-between pb-2 pt-4 px-6"
+            >
+              <span class="text-sm font-light text-black">{{ p.year }}</span>
+              <span class="text-sm font-light text-black">{{ p.type }}</span>
+            </div>
+
+            <div class="flex flex-1 flex-col px-6 pb-6 pt-2">
               <h3
-                class="mb-2 text-2xl font-canela-deck font-light uppercase tracking-wide"
+                class="mb-2 text-base font-['PP_Neue_Montreal'] font-normal uppercase tracking-wide"
               >
                 {{ p.title }}
               </h3>
-              <p class="mb-6 text-base font-light text-gray-700">
+              <p
+                class="mb-6 text-base font-canela-deck font-thin text-gray-700"
+              >
                 — {{ p.subtitle }}
               </p>
               <div

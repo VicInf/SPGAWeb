@@ -197,6 +197,11 @@ body {
   font-display: swap;
 }
 
+/* Hide the skip button everywhere */
+.custom-button#skip-button {
+  display: none !important;
+}
+
 /* Helper class for Canela Deck (font must be loaded separately) */
 .font-canela-deck {
   font-family: "Canela Deck", Georgia, "Times New Roman", Times, serif;
@@ -228,6 +233,10 @@ video.hide-native-controls {
   pointer-events: none;
 }
 
+ng-serve .custom-button {
+  display: none !important;
+}
+
 video.hide-native-controls::-webkit-media-controls-container,
 video.hide-native-controls::-webkit-media-controls,
 video.hide-native-controls::-webkit-media-controls-enclosure,
@@ -250,5 +259,5 @@ video.hide-native-controls::-webkit-media-controls-overlay-cast-button {
   -webkit-appearance: none;
   opacity: 0;
   visibility: hidden;
-  pointer-events: none;
+  pointer-events: none !important;
 }

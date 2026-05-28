@@ -45,7 +45,9 @@ owl-carousel {
 .fade-in-section {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s ease-out;
   will-change: opacity, transform;
 }
 
@@ -79,7 +81,8 @@ owl-carousel {
   border-radius: 0;
   padding: 0.75rem 1rem;
   font-size: 0.75rem;
-  font-weight: 300;
+  font-weight: 400;
+  font-family: "PP Neue Montreal";
   letter-spacing: 0.12em;
   line-height: 1.2;
   text-transform: uppercase;
@@ -123,6 +126,15 @@ owl-carousel {
   pointer-events: none !important;
   -webkit-appearance: none;
 }
+/* Hide native video overlay/play/skip buttons */
+video::-webkit-media-controls-overlay-play-button,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
 .hero-video-shell .hero-video-overlay {
   position: absolute;
@@ -143,13 +155,15 @@ owl-carousel {
 .hero-video-shell .hero-video::-webkit-media-controls-overlay-play-button,
 .hero-video-shell .hero-video::-webkit-media-controls-overlay-enclosure,
 .hero-video-shell .hero-video::-webkit-media-controls-picture-in-picture-button,
-.hero-video-shell .hero-video::-webkit-media-controls-wireless-playback-picker-button,
+.hero-video-shell
+  .hero-video::-webkit-media-controls-wireless-playback-picker-button,
 .hero-video-shell .hero-video::-webkit-media-controls-fullscreen-button,
 .hero-video-shell .hero-video::-webkit-media-controls-timeline,
 .hero-video-shell .hero-video::-webkit-media-controls-current-time-display,
 .hero-video-shell .hero-video::-webkit-media-controls-time-remaining-display,
 .hero-video-shell .hero-video::-webkit-media-controls-mute-button,
-.hero-video-shell .hero-video::-webkit-media-controls-toggle-closed-captions-button,
+.hero-video-shell
+  .hero-video::-webkit-media-controls-toggle-closed-captions-button,
 .hero-video-shell .hero-video::-webkit-media-controls-volume-slider {
   display: none !important;
   opacity: 0 !important;
