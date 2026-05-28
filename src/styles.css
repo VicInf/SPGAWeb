@@ -33,14 +33,14 @@ body {
 /* Self-hosted Canela Deck weights (Shifted lighter by ~100) */
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Thin.otf") format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Thin.otf") format("opentype");
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-ThinItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-ThinItalic.otf")
     format("opentype");
   font-weight: 100;
   font-style: italic;
@@ -48,14 +48,14 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Thin.otf") format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Thin.otf") format("opentype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-ThinItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-ThinItalic.otf")
     format("opentype");
   font-weight: 300;
   font-style: italic;
@@ -63,14 +63,14 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Light.otf") format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Light.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-LightItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-LightItalic.otf")
     format("opentype");
   font-weight: 400;
   font-style: italic;
@@ -78,7 +78,7 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Regular.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Regular.otf")
     format("opentype");
   font-weight: 500;
   font-style: normal;
@@ -86,7 +86,7 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-RegularItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-RegularItalic.otf")
     format("opentype");
   font-weight: 500;
   font-style: italic;
@@ -94,14 +94,14 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Medium.otf") format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Medium.otf") format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-MediumItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-MediumItalic.otf")
     format("opentype");
   font-weight: 700;
   font-style: italic;
@@ -109,14 +109,14 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-Bold.otf") format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Bold.otf") format("opentype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("/assets/fonts/Canela Deck/CanelaDeck-BoldItalic.otf")
+  src: url("assets/fonts/Canela Deck/CanelaDeck-BoldItalic.otf")
     format("opentype");
   font-weight: 900;
   font-style: italic;
@@ -126,7 +126,7 @@ body {
 /* Self-hosted PP Neue Montreal weights (Shifted lighter by ~100) */
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Thin.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Thin.otf")
     format("opentype");
   font-weight: 100;
   font-style: normal;
@@ -134,7 +134,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-ThinItalic.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-ThinItalic.otf")
     format("opentype");
   font-weight: 100;
   font-style: italic;
@@ -142,7 +142,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Thin.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Thin.otf")
     format("opentype");
   font-weight: 300;
   font-style: normal;
@@ -150,7 +150,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Book.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Book.otf")
     format("opentype");
   font-weight: 350;
   font-style: normal;
@@ -158,7 +158,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Book.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Book.otf")
     format("opentype");
   font-weight: 400;
   font-style: normal;
@@ -166,7 +166,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Italic.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Italic.otf")
     format("opentype");
   font-weight: 400;
   font-style: italic;
@@ -174,7 +174,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Regular.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Regular.otf")
     format("opentype");
   font-weight: 500;
   font-style: normal;
@@ -182,7 +182,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-Medium.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-Medium.otf")
     format("opentype");
   font-weight: 700;
   font-style: normal;
@@ -190,7 +190,7 @@ body {
 }
 @font-face {
   font-family: "PP Neue Montreal";
-  src: url("/assets/fonts/PP Neue Montreal/PPNeueMontreal-BoldItalic.otf")
+  src: url("assets/fonts/PP Neue Montreal/PPNeueMontreal-BoldItalic.otf")
     format("opentype");
   font-weight: 700;
   font-style: italic;
