@@ -133,10 +133,11 @@
   }
 }
 
-/* Mobile: slider mode — let images dictate height, horizontal swipe handled by JS */
-@media (max-width: 1024px) {
+/* Mobile & tablet: slider mode — let images dictate height, horizontal swipe handled by JS */
+@media (max-width: 768px) {
   :host {
     touch-action: pan-y; /* allow vertical scroll, capture horizontal for slider */
+    padding-top: 0; /* remove 2rem padding that creates a white gap on tablets */
   }
   :host,
   .owl-carousel-viewport,

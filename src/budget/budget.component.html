@@ -203,7 +203,7 @@
       <form class="space-y-10" (submit)="handleSubmit($event)" novalidate>
         <!-- Question 1: Project Type -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             ¿Qué deseas diseñar o construir?*
           </h3>
           <div class="flex flex-wrap gap-3">
@@ -213,10 +213,10 @@
               (click)="handleOption(questions[0], option)"
               [ngClass]="
                 optionIsSelected(questions[0], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -237,7 +237,7 @@
 
         <!-- Question 2: Services -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">¿Qué servicios necesitas?*</h3>
+          <h3 class="text-base font-canela-deck font-medium">¿Qué servicios necesitas?*</h3>
           <div class="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -245,10 +245,10 @@
               (click)="handleOption(questions[1], option)"
               [ngClass]="
                 optionIsSelected(questions[1], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-4 py-2.5 border border-black rounded text-sm transition text-left"
+              class="px-4 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition text-left"
             >
               {{ option.label }}
             </button>
@@ -258,7 +258,7 @@
 
         <!-- Question 3: Surface Area -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             ¿Cuál es el área aproximada del proyecto?*
           </h3>
           <div class="flex flex-wrap gap-3">
@@ -268,10 +268,10 @@
               (click)="handleOption(questions[2], option)"
               [ngClass]="
                 optionIsSelected(questions[2], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -280,7 +280,7 @@
 
         <!-- Question 4: Budget -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             ¿Tienes un presupuesto estimado?*
           </h3>
           <div class="space-y-2">
@@ -299,10 +299,10 @@
               (click)="handleOption(questions[3], option)"
               [ngClass]="
                 optionIsSelected(questions[3], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -311,7 +311,7 @@
 
         <!-- Question 5: Timeline -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             ¿Tienes una fecha límite o plazo ideal?*
           </h3>
           <div class="flex flex-wrap gap-3">
@@ -321,10 +321,10 @@
               (click)="handleOption(questions[4], option)"
               [ngClass]="
                 optionIsSelected(questions[4], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -333,7 +333,7 @@
 
         <!-- Question 6: Additional Comments -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             Cuéntanos brevemente tu idea o necesidad
           </h3>
           <textarea
@@ -346,7 +346,7 @@
 
         <!-- Contact Information -->
         <div class="space-y-6 pt-6">
-          <h3 class="text-base font-light">Tus datos de contacto*</h3>
+          <h3 class="text-base font-canela-deck font-medium">Tus datos de contacto*</h3>
           <div class="space-y-4">
             <div>
               <label class="block text-sm mb-1">Nombre y apellido</label>
@@ -383,7 +383,7 @@
 
         <!-- How did you find us -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">¿Cómo nos conociste?*</h3>
+          <h3 class="text-base font-canela-deck font-medium">¿Cómo nos conociste?*</h3>
           <div class="flex flex-wrap gap-3">
             <button
               type="button"
@@ -391,10 +391,10 @@
               (click)="handleOption(questions[6], option)"
               [ngClass]="
                 optionIsSelected(questions[6], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -415,7 +415,7 @@
 
         <!-- Contact Preference -->
         <div class="space-y-4">
-          <h3 class="text-base font-light">
+          <h3 class="text-base font-canela-deck font-medium">
             ¿Cómo prefieres que te contactemos?*
           </h3>
           <div class="flex flex-wrap gap-3">
@@ -425,10 +425,10 @@
               (click)="handleOption(questions[7], option)"
               [ngClass]="
                 optionIsSelected(questions[7], option)
-                  ? 'bg-black text-white'
-                  : 'bg-white text-black'
+                  ? 'bg-black text-white/80'
+                  : 'bg-white text-black/80'
               "
-              class="px-6 py-2.5 border border-black rounded text-sm transition"
+              class="px-6 py-2.5 font-pp-neue-montreal border border-black/80 rounded text-sm transition"
             >
               {{ option.label }}
             </button>
@@ -439,7 +439,7 @@
         <div class="pt-8 flex justify-center">
           <button
             type="submit"
-            class="px-16 py-4 bg-black text-white text-sm uppercase tracking-widest hover:opacity-90 transition"
+            class="px-16 py-4 bg-black text-white/80 font-pp-neue-montreal text-sm uppercase tracking-widest hover:opacity-90 transition"
           >
             Enviar solicitud de presupuesto
           </button>

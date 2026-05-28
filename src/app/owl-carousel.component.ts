@@ -392,9 +392,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     // ── Mobile detection ──
     // On mobile (narrow viewport OR primary touch input), disable the
     // grow/shrink scaling effect entirely and show a plain swipeable carousel.
-    this._isMobile =
-      window.innerWidth <= 1024 ||
-      window.matchMedia('(pointer: coarse)').matches;
+    this._isMobile = window.innerWidth <= 768;
 
     // Ensure structural directives available if using legacy *ngIf/*ngFor by dynamic import of CommonModule not needed in Angular >=17 if using @if/@for
     this.applyDefaultOptions();
@@ -873,18 +871,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (!this.pointerActive) return;
     this.pointerActive = false;
 
-    // Simple swipe: if dragged > 50px horizontally, go next/prev
+    // Free scroll on drag release — no snap to slide, behaves like touchpad scroll
     if (this.hasDragged && !this.pointerIsVertical) {
-      const totalDx = e.clientX - (this.dragStartTransform ? this.dragStartX : this.dragStartX);
-      const swipeThreshold = 50;
-      if (totalDx < -swipeThreshold) {
-        this.next();
-      } else if (totalDx > swipeThreshold) {
-        this.prev();
-      } else {
-        // Didn't swipe far enough — snap back
-        this.updateStageTransform(true);
-      }
+      const currentOffset = this.getCurrentStageOffset();
+      this.applyFreeScrollOffset(currentOffset);
     }
 
     if (this.options.autoplay) this.startAutoplay();

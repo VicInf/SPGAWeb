@@ -207,6 +207,11 @@ body {
   font-family: "Canela Deck", Georgia, "Times New Roman", Times, serif;
 }
 
+/* Helper class for PP Neue Montreal */
+.font-pp-neue-montreal {
+  font-family: "PP Neue Montreal", system-ui, -apple-system, sans-serif;
+}
+
 /* Try to prevent browser-synthesized bold and provide a thin-force helper.
    NOTE: this only works if the active font includes a thin (100/200) weight. */
 .font-canela-deck {
