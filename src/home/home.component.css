@@ -163,7 +163,7 @@ video::-webkit-media-controls-start-playback-button {
 .hero-video-shell .hero-video-overlay {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 10;
   background: transparent;
   pointer-events: auto;
   transform: translateZ(0);

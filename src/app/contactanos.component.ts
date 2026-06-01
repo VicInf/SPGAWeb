@@ -42,21 +42,26 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               #videoElement
               *ngIf="isBrowser"
               [src]="videoSrc"
-              autoplay
               loop
-              muted
+              [muted]="true"
               playsinline
-              disablePictureInPicture
-              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
               preload="auto"
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
               width="460"
               height="280"
               crossorigin="anonymous"
-              class="hide-native-controls h-full w-full object-cover"
+              style="z-index: 0; pointer-events: none;"
+              class="hide-native-controls h-full w-full object-cover relative"
               (error)="onVideoError()"
             >
               Your browser does not support the video tag.
             </video>
+            
+            <!-- Transparent shield to block native controls on hover -->
+            <div class="absolute inset-0 z-10 w-full h-full bg-transparent" aria-hidden="true" style="pointer-events: auto;"></div>
+
             <!-- Fallback image for SSR only -->
             <img
               *ngIf="!isBrowser"
@@ -64,7 +69,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               alt="Contact"
               width="460"
               height="280"
-              class="h-full w-full object-cover"
+              class="h-full w-full object-cover relative z-0"
             />
           </div>
         </div>
@@ -175,9 +180,15 @@ export class ContactanosComponent implements AfterViewInit {
     const video = this.videoElement?.nativeElement;
     if (!video) return;
 
-    video.controls = false;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
     video.disablePictureInPicture = true;
+    if ('disableRemotePlayback' in video) {
+      (video as any).disableRemotePlayback = true;
+    }
 
+    video.play().catch(() => {});
     // Try autoplay after a short delay when the page is settled
     setTimeout(() => video.play().catch(() => {}), 500);
 

@@ -78,8 +78,7 @@ body {
 }
 @font-face {
   font-family: "Canela Deck";
-  src: url("assets/fonts/Canela Deck/CanelaDeck-Regular.otf")
-    format("opentype");
+  src: url("assets/fonts/Canela Deck/CanelaDeck-Regular.otf") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -197,6 +196,14 @@ body {
   font-display: swap;
 }
 
+ng-serve .custom-button {
+  display: none !important;
+}
+
+ng-serve .custom-button-wrapper {
+  display: none !important;
+}
+
 /* Hide the skip button everywhere */
 .custom-button#skip-button {
   display: none !important;
@@ -209,7 +216,11 @@ body {
 
 /* Helper class for PP Neue Montreal */
 .font-pp-neue-montreal {
-  font-family: "PP Neue Montreal", system-ui, -apple-system, sans-serif;
+  font-family:
+    "PP Neue Montreal",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* Try to prevent browser-synthesized bold and provide a thin-force helper.
@@ -236,10 +247,6 @@ body {
 /* Hide native browser overlays on autoplay background videos */
 video.hide-native-controls {
   pointer-events: none;
-}
-
-ng-serve .custom-button {
-  display: none !important;
 }
 
 video.hide-native-controls::-webkit-media-controls-container,

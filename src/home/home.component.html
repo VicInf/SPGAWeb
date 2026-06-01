@@ -216,22 +216,21 @@
           <video
           #heroVideo
           src="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666812/01_Im%C3%A1gen_de_portada_Video_1_gj0wjw.mp4"
-          autoplay
           loop
-          muted
+          [muted]="true"
           playsinline
-          webkit-playsinline
+          preload="auto"
           disablePictureInPicture
           disableRemotePlayback
           controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-          preload="auto"
           crossorigin="anonymous"
           tabindex="-1"
+          style="z-index: 0; pointer-events: none;"
           class="hide-native-controls hero-video object-cover"
           (playing)="heroVideoPlaying = true"
           (error)="onHeroVideoError($event)"
         ></video>
-        <div class="hero-video-overlay" aria-hidden="true"></div>
+        <div class="hero-video-overlay z-10" aria-hidden="true" style="pointer-events: auto;"></div>
 
         <!-- Hero Logo - Top Left (will transition to header) -->
         <div

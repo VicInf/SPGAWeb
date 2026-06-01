@@ -719,25 +719,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     video.muted = true;
     video.defaultMuted = true;
-    video.controls = false;
-    video.removeAttribute('controls');
-
-    const stripControls = () => {
-      video.controls = false;
-      video.removeAttribute('controls');
-    };
-    for (const event of [
-      'loadedmetadata',
-      'loadeddata',
-      'canplay',
-      'play',
-      'playing',
-      'pause',
-    ] as const) {
-      video.addEventListener(event, stripControls);
+    video.volume = 0;
+    video.disablePictureInPicture = true;
+    if ('disableRemotePlayback' in video) {
+      (video as any).disableRemotePlayback = true;
     }
 
     const play = () => video.play().catch(() => {});
+    play();
 
     // Retry at intervals in case the 48MB video takes time to load
     setTimeout(play, 500);
