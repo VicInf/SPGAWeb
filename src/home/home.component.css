@@ -1,3 +1,28 @@
+/* Carousel scroll zone: creates extra scroll space */
+.carousel-scroll-zone {
+  position: relative;
+  width: 100%;
+}
+
+/* Sticky wrapper keeps the carousel in view while scrolling through the zone */
+.carousel-sticky-wrapper {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.05s linear;
+}
+
+@media (max-width: 1023px) {
+  .carousel-sticky-wrapper {
+    height: calc(100vw * 9 / 16) !important;
+    align-items: stretch;
+  }
+}
+
+
 /* Carousel local styles */
 .carousel-slide {
   width: 100%;
@@ -68,7 +93,7 @@ owl-carousel {
 
 /* Background fade animation */
 .fade-background-section {
-  background-color: #e0ddcb; /* Initial color matching previous section */
+  background-color: #e0ddcb;
 }
 
 /* Project cards */

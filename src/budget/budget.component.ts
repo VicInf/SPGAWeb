@@ -223,7 +223,11 @@ export class BudgetComponent {
           selection.push(option.value);
         }
       } else {
-        selection.splice(0, selection.length, option.value);
+        if (index >= 0) {
+          selection.splice(0, selection.length);
+        } else {
+          selection.splice(0, selection.length, option.value);
+        }
       }
 
       return { ...current, [question.id]: selection };

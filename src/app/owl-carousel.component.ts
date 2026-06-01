@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   ElementRef,
   ViewChild,
   AfterViewInit,
@@ -9,7 +11,6 @@ import {
   ChangeDetectionStrategy,
   Inject,
   PLATFORM_ID,
-  NgZone,
 } from '@angular/core';
 import { ChangeDetectorRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -22,32 +23,20 @@ export interface OwlCarouselSlide {
 }
 
 export interface OwlCarouselOptions {
-  items?: number; // items per view
+  items?: number;
   loop?: boolean;
-  margin?: number; // px between items
+  margin?: number;
   autoplay?: boolean;
-  autoplayTimeout?: number; // ms
+  autoplayTimeout?: number;
   autoplayHoverPause?: boolean;
   nav?: boolean;
   dots?: boolean;
   responsive?: { [minWidth: number]: { items?: number; margin?: number } };
-  transitionSpeed?: number; // ms
-  wheelControl?: boolean; // enable vertical wheel-to-slide control
-  wheelThreshold?: number; // deltaY accumulation threshold
-  keyboard?: boolean; // enable keyboard arrow navigation when focused
-  progressClickable?: boolean; // clicking progress bar jumps
-  announce?: boolean; // aria-live announcements
-  ariaLabel?: string; // label for region
-  // Reveal (entrance) animation
-  revealOnEnter?: boolean; // scale up when first enters viewport
-  revealScaleStart?: number; // initial scale (e.g. 0.7)
-  revealDurationMs?: number; // animation duration
-  revealEasing?: string; // CSS easing function
-  revealScaleEnd?: number; // final scale when fully visible (default 1)
-  revealScrollDriven?: boolean; // if true, scale progresses with scroll (intersection ratio)
-  revealScrollDistance?: number; // px of additional page scroll after fully visible required to reach full scale
-  revealVisibilityThreshold?: number; // fraction (0-1) of element height that must be visible to start growth (fallback if never fully fits)
-  revealAutoAfterFull?: boolean; // if true, once fully visible animate to full scale over revealDurationMs instead of requiring further scroll
+  transitionSpeed?: number;
+  keyboard?: boolean;
+  progressClickable?: boolean;
+  announce?: boolean;
+  ariaLabel?: string;
 }
 
 @Component({
@@ -58,8 +47,7 @@ export interface OwlCarouselOptions {
     <div
       class="owl-carousel-viewport"
       #viewport
-      [style.transform]="revealTransform"
-      [style.transition]="viewportTransitionStyle"
+      [style.transform]="viewportTransform"
       [attr.role]="'region'"
       [attr.aria-label]="options.ariaLabel || 'Image carousel'"
       tabindex="0"
@@ -69,9 +57,6 @@ export interface OwlCarouselOptions {
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
       (pointerleave)="onPointerUp($event)"
-      (mouseenter)="onMouseEnter()"
-      (mouseleave)="onMouseLeave()"
-      [class.dragging]="pointerActive"
     >
       @if (options.nav || options.dots) {
         <div class="owl-overlay-gradient"></div>
@@ -101,10 +86,10 @@ export interface OwlCarouselOptions {
         }
       </div>
 
-      <!-- Centered text overlay (fixed position, shows active slide text) -->
       @if (getActiveSlide()?.title || getActiveSlide()?.subtitle) {
         <div
           class="absolute inset-0 flex flex-col items-center justify-center text-white font-canela-deck pointer-events-none select-none"
+          [class.text-fade-in]="_isSimple"
           [style.opacity]="getTextOpacity()"
         >
           @if (getActiveSlide()?.title) {
@@ -120,7 +105,6 @@ export interface OwlCarouselOptions {
           }
         </div>
       }
-      <!-- Progress bar (replaces dots) -->
       @if (options.dots) {
         <div class="owl-progress-wrapper" aria-label="Carousel progress">
           <div
@@ -150,313 +134,223 @@ export interface OwlCarouselOptions {
 export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @Input() slides: OwlCarouselSlide[] = [];
   @Input() options: OwlCarouselOptions = {};
+  @Output() scaleChange = new EventEmitter<number>();
 
   @ViewChild('viewport', { static: true })
   viewportRef!: ElementRef<HTMLElement>;
   @ViewChild('stage', { static: true }) stageRef!: ElementRef<HTMLElement>;
 
   // State
-  private _isMobile = false; // true on mobile: disables grow/shrink, shows plain carousel
   itemWidth = 0;
   itemMargin = 0;
   renderedSlides: any[] = [];
   currentIndex = 0;
-  currentTransform = 0;
   stageTransition = 'transform 0s ease';
   stageTransform = 'translate3d(0,0,0)';
-  private resizeObserver?: ResizeObserver;
-  private boundaryPushAccumulator = 0; // tracks attempts to scroll past boundaries
-  public bypassActive = false;
-  // Dormant: after navbar bypass, prevent re-engagement until the carousel
-  // is fully off-screen (< 10% visible). Only then does natural scroll
-  // engagement become possible again.
-  private _bypassDormant = false;
-
-  public bypassToLastSlide() {
-    // On mobile/tablet, carousel is always full scale — just navigate slides
-    if (this._isMobile) {
-      if (this.slides && this.slides.length > 0) {
-        this.ngZone.run(() => {
-          this.goTo(this.slides.length - 1);
-        });
-      }
-      this.cdr.markForCheck();
-      return;
-    }
-    this.bypassActive = true;
-    this._bypassDormant = true; // stay dormant until off-screen
-    this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
-    this._scaleTarget = this.revealScaleCurrent;
-    this.scaledUp = true;
-    this._phase = 'idle'; // Set to idle to prevent any scroll engagement
-    this.scalingPhaseActive = false; // Disable scaling phase
-    this.growthStarted = true; // Mark growth as completed
-    if (this.slides && this.slides.length > 0) {
-      this.ngZone.run(() => {
-        this.goTo(this.slides.length - 1);
-      });
-    }
-    this.lockScrollY = null;
-    this.releaseScrollLock();
-    this.cdr.markForCheck();
-    setTimeout(() => {
-      this.bypassActive = false;
-    }, 1500);
-  }
-
-  public bypassToFirstSlide() {
-    // On mobile/tablet, carousel is always full scale — just navigate slides
-    if (this._isMobile) {
-      if (this.slides && this.slides.length > 0) {
-        this.ngZone.run(() => {
-          this.goTo(0);
-        });
-      }
-      this.cdr.markForCheck();
-      return;
-    }
-    this.bypassActive = true;
-    // Don't set _bypassDormant so the carousel can naturally engage when scrolling down
-    this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
-    this._scaleTarget = this.revealScaleCurrent;
-    this.scaledUp = false;
-    this._phase = 'idle';
-    this.scalingPhaseActive = false;
-    this.growthStarted = false;
-    if (this.slides && this.slides.length > 0) {
-      this.ngZone.run(() => {
-        this.goTo(0);
-      });
-    }
-    this.lockScrollY = null;
-    this.releaseScrollLock();
-    this.cdr.markForCheck();
-    // Shorter timeout since we want to allow immediate re-engagement
-    setTimeout(() => {
-      this.bypassActive = false;
-    }, 100);
-  }
-
-  // Restored properties
-  private isBrowser = false;
-  private dragStartX = 0;
-  private dragStartTransform = 0;
-  pointerActive = false;
-  private hasDragged = false;
-  private dragStartTime = 0;
-  private autoplayTimer: any = null;
+  private stageIndex = 0;
   private transitionMs = 400;
-  private wheelAccumulator = 0;
-  private baseOffsetForWheel = 0;
+  private autoplayTimer: any = null;
   private lastAnnounceIndex = -1;
   announceMessage = '';
-  private clonesPerSide = 0;
-  private stageIndex = 0;
-  private boundWheelHandler: ((ev: WheelEvent) => void) | null = null;
+
+  // Scroll-driven state
+  revealScaleCurrent = 0.4;
+  private _anchorScrollY: number | null = null;
+  private _startScale = 0.4;
+  private _growDistance = 550;
+  private _slideScrollHeight = 300;
+  private _isBypass = false;
+  private _growthOffsetFactor = 0.55;
+  _isSimple = false;
+
+  // Swipe state
+  private _pointerActive = false;
+  private _pointerStartX = 0;
+  private _pointerStartY = 0;
+  private _swipeStartOffset = 0;
+  private _pointerPrevX = 0;
+  private _pointerPrevTime = 0;
+  private _momentumRafId: number | null = null;
+
+  get totalScrollHeight(): number {
+    return this._growDistance + this.slides.length * this._slideScrollHeight;
+  }
+
+  get viewportTransform(): string | null {
+    if (
+      this.isBrowser &&
+      typeof window !== 'undefined' &&
+      window.innerWidth >= 1024
+    ) {
+      return `scale(${this.revealScaleCurrent})`;
+    }
+    return null;
+  }
+
+  private isBrowser = false;
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone,
   ) {
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
   }
 
-  // Reveal state
-  revealActive = false;
-  private revealObserver?: IntersectionObserver;
-  private revealRatio = 0;
-  private revealScaleCurrent = 1;
-  private revealFullyVisibleAt: number | null = null;
-  private scalingPhaseActive = false;
-  private growthStarted = false;
-  private lockScrollY: number | null = null;
-  private scaledUp = false;
-
-  // Scroll-driven phase state machine
-  private _phase: 'idle' | 'scaling' | 'sliding' = 'idle';
-  private _scaleTarget = 0.5;
-  private _scaleRafId: number | null = null;
-  private _isTransitioning = false;
-  private _shrinkIntent = 0;
-  private _recentEscape: 'up' | 'down' | null = null;
-  get revealTransform() {
-    if (this.options.revealScrollDriven) {
-      return `scale(${this.revealScaleCurrent})`;
-    }
-    // fallback to class-based behavior (if classes still used elsewhere)
-    return this.revealActive
-      ? 'scale(1)'
-      : `scale(${this.options.revealScaleStart || 0.5})`;
-  }
-
-  get viewportTransitionStyle(): string {
-    // Disable CSS transition during scroll-driven scaling to prevent
-    // overlapping 450ms transitions from restarting every frame (= jitter)
-    if (this.options.revealScrollDriven) {
-      return 'none';
-    }
-    return '';
-  }
-
   getTextOpacity(): number {
-    // 1. Initial Reveal Fade-in (Global Scale)
-    // Map scale from start to end to opacity 0 to 1
-    const startScale = this.options.revealScaleStart ?? 0.5;
-    const endScale = this.options.revealScaleEnd ?? 1;
+    const startScale = this._startScale;
+    const endScale = 1;
     const currentScale = this.revealScaleCurrent;
-
-    // Start fading in when 80% of the way to full scale
-    const fadeStartScale = startScale + (endScale - startScale) * 0.8;
-    let revealOpacity = 0;
-
-    if (currentScale >= fadeStartScale) {
-      const fadeProgress =
-        (currentScale - fadeStartScale) / (endScale - fadeStartScale);
-      revealOpacity = Math.min(1, Math.max(0, fadeProgress));
-    }
-
-    // 2. Scroll-Driven Cross-Fade (Slide Transition)
-    // Parse the current transform to get the offset
-    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
-    const stageOffset = match ? Math.abs(parseFloat(match[1])) : 0;
-    const slideWidth = this.itemWidth + this.itemMargin;
-
-    let scrollOpacity = 1;
-
-    if (slideWidth > 0) {
-      const fractionalIndex = stageOffset / slideWidth;
-      const remainder = fractionalIndex - Math.floor(fractionalIndex);
-
-      // If remainder < 0.5: We are showing current slide. Fade out as we approach 0.5.
-      // Opacity goes 1 -> 0 as remainder goes 0 -> 0.5
-      if (remainder < 0.5) {
-        scrollOpacity = 1 - remainder * 2;
-      }
-      // If remainder >= 0.5: We are showing next slide. Fade in as we leave 0.5.
-      // Opacity goes 0 -> 1 as remainder goes 0.5 -> 1.0
-      else {
-        scrollOpacity = (remainder - 0.5) * 2;
-      }
-    }
-
-    // Combine both opacities (multiply them)
-    // This ensures text is hidden if carousel hasn't revealed yet,
-    // AND fades correctly during scroll.
-    return revealOpacity * scrollOpacity;
+    const progress = (currentScale - startScale) / (endScale - startScale);
+    return Math.max(0, Math.min(1, progress));
   }
 
   getActiveSlide(): OwlCarouselSlide | null {
     if (!this.slides || this.slides.length === 0) {
       return null;
     }
-
-    // Calculate visual index from current transform to switch text at 50%
-    const currentOffset = Math.abs(this.getCurrentStageOffset());
-    const slideWidth = this.itemWidth + this.itemMargin;
-
-    if (slideWidth <= 0) {
-      return this.slides[this.currentIndex] || null;
-    }
-
-    const fractionalIndex = currentOffset / slideWidth;
-    const visualPhysicalIndex = Math.round(fractionalIndex);
-
-    // Convert physical index to logical index
-    let logicalIndex = visualPhysicalIndex - this.clonesPerSide;
-
-    // Normalize for loop
-    const count = this.slides.length;
-    logicalIndex = ((logicalIndex % count) + count) % count;
-
-    return this.slides[logicalIndex] || null;
-  }
-
-  trackByIndex(index: number, item: number): number {
-    return item; // Return the currentIndex value to force re-render when it changes
+    return this.slides[this.currentIndex] || null;
   }
 
   ngAfterViewInit(): void {
-    // Final platform determination (DI fully resolved now)
     this.isBrowser =
       typeof window !== 'undefined' && isPlatformBrowser(this.platformId);
     if (!this.isBrowser) {
-      // Server-side render: show initial (start) scale without any browser-only logic
-      this.applyDefaultOptions(); // still apply options (will no-op responsive due to guards)
-      this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
-      this.revealActive = true;
+      this.applyDefaultOptions();
+      this.revealScaleCurrent = this._startScale;
       return;
     }
 
-    // ── Mobile detection ──
-    // On mobile (narrow viewport OR primary touch input), disable the
-    // grow/shrink scaling effect entirely and show a plain swipeable carousel.
-    this._isMobile = window.innerWidth <= 768;
-
-    // Ensure structural directives available if using legacy *ngIf/*ngFor by dynamic import of CommonModule not needed in Angular >=17 if using @if/@for
     this.applyDefaultOptions();
     this.rebuild();
-    if (this.options.autoplay) this.startAutoplay();
 
-    if (this._isMobile) {
-      // Mobile: skip grow/shrink, start at full scale immediately
-      requestAnimationFrame(() => {
-        this.revealScaleCurrent = this.options.revealScaleEnd ?? 1;
-        this._scaleTarget = this.revealScaleCurrent;
-        this._phase = 'sliding'; // go straight to slide mode
-        this.scaledUp = true;
-        this.revealActive = true;
-        this.cdr.markForCheck();
-      });
-    } else if (this.options.revealScrollDriven) {
-      requestAnimationFrame(() => {
-        this.revealScaleCurrent = this.options.revealScaleStart ?? 0.5;
-        this._scaleTarget = this.revealScaleCurrent;
-        this._phase = 'idle';
-        this.scaledUp = false;
-        this.cdr.markForCheck();
-      });
-    } else if (this.options.revealOnEnter) {
-      requestAnimationFrame(() => this.setupReveal());
+    if (window.innerWidth < 1024) {
+      this._isSimple = true;
+      this.revealScaleCurrent = 1;
+      this.scaleChange.emit(1);
     } else {
-      this.revealActive = true; // immediate
+      this.revealScaleCurrent = this._startScale;
+      if (window.innerWidth >= 1024 && window.innerWidth <= 1366) {
+        this._growthOffsetFactor = 0.40;
+        this._growDistance += window.innerHeight * 0.05;
+      } else if (window.innerWidth > 1440) {
+        this._growthOffsetFactor = 0.65;
+      }
     }
 
-    // CRITICAL: Register wheel listener with { passive: false } so preventDefault() works.
-    // Angular @HostListener does NOT support passive: false, and Chrome 73+ defaults
-    // window-level wheel listeners to passive, silently ignoring preventDefault().
-    this.boundWheelHandler = this.onWheel.bind(this);
-    this.ngZone.runOutsideAngular(() => {
-      window.addEventListener('wheel', this.boundWheelHandler!, {
-        passive: false,
-      });
+    if (this.options.autoplay) this.startAutoplay();
+
+    requestAnimationFrame(() => {
+      this._computeAnchor();
     });
   }
 
   ngOnDestroy(): void {
     this.stopAutoplay();
-    this.releaseScrollLock();
-    if (this.boundWheelHandler) {
-      window.removeEventListener('wheel', this.boundWheelHandler);
-      this.boundWheelHandler = null;
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    if (!this.isBrowser || this._isBypass || this._isSimple) return;
+    if (this._anchorScrollY === null) return;
+
+    const relY = window.scrollY - this._anchorScrollY;
+    const growthRelY = relY + window.innerHeight * this._growthOffsetFactor;
+
+    // Phase 1: Below viewport — shrink scale, no transform
+    if (growthRelY <= 0) {
+      const newScale = this._startScale;
+      if (Math.abs(this.revealScaleCurrent - newScale) > 0.001) {
+        this.revealScaleCurrent = newScale;
+        this.stageTransform = 'translate3d(0,0,0)';
+        this.cdr.markForCheck();
+        this.scaleChange.emit(this.revealScaleCurrent);
+      }
+      return;
     }
-    this._stopScaleAnimation();
+
+    // Phase 2: Growing (growthRelY: 0 → _growDistance)
+    if (growthRelY <= this._growDistance) {
+      const t = growthRelY / this._growDistance;
+      const eased = this._easeInOutCubic(t);
+      const newScale = this._startScale + eased * (1 - this._startScale);
+      if (Math.abs(this.revealScaleCurrent - newScale) > 0.001) {
+        this.revealScaleCurrent = newScale;
+        this.stageTransform = 'translate3d(0,0,0)';
+        this.cdr.markForCheck();
+        this.scaleChange.emit(this.revealScaleCurrent);
+      }
+      return;
+    }
+
+    // Phase 3: Full scale + continuous smooth sliding
+    if (this.revealScaleCurrent !== 1) {
+      this.revealScaleCurrent = 1;
+      this.scaleChange.emit(this.revealScaleCurrent);
+    }
+
+    const slideSpan = this.itemWidth + this.itemMargin;
+    if (slideSpan > 0) {
+      const totalSlides = this.slides.length;
+      const scrollRange = this._slideScrollHeight * totalSlides;
+      const slideRelY = growthRelY - this._growDistance;
+      let fraction = slideRelY / scrollRange;
+      fraction = Math.max(0, Math.min(1, fraction));
+
+      const totalTranslate = -(totalSlides - 1) * slideSpan;
+      const targetX = fraction * totalTranslate;
+
+      this.stageTransform = `translate3d(${targetX}px,0,0)`;
+      this.stageTransition = 'none';
+
+      const newIndex = Math.round(fraction * (totalSlides - 1));
+      if (newIndex !== this.currentIndex) {
+        this.currentIndex = newIndex;
+        this.updateAnnouncement();
+      }
+    }
+    this.cdr.markForCheck();
   }
 
-  private applyScrollLock() {
-    if (!this.isBrowser || typeof document === 'undefined') return;
-    // Simple overflow hidden — no padding compensation.
-    // Adding paddingRight to compensate for scrollbar width was causing a
-    // visible white strip next to the carousel.
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
+  private _computeAnchor() {
+    const vp = this.viewportRef?.nativeElement;
+    if (!vp) return;
+    const hostEl = vp.parentElement;
+    if (!hostEl) return;
+    const rect = hostEl.getBoundingClientRect();
+    this._anchorScrollY = window.scrollY + rect.top;
   }
 
-  private releaseScrollLock(restorePosition: boolean = true) {
-    if (!this.isBrowser || typeof document === 'undefined') return;
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
+  public bypassToLastSlide() {
+    if (!this.slides.length) return;
+    this._isBypass = true;
+    this._anchorScrollY = null;
+    this.revealScaleCurrent = 1;
+    const slideSpan = this.itemWidth + this.itemMargin;
+    const targetX = -(this.slides.length - 1) * slideSpan;
+    this.stageTransform = `translate3d(${targetX}px,0,0)`;
+    this.stageTransition = 'none';
+    this.currentIndex = this.slides.length - 1;
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this._isBypass = false;
+      this._anchorScrollY = null;
+    }, 1500);
+  }
+
+  public bypassToFirstSlide() {
+    if (!this.slides.length) return;
+    this._isBypass = true;
+    this._anchorScrollY = null;
+    this.revealScaleCurrent = this._startScale;
+    this.stageTransform = 'translate3d(0,0,0)';
+    this.stageTransition = 'none';
+    this.currentIndex = 0;
+    this.cdr.markForCheck();
+    setTimeout(() => {
+      this._isBypass = false;
+      this._anchorScrollY = null;
+    }, 100);
   }
 
   @HostListener('window:resize') onResize() {
@@ -467,14 +361,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       this.rebuild();
     } else {
       this.computeItemMetrics();
-      this.updateStageTransform();
     }
   }
 
   private applyDefaultOptions() {
     this.options = {
       items: 1,
-      loop: true,
       margin: 0,
       autoplay: false,
       autoplayTimeout: 4000,
@@ -483,35 +375,19 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       dots: true,
       responsive: {},
       transitionSpeed: 400,
-      wheelControl: true,
-      wheelThreshold: 120,
       keyboard: true,
       progressClickable: true,
       announce: true,
       ariaLabel: 'Image carousel',
-      revealOnEnter: true,
-      revealScaleStart: 0.5,
-      revealDurationMs: 900,
-      revealEasing: 'cubic-bezier(.22,.99,.36,1)',
-      revealScaleEnd: 1,
-      revealScrollDriven: true,
-      revealScrollDistance: 300,
-      revealVisibilityThreshold: 1,
-      revealAutoAfterFull: false,
       ...this.options,
     };
     this.transitionMs = this.options.transitionSpeed || 400;
     this.updateResponsive();
-    // Clamp reveal scale
-    if (this.options.revealScaleStart && this.options.revealScaleStart <= 0)
-      this.options.revealScaleStart = 0.01;
-    if (!this.options.revealScaleEnd || this.options.revealScaleEnd < 0)
-      this.options.revealScaleEnd = 1;
   }
 
   private updateResponsive() {
     if (!this.options.responsive) return;
-    if (!this.isBrowser || typeof window === 'undefined') return; // SSR guard
+    if (!this.isBrowser || typeof window === 'undefined') return;
     const width = window.innerWidth;
     const sorted = Object.keys(this.options.responsive)
       .map((k) => +k)
@@ -525,109 +401,20 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('window:scroll')
-  onWindowScroll() {
-    if (!this.isBrowser || this.bypassActive || this._isMobile) return;
-
-    // ── Dormancy system: clear dormancy once carousel is off-screen ──
-    if (this._bypassDormant) {
-      const vp = this.viewportRef?.nativeElement;
-      if (vp) {
-        const hostEl = vp.parentElement || vp;
-        const hostRect = hostEl.getBoundingClientRect();
-        const vh = window.innerHeight || document.documentElement.clientHeight;
-        const elHeight = hostRect.height || 1;
-        const visiblePx = Math.max(
-          0,
-          Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
-        );
-        const fractionVisible = visiblePx / Math.min(elHeight, vh);
-        // Only wake up once the user scrolls away and the carousel is barely visible
-        if (fractionVisible < 0.1) {
-          this._bypassDormant = false;
-        }
-      }
-      return; // stay dormant, don't process any engagement logic
-    }
-
-    // EXTREME LOCK: Rubber-band snap. If native browser smooth scrolling momentum
-    // (from heavy wheel clicks or middle-click drags) ignores `overflow: hidden`,
-    // instantly clamp the native scroll back to the strictly locked Y coordinate.
-    if (this.lockScrollY !== null) {
-      if (Math.abs(window.scrollY - this.lockScrollY) > 2) {
-        window.scrollTo({ top: this.lockScrollY, behavior: 'auto' });
-      }
-      return; // Do not process other fallbacks while firmly locked
-    }
-
-    // Fallback trap for rapid native scrolling (e.g., scrollbar drag, middle-click auto-scroll, or extremely fast wheel)
-    // Sometimes native scroll skips the wheel loop's engagement window. This guarantees a catch if they land on it.
-    // IMPORTANT: Only engage if carousel hasn't been scaled up yet (not bypassed)
-    if (
-      this._phase === 'idle' &&
-      !this.scaledUp &&
-      this.lockScrollY === null &&
-      this._recentEscape === null
-    ) {
-      const vp = this.viewportRef?.nativeElement;
-      if (!vp) return;
-
-      const hostEl = vp.parentElement || vp;
-      const hostRect = hostEl.getBoundingClientRect();
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      const elHeight = hostRect.height || 1;
-
-      const visiblePx = Math.max(
-        0,
-        Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
-      );
-      // Use Math.min(elHeight, vh) so a carousel taller than viewport still logically reaches 100% visible
-      const fractionVisible = visiblePx / Math.min(elHeight, vh);
-
-      if (fractionVisible >= 0.85) {
-        const centeredOffset = hostRect.top - (vh - elHeight) / 2;
-        const targetScrollY = Math.max(0, window.scrollY + centeredOffset);
-        this.lockScrollY = targetScrollY;
-        window.scrollTo({ top: targetScrollY, behavior: 'auto' });
-
-        this._phase = 'scaling';
-        this._scaleTarget = this.revealScaleCurrent;
-        this.applyScrollLock();
-      }
-    }
-  }
-
   private getItemsPerView(): number {
     return Math.max(1, this.options.items || 1);
   }
 
   private rebuild() {
     this.stopAutoplay();
-    const itemsPerView = this.getItemsPerView();
-    this.clonesPerSide = this.options.loop ? itemsPerView : 0;
-
-    // Build clones
-    const clonesStart = this.slides.slice(-this.clonesPerSide).map((s, i) => ({
+    this.renderedSlides = this.slides.map((s, i) => ({
       ...s,
-      _clone: true,
-      _realIndex: this.slides.length - this.clonesPerSide + i,
+      _realIndex: i,
     }));
-    const clonesEnd = this.slides
-      .slice(0, this.clonesPerSide)
-      .map((s, i) => ({ ...s, _clone: true, _realIndex: i }));
-
-    this.renderedSlides = [
-      ...clonesStart,
-      ...this.slides.map((s, i) => ({ ...s, _realIndex: i })),
-      ...clonesEnd,
-    ];
-
-    this.currentIndex = Math.min(this.currentIndex, this.slides.length - 1);
-    this.stageIndex = this.currentIndex + this.clonesPerSide;
-
+    this.currentIndex = 0;
+    this.stageTransform = 'translate3d(0,0,0)';
+    this.stageTransition = 'none';
     this.computeItemMetrics();
-    this.updateStageTransform(false);
-
     if (this.options.autoplay) this.startAutoplay();
   }
 
@@ -637,72 +424,6 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     const totalMargin = (this.options.margin || 0) * (itemsPerView - 1);
     this.itemWidth = (viewportEl.clientWidth - totalMargin) / itemsPerView;
     this.itemMargin = this.options.margin || 0;
-  }
-
-  private activeAnimation: {
-    startTime: number;
-    startOffset: number;
-    targetOffset: number;
-    duration: number;
-  } | null = null;
-
-  private getCurrentStageOffset(): number {
-    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
-    return match ? parseFloat(match[1]) : 0;
-  }
-
-  private updateStageTransform(animate = true) {
-    const targetOffset = -this.stageIndex * (this.itemWidth + this.itemMargin);
-
-    // Always disable CSS transition since we control it via JS or it's instant
-    this.stageTransition = 'transform 0s ease';
-
-    if (!animate) {
-      this.activeAnimation = null;
-      this.stageTransform = `translate3d(${targetOffset}px,0,0)`;
-      this.cdr.markForCheck();
-      return;
-    }
-
-    // Start JS animation
-    const startOffset = this.getCurrentStageOffset();
-    this.activeAnimation = {
-      startTime: performance.now(),
-      startOffset,
-      targetOffset,
-      duration: this.transitionMs,
-    };
-
-    const step = (now: number) => {
-      const anim = this.activeAnimation;
-      if (!anim) return;
-
-      const elapsed = now - anim.startTime;
-      let progress = elapsed / anim.duration;
-
-      if (progress >= 1) {
-        progress = 1;
-        this.activeAnimation = null;
-      }
-
-      // Ease out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current =
-        anim.startOffset + (anim.targetOffset - anim.startOffset) * eased;
-
-      this.stageTransform = `translate3d(${current}px,0,0)`;
-      this.cdr.markForCheck();
-
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      }
-    };
-
-    requestAnimationFrame(step);
-  }
-
-  private logicalToPhysical(index: number): number {
-    return index + this.clonesPerSide;
   }
 
   next() {
@@ -715,80 +436,50 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   goTo(logicalIndex: number) {
     if (!this.slides.length) return;
     const count = this.slides.length;
-    if (this.options.loop) {
-      if (logicalIndex < 0) logicalIndex = count - 1;
-      if (logicalIndex >= count) logicalIndex = 0;
-    } else {
-      logicalIndex = Math.max(0, Math.min(count - 1, logicalIndex));
-    }
+    logicalIndex = Math.max(0, Math.min(count - 1, logicalIndex));
     this.currentIndex = logicalIndex;
-    this.stageIndex = this.logicalToPhysical(logicalIndex);
-    this.wheelAccumulator = 0;
-    this.boundaryPushAccumulator = 0;
-    this._shrinkIntent = 0;
+    this.stageIndex = logicalIndex;
     this.updateStageTransform(true);
-    this._isTransitioning = true;
-    setTimeout(() => (this._isTransitioning = false), this.transitionMs + 40);
-    this.queueLoopAdjustment();
     this.updateAnnouncement();
   }
 
-  private applyFreeScrollOffset(newOffset: number) {
-    const count = this.slides.length;
-    const slideSpan = this.itemWidth + this.itemMargin;
-    if (slideSpan <= 0 || !count) return;
+  private getCurrentStageOffset(): number {
+    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
+    return match ? parseFloat(match[1]) : 0;
+  }
 
-    if (this.options.loop) {
-      // With clonesPerSide = 1:
-      // Real slides start at -1 * slideSpan.
-      const maxOffset = -0.5 * slideSpan;
-      const minOffset = -(count + 0.5) * slideSpan;
+  private updateStageTransform(animate = true) {
+    const targetOffset = -this.stageIndex * (this.itemWidth + this.itemMargin);
+    this.stageTransition = 'transform 0s ease';
 
-      if (newOffset > maxOffset) {
-        newOffset -= count * slideSpan;
-      } else if (newOffset < minOffset) {
-        newOffset += count * slideSpan;
-      }
-    } else {
-      // Boundary resistance for non-looping
-      const maxOffset = 0;
-      const minOffset = -(count - this.getItemsPerView()) * slideSpan;
-      if (newOffset > maxOffset)
-        newOffset = maxOffset + (newOffset - maxOffset) * 0.25;
-      if (newOffset < minOffset)
-        newOffset = minOffset + (newOffset - minOffset) * 0.25;
+    if (!animate) {
+      this.stageTransform = `translate3d(${targetOffset}px,0,0)`;
+      this.cdr.markForCheck();
+      return;
     }
 
-    this.stageTransition = 'none';
-    this.stageTransform = `translate3d(${newOffset}px,0,0)`;
+    const startOffset = this.getCurrentStageOffset();
+    const startTime = performance.now();
+    const duration = this.transitionMs;
 
-    // Update logic index
-    const fractionalIndex = Math.abs(newOffset) / slideSpan;
-    const visualPhysicalIndex = Math.round(fractionalIndex);
-    let logicalIndex = visualPhysicalIndex - this.clonesPerSide;
-    logicalIndex = ((logicalIndex % count) + count) % count;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      let progress = elapsed / duration;
+      if (progress >= 1) progress = 1;
 
-    this.currentIndex = logicalIndex;
-    this.stageIndex = visualPhysicalIndex;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current =
+        startOffset + (targetOffset - startOffset) * eased;
 
-    this.updateAnnouncement();
-    this.cdr.markForCheck();
-  }
+      this.stageTransform = `translate3d(${current}px,0,0)`;
+      this.cdr.markForCheck();
 
-  private queueLoopAdjustment() {
-    if (!this.options.loop) return;
-    // After transition ends, detect if clone and jump
-    setTimeout(() => {
-      if (!this.options.loop) return;
-      const count = this.slides.length;
-      if (this.stageIndex >= count + this.clonesPerSide) {
-        this.stageIndex = this.logicalToPhysical(0);
-        this.updateStageTransform(false);
-      } else if (this.stageIndex < this.clonesPerSide) {
-        this.stageIndex = this.logicalToPhysical(count - 1);
-        this.updateStageTransform(false);
+      if (progress < 1) {
+        requestAnimationFrame(step);
       }
-    }, this.transitionMs + 30);
+    };
+
+    requestAnimationFrame(step);
   }
 
   // Autoplay methods
@@ -805,417 +496,6 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       this.autoplayTimer = null;
     }
   }
-  onMouseEnter() {
-    if (this.options.autoplayHoverPause) this.stopAutoplay();
-  }
-  onMouseLeave() {
-    if (this.options.autoplay && this.options.autoplayHoverPause)
-      this.startAutoplay();
-  }
-
-  // Drag / Pointer
-  private lastPointerY = 0;
-  private pointerIsVertical = false;
-
-  onPointerDown(e: PointerEvent) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-
-    this.pointerActive = true;
-    this.hasDragged = false;
-    this.dragStartX = e.clientX;
-    this.lastPointerY = e.clientY;
-    this.pointerIsVertical = false;
-
-    const match = /translate3d\((-?\d+(?:\.\d+)?)px/.exec(this.stageTransform);
-    this.dragStartTransform = match ? parseFloat(match[1]) : 0;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    this.stageTransition = '';
-    this.stopAutoplay();
-  }
-
-  onPointerMove(e: PointerEvent) {
-    if (!this.pointerActive) return;
-
-    const dx = e.clientX - this.dragStartX;
-    const dy = e.clientY - this.lastPointerY;
-
-    if (!this.hasDragged && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
-      this.hasDragged = true;
-      this.pointerIsVertical = Math.abs(dy) > Math.abs(dx);
-    }
-
-    if (!this.hasDragged) return;
-
-    if (this.pointerIsVertical) {
-      // Mobile: let the page scroll normally
-      if (this._isMobile) return;
-      // Desktop: route vertical drag through wheel handler for grow/shrink
-      const fakeWheelEvent = {
-        deltaY: -dy * 1.5,
-        deltaMode: 0,
-        preventDefault: () => { e.preventDefault?.(); },
-      } as any;
-      this.handleWheel(fakeWheelEvent);
-      this.lastPointerY = e.clientY;
-    } else {
-      // Desktop: only allow when scaled up
-      if (!this._isMobile && !this.scaledUp) return;
-      // Show drag feedback (stage follows finger)
-      this.stageTransform = `translate3d(${this.dragStartTransform + dx}px,0,0)`;
-      this.stageTransition = 'none';
-      this.cdr.markForCheck();
-    }
-  }
-
-  onPointerUp(e: PointerEvent) {
-    if (!this.pointerActive) return;
-    this.pointerActive = false;
-
-    // Free scroll on drag release — no snap to slide, behaves like touchpad scroll
-    if (this.hasDragged && !this.pointerIsVertical) {
-      const currentOffset = this.getCurrentStageOffset();
-      this.applyFreeScrollOffset(currentOffset);
-    }
-
-    if (this.options.autoplay) this.startAutoplay();
-  }
-
-  // Global wheel handling: symmetric grow/shrink to/from start scale regardless of cursor hover
-  // NOTE: This is now registered manually in ngAfterViewInit with { passive: false }
-  // instead of @HostListener, so preventDefault() works in Chrome 73+.
-  private onWheel(event: WheelEvent) {
-    if (!this.isBrowser) return; // SSR safety
-    // Re-enter Angular zone so that state changes trigger change detection
-    this.ngZone.run(() => this.handleWheel(event));
-  }
-
-  private handleWheel(event: WheelEvent) {
-    if (this.bypassActive || this._bypassDormant || this._isMobile) return;
-    const vp = this.viewportRef?.nativeElement;
-    if (!vp) return;
-    const rect = vp.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-
-    const startScale = this.options.revealScaleStart ?? 0.5;
-    const endScale = this.options.revealScaleEnd ?? 1;
-    const count = this.slides.length;
-    const epsilon = 0.002;
-
-    if (!this.options.wheelControl || !count) return;
-
-    // ── Raw delta with line-mode normalization ──
-    let delta = event.deltaY;
-    if (event.deltaMode === 1) delta *= 16; // line mode → pixels
-
-    // ── Detect input device ──
-    // Mouse wheels: deltaMode 1 (Firefox lines) or large pixel values (Chrome 100-120)
-    // Touchpads: deltaMode 0 with small continuous values (1-40)
-    const isMouse =
-      event.deltaMode === 1 ||
-      (event.deltaMode === 0 && Math.abs(event.deltaY) >= 100);
-
-    // ── Visibility calculation (use HOST element, not scaled viewport) ──
-    // The viewport div is scaled (e.g. 0.5×), making it report ~50vh height.
-    // The host <owl-carousel> element has h-full with NO scale, so its rect
-    // represents the actual section area that must fill the viewport.
-    const hostEl = vp.parentElement || vp;
-    const hostRect = hostEl.getBoundingClientRect();
-    const elHeight = hostRect.height || 1;
-    const visiblePx = Math.max(
-      0,
-      Math.min(hostRect.bottom, vh) - Math.max(hostRect.top, 0),
-    );
-    // Use Math.min(elHeight, vh) so a carousel taller than the screen can mathematically reach 1.0 (100%) visible
-    const fractionVisible = visiblePx / Math.min(elHeight, vh);
-    const isLocked = this.lockScrollY !== null;
-
-    // Reset escape state if user leaves element entirely or reverses direction
-    if (fractionVisible < 0.1) this._recentEscape = null;
-    if (delta > 0 && this._recentEscape === 'up') this._recentEscape = null;
-    if (delta < 0 && this._recentEscape === 'down') this._recentEscape = null;
-
-    // ══════════════════════════════════════════
-    // PHASE: IDLE — check whether to engage
-    // ══════════════════════════════════════════
-    if (this._phase === 'idle') {
-      const visThreshold = isMouse ? 0.85 : 0.95;
-
-      // Predict if this specific wheel event's momentum will push the carousel over the threshold.
-      // We must `preventDefault` BEFORE the browser initiates native smooth scrolling,
-      // because native smooth scrolling ignores `overflow: hidden` locks midway through the animation.
-      // We assume a standard mouse notch travels at least 150px to ensure we catch violent flicks.
-      const estimatedDelta = isMouse
-        ? Math.abs(delta) < 120
-          ? Math.sign(delta) * 150
-          : delta
-        : delta;
-      const futureTop = hostRect.top - estimatedDelta;
-      const futureBottom = hostRect.bottom - estimatedDelta;
-      const futureVisiblePx = Math.max(
-        0,
-        Math.min(futureBottom, vh) - Math.max(futureTop, 0),
-      );
-      const futureFraction = futureVisiblePx / Math.min(elHeight, vh);
-
-      // Unconditional escape priority if recently broke the lock
-      if (delta > 0 && this._recentEscape === 'down') return;
-      if (delta < 0 && this._recentEscape === 'up') return;
-
-      // Only allow the native scroll if the future position STILL won't cross our lock bounds!
-      if (
-        fractionVisible < visThreshold &&
-        futureFraction < visThreshold &&
-        !isLocked
-      ) {
-        return;
-      }
-
-      const centeredOffset = hostRect.top - (vh - elHeight) / 2;
-
-      const alignPerfectly = () => {
-        // Calculate the exact target pixel to perfectly center the carousel inside the frame.
-        // This ensures not a single pixel is misaligned.
-        const targetScrollY = Math.max(0, window.scrollY + centeredOffset);
-        this.lockScrollY = targetScrollY;
-        window.scrollTo({ top: targetScrollY, behavior: 'auto' });
-      };
-
-      if (delta > 0 && this.revealScaleCurrent < endScale - epsilon) {
-        // Scrolling down into unscaled carousel → start growing
-        event.preventDefault();
-        this._phase = 'scaling';
-        this._scaleTarget = this.revealScaleCurrent;
-        alignPerfectly();
-        this.applyScrollLock();
-        // Fall through to scaling handler
-      } else if (
-        this.scaledUp &&
-        this.revealScaleCurrent >= endScale - epsilon
-      ) {
-        // Re-engage at full scale (scrolled back into carousel from either direction)
-        event.preventDefault();
-        this._phase = 'sliding';
-        alignPerfectly();
-        this.applyScrollLock();
-        return; // Absorb the wheel event so it doesn't immediately advance a slide!
-      } else {
-        return; // allow normal page scroll
-      }
-    }
-
-    // ══════════════════════════════════════════
-    // PHASE: SCALING (growing or shrinking)
-    // ══════════════════════════════════════════
-    if (this._phase === 'scaling') {
-      event.preventDefault();
-
-      const distance = (this.options.revealScrollDistance || 500) * 1.2;
-      const totalSpan = endScale - startScale;
-
-      if (isMouse) {
-        // Fixed scale increment per mouse notch: ~14% of total span
-        // This gives ~7 notches for full growth (0.5 → 1.0), animated smoothly
-        const fixedStep = totalSpan * 0.14 * Math.sign(delta);
-        this._scaleTarget += fixedStep;
-      } else {
-        // Touchpad: proportional to delta magnitude (many small events)
-        const increment = (delta / distance) * totalSpan;
-        this._scaleTarget += increment;
-      }
-
-      this._scaleTarget = Math.max(
-        startScale,
-        Math.min(endScale, this._scaleTarget),
-      );
-
-      if (isMouse) {
-        // Mouse: use lerp animation for smooth interpolation between discrete notches
-        this._startScaleAnimation();
-      } else {
-        // Touchpad: apply directly (events are continuous, no lerp needed)
-        this._stopScaleAnimation();
-        this.revealScaleCurrent = this._scaleTarget;
-        this.cdr.markForCheck();
-        this._checkScalePhaseTransition();
-      }
-
-      // If shrunk all the way down → release to normal page scroll
-      if (delta < 0 && this._scaleTarget <= startScale + epsilon) {
-        this._stopScaleAnimation();
-        this.revealScaleCurrent = startScale;
-        this._scaleTarget = startScale;
-        this.scaledUp = false;
-        this._phase = 'idle';
-        this._recentEscape = 'up';
-        this.releaseScrollLock(false);
-        this.lockScrollY = null;
-        this.cdr.markForCheck();
-      }
-
-      return;
-    }
-
-    // ══════════════════════════════════════════
-    // PHASE: SLIDING (navigating between slides)
-    // ══════════════════════════════════════════
-    if (this._phase === 'sliding') {
-      const atFirst = this.currentIndex === 0;
-      const atLast = this.currentIndex === count - 1;
-      const scrollingForward = delta > 0;
-
-      // Calculate perfect visual alignments
-      const slideSpan = this.itemWidth + this.itemMargin;
-      const currentOffset = this.getCurrentStageOffset();
-      const exactLastSlideOffset =
-        -(count - 1 + this.clonesPerSide) * slideSpan;
-      const exactFirstSlideOffset = -this.clonesPerSide * slideSpan;
-
-      const isLastFullyInFrame = currentOffset <= exactLastSlideOffset + 2;
-      const isFirstFullyInFrame = currentOffset >= exactFirstSlideOffset - 2;
-
-      // ── Boundary escape: last slide + forward ──
-      // Escape immediately when at the last image, but ONLY if it is entirely in frame
-      if (atLast && scrollingForward && isLastFullyInFrame) {
-        this._recentEscape = 'down';
-        this._phase = 'idle';
-        this.releaseScrollLock(false);
-        this.lockScrollY = null;
-        this.boundaryPushAccumulator = 0;
-        return; // DON'T preventDefault → allow page scroll to continue
-      }
-
-      if (!scrollingForward) {
-        this.boundaryPushAccumulator = 0;
-      }
-
-      // ── Shrink entry: first slide + scrolling up ──
-      if (atFirst && !scrollingForward && isFirstFullyInFrame) {
-        this._shrinkIntent += Math.abs(delta);
-        const shrinkThreshold = isMouse ? 40 : 15;
-        if (this._shrinkIntent >= shrinkThreshold) {
-          event.preventDefault();
-          // Reset slide state cleanly
-          this.wheelAccumulator = 0;
-          this.activeAnimation = null;
-          this.updateStageTransform(false);
-          // Transition to scaling (shrink direction)
-          this._phase = 'scaling';
-          this._scaleTarget = endScale;
-          this._shrinkIntent = 0;
-          // Apply initial shrink step
-          const distance = (this.options.revealScrollDistance || 500) * 1.2;
-          const totalSpan = endScale - startScale;
-          if (isMouse) {
-            this._scaleTarget -= totalSpan * 0.14;
-          } else {
-            this._scaleTarget += (delta / distance) * totalSpan;
-          }
-          this._scaleTarget = Math.max(
-            startScale,
-            Math.min(endScale, this._scaleTarget),
-          );
-          if (isMouse) {
-            this._startScaleAnimation();
-          } else {
-            this.revealScaleCurrent = this._scaleTarget;
-            this.cdr.markForCheck();
-            this._checkScalePhaseTransition();
-          }
-          return;
-        }
-        event.preventDefault();
-        return; // absorb while building shrink intent
-      }
-      this._shrinkIntent = 0;
-
-      // ── Prevent default for all other sliding interactions ──
-      event.preventDefault();
-
-      // Don't navigate while a slide transition is animating
-      if (this._isTransitioning) return;
-      if (this.pointerActive) return;
-
-      // ── Slide navigation ──
-      if (isMouse) {
-        // Mouse: one notch = one clean animated slide transition
-        if (scrollingForward) {
-          this.goTo(this.currentIndex + 1);
-        } else {
-          this.goTo(this.currentIndex - 1);
-        }
-      } else {
-        // Touchpad: free drag
-        this.activeAnimation = null;
-        const currentOffset = this.getCurrentStageOffset();
-        this.applyFreeScrollOffset(currentOffset - delta);
-      }
-    }
-  }
-
-  // ── Scale animation helpers (smooth lerp for mouse wheel) ──
-
-  private _startScaleAnimation() {
-    if (this._scaleRafId !== null) return; // already running
-
-    const tick = () => {
-      const diff = this._scaleTarget - this.revealScaleCurrent;
-
-      if (Math.abs(diff) < 0.002) {
-        // Close enough — snap to target and stop
-        this.revealScaleCurrent = this._scaleTarget;
-        this._scaleRafId = null;
-        this.cdr.markForCheck();
-        this._checkScalePhaseTransition();
-        return;
-      }
-
-      // Lerp rate 0.18: smooth enough for mouse, fast enough overall
-      this.revealScaleCurrent += diff * 0.18;
-      this.cdr.markForCheck();
-      this._scaleRafId = requestAnimationFrame(tick);
-    };
-
-    this._scaleRafId = requestAnimationFrame(tick);
-  }
-
-  private _checkScalePhaseTransition() {
-    const startScale = this.options.revealScaleStart ?? 0.5;
-    const endScale = this.options.revealScaleEnd ?? 1;
-    const epsilon = 0.003;
-
-    if (
-      this._phase === 'scaling' &&
-      this.revealScaleCurrent >= endScale - epsilon
-    ) {
-      this.revealScaleCurrent = endScale;
-      this._scaleTarget = endScale;
-      this.scaledUp = true;
-      this._phase = 'sliding';
-      if (this.lockScrollY == null) {
-        this.lockScrollY = window.scrollY;
-        this.applyScrollLock();
-      }
-      this.cdr.markForCheck();
-    } else if (
-      this._phase === 'scaling' &&
-      this.revealScaleCurrent <= startScale + epsilon
-    ) {
-      this.revealScaleCurrent = startScale;
-      this._scaleTarget = startScale;
-      this.scaledUp = false;
-      this._phase = 'idle';
-      this.releaseScrollLock(false);
-      this.lockScrollY = null;
-      this.cdr.markForCheck();
-    }
-  }
-
-  private _stopScaleAnimation() {
-    if (this._scaleRafId !== null) {
-      cancelAnimationFrame(this._scaleRafId);
-      this._scaleRafId = null;
-    }
-  }
 
   // Keyboard navigation
   onKeyDown(ev: KeyboardEvent) {
@@ -1224,12 +504,12 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       case 'ArrowRight':
       case 'ArrowDown':
         ev.preventDefault();
-        this.goTo(this.currentIndex + 1);
+        this.next();
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
         ev.preventDefault();
-        this.goTo(this.currentIndex - 1);
+        this.prev();
         break;
       case 'Home':
         ev.preventDefault();
@@ -1239,6 +519,91 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
         ev.preventDefault();
         this.goTo(this.slides.length - 1);
         break;
+    }
+  }
+
+  // Pointer-based swipe
+  onPointerDown(event: PointerEvent) {
+    if (!this._isSimple || !this.slides.length) return;
+    this._cancelMomentum();
+    this._pointerActive = true;
+    this._pointerStartX = event.clientX;
+    this._pointerStartY = event.clientY;
+    this._swipeStartOffset = this.getCurrentStageOffset();
+    this._pointerPrevX = event.clientX;
+    this._pointerPrevTime = performance.now();
+    this.stageTransition = 'none';
+    this.stopAutoplay();
+  }
+
+  onPointerMove(event: PointerEvent) {
+    if (!this._pointerActive) return;
+    const deltaX = event.clientX - this._pointerStartX;
+    const deltaY = event.clientY - this._pointerStartY;
+    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
+      this._pointerActive = false;
+      return;
+    }
+    const newOffset = this._swipeStartOffset + deltaX;
+    const boundedOffset = this._clampOffset(newOffset);
+    this.stageTransform = `translate3d(${boundedOffset}px,0,0)`;
+    this._updateCurrentIndex(boundedOffset);
+    this._pointerPrevX = event.clientX;
+    this._pointerPrevTime = performance.now();
+    this.cdr.markForCheck();
+  }
+
+  onPointerUp(event: PointerEvent) {
+    if (!this._pointerActive) return;
+    this._pointerActive = false;
+    const dt = performance.now() - this._pointerPrevTime;
+    const velocity = dt > 0 ? (event.clientX - this._pointerPrevX) / dt : 0;
+    this._startMomentum(velocity);
+    if (this.options.autoplay) this.startAutoplay();
+  }
+
+  private _clampOffset(offset: number): number {
+    const maxOffset = 0;
+    const minOffset = -(this.slides.length - 1) * (this.itemWidth + this.itemMargin);
+    return Math.max(minOffset, Math.min(maxOffset, offset));
+  }
+
+  private _updateCurrentIndex(offset: number) {
+    const slideSpan = this.itemWidth + this.itemMargin;
+    const idx = Math.round(-offset / slideSpan);
+    const clamped = Math.max(0, Math.min(this.slides.length - 1, idx));
+    if (clamped !== this.currentIndex) {
+      this.currentIndex = clamped;
+      this.updateAnnouncement();
+    }
+  }
+
+  private _startMomentum(velocity: number) {
+    const friction = 0.92;
+    const minVelocity = 0.3;
+    let v = velocity;
+    let offset = this.getCurrentStageOffset();
+
+    const step = () => {
+      v *= friction;
+      if (Math.abs(v) < minVelocity) {
+        this._momentumRafId = null;
+        return;
+      }
+      offset += v * 16;
+      offset = this._clampOffset(offset);
+      this.stageTransform = `translate3d(${offset}px,0,0)`;
+      this._updateCurrentIndex(offset);
+      this.cdr.markForCheck();
+      this._momentumRafId = requestAnimationFrame(step);
+    };
+    this._momentumRafId = requestAnimationFrame(step);
+  }
+
+  private _cancelMomentum() {
+    if (this._momentumRafId !== null) {
+      cancelAnimationFrame(this._momentumRafId);
+      this._momentumRafId = null;
     }
   }
 
@@ -1264,132 +629,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.announceMessage = labelParts.join(' – ');
   }
 
-  // Reveal on first intersection
-  private setupReveal() {
-    try {
-      const vp = this.viewportRef?.nativeElement;
-      if (!vp) {
-        this.revealActive = true;
-        return;
-      }
-      // Set CSS custom properties for animation parameters
-      vp.style.setProperty(
-        '--reveal-scale-start',
-        String(this.options.revealScaleStart || 0.7),
-      );
-      vp.style.setProperty(
-        '--reveal-duration',
-        `${this.options.revealDurationMs || 900}ms`,
-      );
-      vp.style.setProperty(
-        '--reveal-easing',
-        this.options.revealEasing || 'cubic-bezier(.22,.99,.36,1)',
-      );
-      if (typeof IntersectionObserver === 'undefined') {
-        this.revealActive = true;
-        return;
-      }
-      this.revealObserver = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              // Wait a frame to ensure initial class applied
-              requestAnimationFrame(() => {
-                this.revealActive = true;
-                this.cdr.markForCheck();
-              });
-              this.revealObserver?.disconnect();
-              break;
-            }
-          }
-        },
-        { threshold: 0.35 },
-      );
-      this.revealObserver.observe(vp);
-    } catch {
-      this.revealActive = true;
-    }
-  }
-
-  // Scroll-driven reveal scaling using intersection ratio
-  private updateRevealGrowth() {
-    if (!this.scalingPhaseActive) return;
-    const vp = this.viewportRef?.nativeElement;
-    if (!vp) return;
-    const rect = vp.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    const elHeight = rect.height || 1;
-    // Fraction of element visible
-    const visible = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
-    let fractionVisible = visible / elHeight;
-    if (rect.bottom < 0 || rect.top > vh) fractionVisible = 0;
-    fractionVisible = Math.max(0, Math.min(1, fractionVisible));
-
-    const fitsViewport = elHeight <= vh;
-    const fullyVisible = fitsViewport
-      ? rect.top >= 0 && rect.bottom <= vh
-      : fractionVisible >= (this.options.revealVisibilityThreshold || 0.85);
-
-    // If element larger than viewport we accept threshold fraction instead of strict full visibility.
-    if (!this.growthStarted) {
-      if (fullyVisible) {
-        this.growthStarted = true;
-        if (this.options.revealAutoAfterFull) {
-          this.startAutoFullGrowth();
-          return; // auto animation handles it
-        } else {
-          this.revealFullyVisibleAt = window.scrollY;
-        }
-      } else {
-        return; // still waiting to be fully visible / threshold reached
-      }
-    }
-
-    if (this.options.revealAutoAfterFull) return; // auto path handled separately
-    if (this.revealFullyVisibleAt == null) return; // scroll-driven path needs anchor
-    const distance = this.options.revealScrollDistance || 500;
-    const delta = window.scrollY - this.revealFullyVisibleAt;
-    let progress = delta / distance;
-    if (progress < 0) progress = 0;
-    if (progress >= 1) {
-      progress = 1;
-      this.scalingPhaseActive = false; // enabling wheel slide control after this frame
-    }
-    const start = this.options.revealScaleStart ?? 0.5;
-    const end = this.options.revealScaleEnd ?? 1;
-    const eased = this.easeOutCubic(progress);
-    const targetScale = start + (end - start) * eased;
-    if (Math.abs(targetScale - this.revealScaleCurrent) > 0.0005) {
-      this.revealScaleCurrent = targetScale;
-      this.cdr.markForCheck();
-    }
-  }
-
-  private startAutoFullGrowth() {
-    const startScale = this.revealScaleCurrent;
-    const endScale = this.options.revealScaleEnd ?? 1;
-    const duration = this.options.revealDurationMs || 900;
-    const startTime = performance.now();
-    const ease = (t: number) => 1 - Math.pow(1 - t, 3); // reuse easeOutCubic
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      let p = elapsed / duration;
-      if (p > 1) p = 1;
-      const eased = ease(p);
-      this.revealScaleCurrent = startScale + (endScale - startScale) * eased;
-      this.cdr.markForCheck();
-      if (p < 1) {
-        requestAnimationFrame(step);
-      } else {
-        this.scalingPhaseActive = false; // enable wheel control
-        // Mark as fully scaled so shrink logic (when attempting to go above first slide) can engage
-        this.scaledUp = true;
-      }
-    };
-    requestAnimationFrame(step);
-  }
-
-  private easeOutCubic(t: number) {
-    return 1 - Math.pow(1 - t, 3);
+  private _easeInOutCubic(t: number): number {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 }

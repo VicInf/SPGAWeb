@@ -348,32 +348,33 @@
         <div class="space-y-6 pt-6">
           <h3 class="text-base font-canela-deck font-medium">Tus datos de contacto*</h3>
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm mb-1">Nombre y apellido</label>
+            <div class="flex items-center gap-2">
+              <span class="text-sm w-36 shrink-0 self-center">Nombre completo</span>
               <input
                 type="text"
                 required
-                class="w-full border-b border-black bg-transparent py-1 text-sm focus:outline-none"
+                class="flex-1 border-b border-black bg-transparent py-1 text-sm focus:outline-none"
                 placeholder=""
                 (input)="onInputChange('contactInfo', 'fullName', $event)"
               />
             </div>
-            <div>
-              <label class="block text-sm mb-1">Email</label>
+            <div class="flex items-center gap-2">
+              <span class="text-sm w-36 shrink-0 self-center">Email</span>
               <input
                 type="email"
                 required
-                class="w-full border-b border-black bg-transparent py-1 text-sm focus:outline-none"
+                class="flex-1 border-b border-black bg-transparent py-1 text-sm focus:outline-none"
                 placeholder=""
                 (input)="onInputChange('contactInfo', 'email', $event)"
               />
             </div>
-            <div>
-              <label class="block text-sm mb-1">Teléfono</label>
+            <div class="flex items-center gap-2">
+              <span class="text-sm w-36 shrink-0 self-center">Teléfono</span>
               <input
                 type="tel"
                 required
-                class="w-full border-b border-black bg-transparent py-1 text-sm focus:outline-none"
+                maxlength="14"
+                class="flex-1 border-b border-black bg-transparent py-1 text-sm focus:outline-none"
                 placeholder=""
                 (input)="onInputChange('contactInfo', 'phone', $event)"
               />

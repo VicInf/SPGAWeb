@@ -1,4 +1,4 @@
-<div class="w-full overflow-x-hidden">
+<div class="w-full" style="overflow-x: clip">
   <header
     #header
     class="text-white fixed w-full transition-all duration-500"
@@ -213,7 +213,7 @@
   <main class="w-full h-screen bg-gray-50">
     <section class="w-full h-full">
       <div class="hero-video-shell relative w-full h-full overflow-hidden">
-        <video
+          <video
           #heroVideo
           src="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666812/01_Im%C3%A1gen_de_portada_Video_1_gj0wjw.mp4"
           autoplay
@@ -264,7 +264,8 @@
 
   <!-- Intro text below hero -->
   <section
-    class="w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8 pt-12 pb-6 min-[1025px]:absolute min-[1025px]:top-[100vh] min-[1025px]:pt-20"
+    class="w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-8 pt-20 pb-8"
+    style="background: white"
   >
     <div class="w-full">
       <h2
@@ -278,16 +279,24 @@
     </div>
   </section>
 
-  <!-- Owl-like Carousel Component -->
+  <!-- Owl-like Carousel Component - scroll-driven grow + slide -->
   <section
-    class="w-full h-auto pt-4 min-[769px]:pt-16"
+    class="carousel-scroll-zone"
+    [style.height]="carouselZoneHeight"
+    style="background: white"
   >
-    <owl-carousel
-      class="w-full h-full block"
-      [slides]="slides"
-      [options]="carouselOptions"
+    <div
+      class="carousel-sticky-wrapper"
+      [style.height]="carouselWrapperHeight"
     >
-    </owl-carousel>
+      <owl-carousel
+        class="w-full h-full block"
+        [slides]="slides"
+        [options]="carouselOptions"
+        (scaleChange)="onCarouselScaleChange($event)"
+      >
+      </owl-carousel>
+    </div>
   </section>
 
   <!-- New pale background section -->
@@ -479,30 +488,28 @@
 <!-- Proyectos section (same heading style, plain background, full viewport height) -->
 <!-- Full-height image section below Proyectos with scroll-driven reveal scaling -->
 <section
-  class="w-full flex items-end justify-center"
-  style="
-    background: #e0ddcb;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-  "
+  class="reveal-scroll-zone"
+  [style.height]="revealZoneHeight"
+  style="background: #e0ddcb; position: relative;"
 >
-  <reveal-image
-    src="assets/pictures/shrinking.webp"
-    alt="Featured"
-    [endScale]="1"
-    [scrollDistance]="250"
-    [autoAfterFull]="true"
-    [minScale]="0.3"
-    (scaleProgress)="onRevealImageProgress($event)"
-    style="position: relative; z-index: 1"
+  <div
+    class="reveal-sticky-wrapper"
+    style="height: 100vh; position: sticky; top: 0; width: 100%; overflow: hidden;"
   >
-  </reveal-image>
+    <reveal-image
+      src="assets/pictures/shrinking.webp"
+      alt="Featured"
+      [endScale]="1"
+      [scrollDistance]="550"
+      [minScale]="0.3"
+      (scaleProgress)="onRevealImageProgress($event)"
+      style="position: relative; z-index: 1; width: 100%; height: 100%; display: block;"
+    >
+    </reveal-image>
 
   <!-- External headline/buttons in the section (outside image) -->
   <div
-    style="margin-top: 4rem"
-    class="absolute inset-x-0 flex flex-col items-center justify-center pointer-events-none"
+    class="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
   >
     <div
       class="text-center space-y-6 w-full max-w-3xl mx-auto px-6 pointer-events-auto"
@@ -520,7 +527,6 @@
         <button
           (click)="scrollToSection('contacto', $event)"
           class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
-          [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
         >
           <span class="mr-2">Contáctanos</span>
           <img
@@ -537,7 +543,6 @@
         <button
           routerLink="/budget"
           class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:opacity-85 transition"
-          [style.z-index]="revealImageProgress >= 0.8 ? 10 : 0"
         >
           <span class="mr-2">Presupuesta</span>
           <svg
@@ -569,12 +574,13 @@
       </p>
     </div>
   </div>
+</div>
 </section>
 <!-- New black 100vh section with image left and texts right -->
 <section
   id="sobre-nosotros"
   [style.background-color]="aboutUsBgColor"
-  class="w-full py-16 md:py-20 lg:py-24 scroll-mt-28 fade-background-section"
+  class="w-full py-8 md:py-10 lg:py-12 scroll-mt-28 fade-background-section"
   #fadeInBackground
 >
   <div
@@ -597,11 +603,11 @@
       <div class="w-full lg:w-[50%]">
         <div class="text-white space-y-8">
           <h2
-            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light leading-tight"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-thin leading-tight"
           >
             Nos apasiona materializar tu visión.
           </h2>
-          <div class="space-y-6 text-base md:text-lg leading-relaxed">
+          <div class="space-y-6 text-base md:text-lg leading-relaxed font-pp-neue-montreal font-medium">
             <p>
               Nos guiamos por la responsabilidad y la innovación para superar
               las expectativas de quienes confían en nosotros. Creemos en el

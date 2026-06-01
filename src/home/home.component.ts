@@ -238,7 +238,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     nav: false,
     dots: true, // still using progress bar implementation
     transitionSpeed: 800,
-    wheelThreshold: 400,
     responsive: {
       0: { items: 1 },
       768: { items: 1 },
@@ -284,6 +283,42 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   // goToMini(i: number) {
   //   this.miniIndex = Math.max(0, Math.min(this.miniSlides.length - 1, i));
   // }
+
+  get carouselScrollHeight(): number {
+    let growDistance = 550;
+    if (this.isBrowser && window.innerWidth >= 1024 && window.innerWidth <= 1366) {
+      growDistance += window.innerHeight * 0.05;
+    }
+    return growDistance + this.slides.length * 300;
+  }
+
+  get carouselZoneHeight(): string {
+    if (this.isBrowser && window.innerWidth < 1024) return 'auto';
+    const base = this.carouselScrollHeight;
+    const extra =
+      this.isBrowser && window.innerWidth >= 1024 && window.innerWidth <= 1366
+        ? '65vh'
+        : '45vh';
+    return `calc(${base}px + ${extra})`;
+  }
+
+  carouselScale =
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 0.7 : 0.4;
+
+  onCarouselScaleChange(scale: number) {
+    this.carouselScale = scale;
+  }
+
+  get carouselWrapperHeight(): string {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      return '100vh';
+    }
+    return 'auto';
+  }
+
+  get revealZoneHeight(): string {
+    return 'calc(550px + 92.5vh)';
+  }
 
   // Services integrales auto carousel (independent from owl carousel)
   servicesSlides: SimpleAutoCarouselSlide[] = [
@@ -539,6 +574,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.observer) {
       this.observer.disconnect();
     }
+
   }
 
   private setupIntersectionObserver() {
@@ -592,7 +628,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.revealImage &&
       (sectionId === 'sobre-nosotros' || sectionId === 'contacto')
     ) {
-      this.revealImage.bypassToShrunk();
+      // scroll-driven — no bypass needed
     }
 
     const header = document.querySelector('header');
@@ -685,10 +721,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     video.defaultMuted = true;
     video.controls = false;
     video.removeAttribute('controls');
-    video.disablePictureInPicture = true;
-    video.disableRemotePlayback = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
 
     const stripControls = () => {
       video.controls = false;
