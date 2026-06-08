@@ -15,15 +15,15 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <section class="w-full bg-black text-white py-16 md:py-24">
-      <div class="mx-auto w-[90vw]">
+    <section class="w-full bg-black text-white py-16 md:py-24 min-[1440px]:min-h-screen min-[1440px]:flex min-[1440px]:flex-col min-[1440px]:justify-center">
+      <div class="mx-auto w-[90vw] flex flex-col justify-center min-[1440px]:flex-1">
         <!-- First Row: Logo and Video with space between -->
         <div
-          class="flex flex-col md:grid md:grid-cols-2 items-center gap-12 mb-12"
+          class="flex flex-col md:grid md:grid-cols-2 items-center gap-12 mb-12 min-[1440px]:gap-16"
         >
           <!-- Logo -->
           <div
-            class="flex items-center md:justify-start justify-center h-[195px] md:h-[200px] lg:h-[280px]"
+            class="flex items-center md:justify-start justify-center h-[195px] md:h-[200px] lg:h-[280px] min-[1440px]:h-[400px]"
           >
             <img
               [src]="logoSrc"
@@ -36,7 +36,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 
           <!-- Video -->
           <div
-            class="relative w-[320px] md:w-[330px] lg:w-[460px] h-[195px] md:h-[200px] lg:h-[280px] overflow-hidden ml-auto mr-4"
+            class="relative w-[320px] md:w-[330px] lg:w-[460px] h-[195px] md:h-[200px] lg:h-[280px] min-[1440px]:w-[600px] min-[1440px]:h-[360px] overflow-hidden ml-auto mr-4"
           >
             <video
               #videoElement
@@ -49,8 +49,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               disablePictureInPicture
               disableRemotePlayback
               controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-              width="460"
-              height="280"
+              width="600"
+              height="360"
               crossorigin="anonymous"
               style="z-index: 0; pointer-events: none;"
               class="hide-native-controls h-full w-full object-cover relative"
@@ -67,8 +67,8 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               *ngIf="!isBrowser"
               [src]="fallbackImageSrc"
               alt="Contact"
-              width="460"
-              height="280"
+              width="600"
+              height="360"
               class="h-full w-full object-cover relative z-0"
             />
           </div>
@@ -76,28 +76,28 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 
         <!-- Second Row: Title and Contact Info aligned with logo/video above -->
         <div
-          class="flex flex-col md:grid md:grid-cols-2 items-center md:items-start gap-12 mb-8"
+          class="flex flex-col md:grid md:grid-cols-2 items-center md:items-start gap-12 mb-8 min-[1440px]:gap-16"
         >
           <!-- Contactanos Title (aligned with logo) -->
           <h2
-            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center md:text-left ml-4"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center md:text-left ml-4 min-[1440px]:text-7xl"
           >
             Contáctanos
           </h2>
 
           <!-- Contact Info (aligned with video) -->
-          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] ml-auto mr-4">
+          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] ml-auto mr-4 min-[1440px]:w-[600px] min-[1440px]:gap-8">
             <!-- WhatsApp -->
             <a
               [href]="getWhatsAppUrl()"
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity"
+              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity min-[1440px]:text-2xl min-[1440px]:gap-6"
             >
               <img
                 src="assets/svgs/whatsapp.svg"
                 alt="WhatsApp"
-                class="w-6 h-6 md:w-7 md:h-7"
+                class="w-6 h-6 md:w-7 md:h-7 min-[1440px]:w-9 min-[1440px]:h-9"
               />
               <span>{{ whatsappNumber }}</span>
             </a>
@@ -105,10 +105,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
             <!-- Email -->
             <a
               [href]="'mailto:' + email"
-              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity"
+              class="flex items-center gap-4 text-lg md:text-xl font-canela-deck font-light hover:opacity-70 transition-opacity min-[1440px]:text-2xl min-[1440px]:gap-6"
             >
               <svg
-                class="w-6 h-6 md:w-7 md:h-7"
+                class="w-6 h-6 md:w-7 md:h-7 min-[1440px]:w-9 min-[1440px]:h-9"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -127,10 +127,10 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
       </div>
 
       <!-- Footer -->
-      <div class="w-full bg-black flex justify-center mt-8">
+      <div class="w-full bg-black flex justify-center mt-8 min-[1440px]:mt-12">
         <div class="w-[90vw]">
           <div
-            class="flex w-full flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 text-sm text-white/70 md:flex-row md:items-center"
+            class="flex w-full flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 text-sm text-white/70 md:flex-row md:items-center min-[1440px]:text-base"
           >
             <p class="text-center md:text-left">© Copyright SPGA GROUP. Venezuela</p>
             <div
@@ -154,6 +154,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         display: block;
         width: 100%;
       }
+
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

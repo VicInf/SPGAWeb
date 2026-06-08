@@ -45,6 +45,8 @@
   }
 }
 
+
+
 .text-fade-in {
   transition: opacity 0.6s ease-out;
 }

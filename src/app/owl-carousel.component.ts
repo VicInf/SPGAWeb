@@ -93,15 +93,14 @@ export interface OwlCarouselOptions {
           [style.opacity]="getTextOpacity()"
         >
           @if (getActiveSlide()?.title) {
-            <span class="text-base font-neue font-medium leading-none -mb-3">{{
+            <span class="text-xs sm:text-base font-neue font-medium leading-none -mb-3">{{
               getActiveSlide()?.title
             }}</span>
           }
           @if (getActiveSlide()?.subtitle) {
-            <span
-              class="text-[64px] font-[200] italic text-center px-4"
-              >{{ getActiveSlide()?.subtitle }}</span
-            >
+            <span class="text-[32px] sm:text-[64px] font-[200] italic text-center px-4">{{
+              getActiveSlide()?.subtitle
+            }}</span>
           }
         </div>
       }
@@ -230,11 +229,16 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       this.scaleChange.emit(1);
     } else {
       this.revealScaleCurrent = this._startScale;
-      if (window.innerWidth >= 1024 && window.innerWidth <= 1366) {
-        this._growthOffsetFactor = 0.40;
+      if (window.innerWidth == 1024) {
+        this._growthOffsetFactor = 0.35;
+      } else if (window.innerWidth > 1024 && window.innerWidth < 1440) {
+        this._growthOffsetFactor = 0.4;
         this._growDistance += window.innerHeight * 0.05;
-      } else if (window.innerWidth > 1440) {
-        this._growthOffsetFactor = 0.65;
+      } else if (window.innerWidth >= 1440 && window.innerWidth <= 1920) {
+        this._growthOffsetFactor = 0.375;
+      } else if (window.innerWidth > 1920) {
+        this._growthOffsetFactor = 0.35;
+        this._growDistance += window.innerHeight * 0.1;
       }
     }
 
@@ -468,8 +472,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
       if (progress >= 1) progress = 1;
 
       const eased = 1 - Math.pow(1 - progress, 3);
-      const current =
-        startOffset + (targetOffset - startOffset) * eased;
+      const current = startOffset + (targetOffset - startOffset) * eased;
 
       this.stageTransform = `translate3d(${current}px,0,0)`;
       this.cdr.markForCheck();
@@ -564,7 +567,8 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
 
   private _clampOffset(offset: number): number {
     const maxOffset = 0;
-    const minOffset = -(this.slides.length - 1) * (this.itemWidth + this.itemMargin);
+    const minOffset =
+      -(this.slides.length - 1) * (this.itemWidth + this.itemMargin);
     return Math.max(minOffset, Math.min(maxOffset, offset));
   }
 

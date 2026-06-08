@@ -142,14 +142,14 @@ export interface SimpleAutoCarouselOptions {
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        padding: 2.5rem 2rem 3rem;
+        padding: calc(2.5rem + 12.5px) 2rem calc(3rem + 12.5px);
         box-sizing: border-box;
       }
       .sac-icon-container {
         flex: 0 0 auto;
         margin-bottom: 1.75rem;
-        max-width: 180px;
-        max-height: 180px;
+        max-width: 240px;
+        max-height: 240px;
       }
       .sac-icon {
         width: 100%;
@@ -159,14 +159,16 @@ export interface SimpleAutoCarouselOptions {
       }
       .sac-content {
         flex: 0 0 auto;
-        text-align: center;
+        text-align: left;
         color: #000;
         width: 100%;
+        max-width: 22rem;
+        margin: 0 auto;
       }
       .sac-title {
-        font-family: 'Canela Deck', serif;
+        font-family: 'PP Neue Montreal', system-ui, -apple-system, sans-serif;
         font-size: clamp(1.1rem, 2vw, 2rem);
-        font-weight: 300;
+        font-weight: 400;
         line-height: 1.2;
         margin: 0 0 1rem 0;
       }
@@ -177,7 +179,7 @@ export interface SimpleAutoCarouselOptions {
         line-height: 1.5;
         margin: 0 auto;
         max-width: 22rem;
-        text-align: center;
+        text-align: left;
       }
       .sac-nav {
         display: flex;
@@ -226,11 +228,11 @@ export interface SimpleAutoCarouselOptions {
       /* Mobile / Tablet responsive adjustments */
       @media (max-width: 1024px) {
         .sac-card {
-          padding: 2rem 1.25rem 2.5rem;
+          padding: calc(2rem + 12.5px) 1.25rem calc(2.5rem + 12.5px);
         }
         .sac-icon-container {
-          max-width: 120px;
-          max-height: 120px;
+          max-width: 160px;
+          max-height: 160px;
           margin-bottom: 1.25rem;
         }
         .sac-nav {
@@ -240,22 +242,22 @@ export interface SimpleAutoCarouselOptions {
 
       @media (max-width: 375px) {
         .sac-card {
-          padding: 1.5rem 1rem 2rem;
+          padding: calc(1.5rem + 12.5px) 1rem calc(2rem + 12.5px);
         }
         .sac-icon-container {
-          max-width: 90px;
-          max-height: 90px;
+          max-width: 120px;
+          max-height: 120px;
           margin-bottom: 1rem;
         }
       }
 
       @media (min-width: 1440px) {
         .sac-card {
-          padding: 3rem 2rem 3.5rem;
+          padding: calc(3rem + 12.5px) 2rem calc(3.5rem + 12.5px);
         }
         .sac-icon-container {
-          max-width: 200px;
-          max-height: 200px;
+          max-width: 280px;
+          max-height: 280px;
           margin-bottom: 2rem;
         }
       }

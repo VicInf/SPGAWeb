@@ -286,7 +286,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   get carouselScrollHeight(): number {
     let growDistance = 550;
-    if (this.isBrowser && window.innerWidth >= 1024 && window.innerWidth <= 1366) {
+    if (
+      this.isBrowser &&
+      window.innerWidth >= 1024 &&
+      window.innerWidth <= 1366
+    ) {
       growDistance += window.innerHeight * 0.05;
     }
     return growDistance + this.slides.length * 300;
@@ -295,10 +299,14 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   get carouselZoneHeight(): string {
     if (this.isBrowser && window.innerWidth < 1024) return 'auto';
     const base = this.carouselScrollHeight;
-    const extra =
-      this.isBrowser && window.innerWidth >= 1024 && window.innerWidth <= 1366
-        ? '65vh'
-        : '45vh';
+    let extra = '45vh';
+    if (this.isBrowser) {
+      if (window.innerWidth >= 1024 && window.innerWidth <= 1366) {
+        extra = '65vh';
+      } else if (window.innerWidth > 1440) {
+        extra = '70vh';
+      }
+    }
     return `calc(${base}px + ${extra})`;
   }
 
@@ -317,7 +325,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   }
 
   get revealZoneHeight(): string {
-    return 'calc(550px + 92.5vh)';
+    return 'calc(575px + 92.5vh)';
   }
 
   // Services integrales auto carousel (independent from owl carousel)
@@ -574,7 +582,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     if (this.observer) {
       this.observer.disconnect();
     }
-
   }
 
   private setupIntersectionObserver() {

@@ -123,7 +123,7 @@ export class RevealImageComponent implements AfterViewInit, OnDestroy {
     if (!this.isBrowser || this._anchorScrollY === null) return;
 
     const relY = window.scrollY - this._anchorScrollY;
-    const offset = this.isBrowser && window.innerWidth >= 820 ? 100 : 0;
+    const offset = this.isBrowser && window.innerWidth >= 820 ? 300 : 0;
     const adjustedRelY = Math.max(0, relY - offset);
     const progress = Math.max(0, Math.min(1, adjustedRelY / Math.max(1, this.scrollDistance - offset)));
     const span = this.effectiveStartScale - this.effectiveMinScale;
