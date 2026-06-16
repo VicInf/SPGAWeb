@@ -15,8 +15,12 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <section class="w-full bg-black text-white py-16 md:py-24 min-[1440px]:min-h-screen min-[1440px]:flex min-[1440px]:flex-col min-[1440px]:justify-center">
-      <div class="mx-auto w-[90vw] flex flex-col justify-center min-[1440px]:flex-1">
+    <section
+      class="w-full bg-black text-white py-16 md:py-24 min-[1440px]:min-h-screen min-[1440px]:flex min-[1440px]:flex-col min-[1440px]:justify-center"
+    >
+      <div
+        class="mx-auto w-[90vw] flex flex-col justify-center min-[1440px]:flex-1"
+      >
         <!-- First Row: Logo and Video with space between -->
         <div
           class="flex flex-col md:grid md:grid-cols-2 items-center gap-12 mb-12 min-[1440px]:gap-16"
@@ -58,9 +62,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
             >
               Your browser does not support the video tag.
             </video>
-            
+
             <!-- Transparent shield to block native controls on hover -->
-            <div class="absolute inset-0 z-10 w-full h-full bg-transparent" aria-hidden="true" style="pointer-events: auto;"></div>
+            <div
+              class="absolute inset-0 z-10 w-full h-full bg-transparent"
+              aria-hidden="true"
+              style="pointer-events: auto;"
+            ></div>
 
             <!-- Fallback image for SSR only -->
             <img
@@ -86,7 +94,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
           </h2>
 
           <!-- Contact Info (aligned with video) -->
-          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] md:ml-auto md:mr-4 min-[1440px]:w-[600px] min-[1440px]:gap-8">
+          <div
+            class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] md:ml-auto md:mr-4 min-[1440px]:w-[600px] min-[1440px]:gap-8"
+          >
             <!-- WhatsApp -->
             <a
               [href]="getWhatsAppUrl()"
@@ -132,7 +142,9 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
           <div
             class="flex w-full flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 text-sm text-white/70 md:flex-row md:items-center min-[1440px]:text-base"
           >
-            <p class="text-center md:text-left">© Copyright SPGA GROUP. Venezuela</p>
+            <p class="text-center md:text-left">
+              © Copyright SPGA GROUP. Venezuela
+            </p>
             <div
               class="flex flex-col items-center gap-1 lg:flex-row lg:gap-8 lg:items-center"
             >
@@ -154,7 +166,6 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         display: block;
         width: 100%;
       }
-
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -165,7 +176,7 @@ export class ContactanosComponent implements AfterViewInit {
   @Input() videoSrc: string = '';
   @Input() fallbackImageSrc: string = '';
   @Input() whatsappNumber: string = '+584143350763';
-  @Input() email: string = 'groupspga@gmail.com';
+  @Input() email: string = 'hola@spgagroup.com';
   @Input() designCredit: string = 'Mayra Bottino';
   @Input() devCredit: string = 'Vicente Perez';
 
