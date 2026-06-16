@@ -416,7 +416,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       modelUrl:
         'https://cloud.chaos.com/collaboration/n/SdMECnSMasJKFLmhupeW4e?t=pan',
       image:
-        'https://res.cloudinary.com/dcdkxplno/image/upload/v1781122617/00_Portada_bbj9m2.webp',
+        'https://res.cloudinary.com/dcdkxplno/image/upload/q_auto,f_auto,w_1000/v1781122617/00_Portada_bbj9m2.webp',
       images: [
         'https://res.cloudinary.com/dcdkxplno/image/upload/v1781122617/Imagen_01_uuwwag.webp',
         'https://res.cloudinary.com/dcdkxplno/image/upload/v1781122616/Imagen_02_eska2e.webp',
