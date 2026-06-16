@@ -93,14 +93,16 @@ export interface OwlCarouselOptions {
           [style.opacity]="getTextOpacity()"
         >
           @if (getActiveSlide()?.title) {
-            <span class="text-xs sm:text-base font-neue font-medium leading-none -mb-3">{{
-              getActiveSlide()?.title
-            }}</span>
+            <span
+              class="text-xs sm:text-base font-neue font-medium leading-none -mb-3"
+              >{{ getActiveSlide()?.title }}</span
+            >
           }
           @if (getActiveSlide()?.subtitle) {
-            <span class="text-[32px] sm:text-[64px] font-[200] italic text-center px-4">{{
-              getActiveSlide()?.subtitle
-            }}</span>
+            <span
+              class="text-[32px] sm:text-[64px] font-[200] italic text-center px-4"
+              >{{ getActiveSlide()?.subtitle }}</span
+            >
           }
         </div>
       }
@@ -256,7 +258,10 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
   @HostListener('window:scroll')
   onWindowScroll() {
     if (!this.isBrowser || this._isBypass || this._isSimple) return;
-    if (this._anchorScrollY === null) return;
+    if (this._anchorScrollY === null) {
+      this._computeAnchor();
+      if (this._anchorScrollY === null) return;
+    }
 
     const relY = window.scrollY - this._anchorScrollY;
     const growthRelY = relY + window.innerHeight * this._growthOffsetFactor;
@@ -321,7 +326,14 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     if (!vp) return;
     const hostEl = vp.parentElement;
     if (!hostEl) return;
-    const rect = hostEl.getBoundingClientRect();
+
+    let targetEl = hostEl;
+    const scrollZone = hostEl.closest('.carousel-scroll-zone');
+    if (scrollZone) {
+      targetEl = scrollZone as HTMLElement;
+    }
+
+    const rect = targetEl.getBoundingClientRect();
     this._anchorScrollY = window.scrollY + rect.top;
   }
 
@@ -338,7 +350,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
     setTimeout(() => {
       this._isBypass = false;
-      this._anchorScrollY = null;
+      this._computeAnchor();
     }, 1500);
   }
 
@@ -353,7 +365,7 @@ export class OwlCarouselComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
     setTimeout(() => {
       this._isBypass = false;
-      this._anchorScrollY = null;
+      this._computeAnchor();
     }, 100);
   }
 

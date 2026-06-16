@@ -213,7 +213,7 @@
   <main class="w-full h-screen bg-gray-50">
     <section class="w-full h-full">
       <div class="hero-video-shell relative w-full h-full overflow-hidden">
-          <video
+        <video
           #heroVideo
           src="https://res.cloudinary.com/djlqtotxb/video/upload/v1779666812/01_Im%C3%A1gen_de_portada_Video_1_gj0wjw.mp4"
           loop
@@ -225,12 +225,16 @@
           controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
           crossorigin="anonymous"
           tabindex="-1"
-          style="z-index: 0; pointer-events: none;"
+          style="z-index: 0; pointer-events: none"
           class="hide-native-controls hero-video object-cover"
           (playing)="heroVideoPlaying = true"
           (error)="onHeroVideoError($event)"
         ></video>
-        <div class="hero-video-overlay z-10" aria-hidden="true" style="pointer-events: auto;"></div>
+        <div
+          class="hero-video-overlay z-10"
+          aria-hidden="true"
+          style="pointer-events: auto"
+        ></div>
 
         <!-- Hero Logo - Top Left (will transition to header) -->
         <div
@@ -284,10 +288,7 @@
     [style.height]="carouselZoneHeight"
     style="background: white"
   >
-    <div
-      class="carousel-sticky-wrapper"
-      [style.height]="carouselWrapperHeight"
-    >
+    <div class="carousel-sticky-wrapper" [style.height]="carouselWrapperHeight">
       <owl-carousel
         class="w-full h-full block"
         [slides]="slides"
@@ -362,13 +363,6 @@
                   class="sr-only"
                 />
               }
-            </div>
-
-            <!-- Year and Type labels (below image) -->
-            <div
-              class="flex w-full items-center justify-center pb-2 pt-4 px-6"
-            >
-              <span class="text-sm font-light text-black">{{ p.year }} — {{ p.type }}</span>
             </div>
 
             <div class="flex flex-1 flex-col px-6 pb-6 pt-2">
@@ -488,11 +482,17 @@
 <section
   class="reveal-scroll-zone"
   [style.height]="revealZoneHeight"
-  style="background: #e0ddcb; position: relative;"
+  style="background: #e0ddcb; position: relative"
 >
   <div
     class="reveal-sticky-wrapper"
-    style="height: 100vh; position: sticky; top: 0; width: 100%; overflow: hidden;"
+    style="
+      height: 100vh;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      overflow: hidden;
+    "
   >
     <reveal-image
       src="assets/pictures/shrinking.webp"
@@ -501,78 +501,84 @@
       [scrollDistance]="575"
       [minScale]="0.3"
       (scaleProgress)="onRevealImageProgress($event)"
-      style="position: relative; z-index: 1; width: 100%; height: 100%; display: block;"
+      style="
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: block;
+      "
     >
     </reveal-image>
 
-  <!-- External headline/buttons in the section (outside image) -->
-  <div
-    class="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
-  >
+    <!-- External headline/buttons in the section (outside image) -->
     <div
-      class="text-center space-y-6 w-full max-w-3xl mx-auto px-6 pointer-events-auto"
+      class="absolute inset-x-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
     >
-      <h2
-        class="text-black font-canela-deck font-thin text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight tracking-wide"
-        style="margin-top: 2rem"
-      >
-        Construyamos juntos tu espacio
-      </h2>
       <div
-        class="flex items-center justify-center gap-6"
-        style="position: relative"
+        class="text-center space-y-6 w-full max-w-3xl mx-auto px-6 pointer-events-auto"
       >
-        <button
-          (click)="scrollToSection('contacto', $event)"
-          class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
+        <h2
+          class="text-black font-canela-deck font-thin text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-tight tracking-wide"
+          style="margin-top: 2rem"
         >
-          <span class="mr-2">Contáctanos</span>
-          <img
-            src="assets/svgs/whatsapp_black.svg"
-            alt="WhatsApp"
-            class="icon-default h-[18px] w-[18px]"
-          />
-          <img
-            src="assets/svgs/whatsapp.svg"
-            alt="WhatsApp"
-            class="icon-hover h-[18px] w-[18px]"
-          />
-        </button>
-        <button
-          routerLink="/budget"
-          class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:opacity-85 transition"
+          Construyamos juntos tu espacio
+        </h2>
+        <div
+          class="flex items-center justify-center gap-6"
+          style="position: relative"
         >
-          <span class="mr-2">Presupuesta</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-[18px] w-[18px] ml-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#9CA3AF"
+          <button
+            (click)="scrollToSection('contacto', $event)"
+            class="flex items-center justify-center flex-1 max-w-[160px] border border-black py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:bg-black hover:text-white transition btn-whatsapp"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="0.5"
-              d="M5 12h14M12 5l7 7-7 7"
+            <span class="mr-2">Contáctanos</span>
+            <img
+              src="assets/svgs/whatsapp_black.svg"
+              alt="WhatsApp"
+              class="icon-default h-[18px] w-[18px]"
             />
-          </svg>
-        </button>
+            <img
+              src="assets/svgs/whatsapp.svg"
+              alt="WhatsApp"
+              class="icon-hover h-[18px] w-[18px]"
+            />
+          </button>
+          <button
+            routerLink="/budget"
+            class="flex items-center justify-center flex-1 max-w-[160px] bg-black text-white py-2.5 text-[12px] md:text-[14px] font-canela-deck font-light uppercase tracking-wide hover:opacity-85 transition"
+          >
+            <span class="mr-2">Presupuesta</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-[18px] w-[18px] ml-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#9CA3AF"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="0.5"
+                d="M5 12h14M12 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+        <!-- Small link to services PDF -->
+        <p class="mt-4 text-sm" style="margin-bottom: 1rem">
+          <a
+            href="assets/pdf/entregables.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline hover:text-gray-700"
+            aria-label="Explora nuestro PDF de servicios"
+            >Dossier de proyecto modelo</a
+          >
+        </p>
       </div>
-      <!-- Small link to services PDF -->
-      <p class="mt-4 text-sm" style="margin-bottom: 1rem">
-        <a
-          href="assets/pdfs/servicios.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="underline hover:text-gray-700"
-          aria-label="Explora nuestro PDF de servicios"
-          >Dossier de proyecto modelo</a
-        >
-      </p>
     </div>
   </div>
-</div>
 </section>
 <!-- New black 100vh section with image left and texts right -->
 <section
@@ -605,7 +611,9 @@
           >
             Nos apasiona materializar tu visión.
           </h2>
-          <div class="space-y-6 text-base md:text-lg leading-relaxed font-pp-neue-montreal font-medium">
+          <div
+            class="space-y-6 text-base md:text-lg leading-relaxed font-pp-neue-montreal font-medium"
+          >
             <p>
               Nos guiamos por la responsabilidad y la innovación para superar
               las expectativas de quienes confían en nosotros. Creemos en el

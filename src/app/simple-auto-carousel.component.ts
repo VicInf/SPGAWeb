@@ -110,7 +110,7 @@ export interface SimpleAutoCarouselOptions {
       }
       .sac-viewport {
         position: relative;
-        overflow-x: hidden;
+        overflow-x: clip;
         overflow-y: visible;
         width: 100%;
       }

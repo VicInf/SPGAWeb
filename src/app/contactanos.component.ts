@@ -30,13 +30,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
               alt="SPGA Logo"
               width="280"
               height="280"
-              class="h-full w-auto ml-4"
+              class="h-full w-auto md:ml-4"
             />
           </div>
 
           <!-- Video -->
           <div
-            class="relative w-[320px] md:w-[330px] lg:w-[460px] h-[195px] md:h-[200px] lg:h-[280px] min-[1440px]:w-[600px] min-[1440px]:h-[360px] overflow-hidden ml-auto mr-4"
+            class="relative w-[320px] md:w-[330px] lg:w-[460px] h-[195px] md:h-[200px] lg:h-[280px] min-[1440px]:w-[600px] min-[1440px]:h-[360px] overflow-hidden md:ml-auto md:mr-4"
           >
             <video
               #videoElement
@@ -80,13 +80,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         >
           <!-- Contactanos Title (aligned with logo) -->
           <h2
-            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center md:text-left ml-4 min-[1440px]:text-7xl"
+            class="text-4xl md:text-5xl lg:text-6xl font-canela-deck font-light text-center md:text-left md:ml-4 min-[1440px]:text-7xl"
           >
             Contáctanos
           </h2>
 
           <!-- Contact Info (aligned with video) -->
-          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] ml-auto mr-4 min-[1440px]:w-[600px] min-[1440px]:gap-8">
+          <div class="flex flex-col gap-6 items-center md:items-start w-[320px] md:w-[330px] lg:w-[460px] md:ml-auto md:mr-4 min-[1440px]:w-[600px] min-[1440px]:gap-8">
             <!-- WhatsApp -->
             <a
               [href]="getWhatsAppUrl()"

@@ -48,6 +48,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
         height: 100%;
         overflow: hidden;
         position: relative;
+        pointer-events: none;
       }
 
       .reveal-image-viewport {
