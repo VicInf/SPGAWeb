@@ -7,12 +7,10 @@
       >
         <div class="flex items-center gap-3">
           <img src="assets/svgs/SPGA.svg" alt="SPGA" class="h-11 w-auto" />
-          <span
-            class="text-base font-medium font-canela-deck"
-          >
-            Arquitectura 
+          <span class="text-base font-medium font-canela-deck">
+            Arquitectura
             <span style="font-style: italic; font-weight: 100">&amp;</span>
-             Interiorismo
+            Interiorismo
           </span>
         </div>
       </div>
@@ -66,7 +64,7 @@
           <button
             type="button"
             (click)="scrollToContact()"
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white font-canela-deck font-medium text-sm rounded hover:border-transparent transition"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 border border-white text-white font-neue font-medium text-[10px] uppercase rounded hover:border-transparent transition"
           >
             Contáctanos
             <img
@@ -76,7 +74,7 @@
             />
           </button>
           <span
-            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black font-canela-deck font-medium text-sm rounded"
+            class="hidden min-[900px]:inline-flex items-center min-[900px]:px-3 min-[900px]:py-1.5 xl:px-4 xl:py-2 bg-white text-black font-neue font-medium text-[10px] uppercase rounded"
           >
             Presupuesta
             <svg
@@ -237,7 +235,9 @@
 
         <!-- Question 2: Services -->
         <div class="space-y-4">
-          <h3 class="text-base font-canela-deck font-medium">¿Qué servicios necesitas?*</h3>
+          <h3 class="text-base font-canela-deck font-medium">
+            ¿Qué servicios necesitas?*
+          </h3>
           <div class="grid grid-cols-2 gap-3">
             <button
               type="button"
@@ -346,10 +346,14 @@
 
         <!-- Contact Information -->
         <div class="space-y-6 pt-6">
-          <h3 class="text-base font-canela-deck font-medium">Tus datos de contacto*</h3>
+          <h3 class="text-base font-canela-deck font-medium">
+            Tus datos de contacto*
+          </h3>
           <div class="space-y-4">
             <div class="flex items-center gap-2">
-              <span class="text-sm w-36 shrink-0 self-center">Nombre completo</span>
+              <span class="text-sm w-36 shrink-0 self-center"
+                >Nombre completo</span
+              >
               <input
                 type="text"
                 required
@@ -384,7 +388,9 @@
 
         <!-- How did you find us -->
         <div class="space-y-4">
-          <h3 class="text-base font-canela-deck font-medium">¿Cómo nos conociste?*</h3>
+          <h3 class="text-base font-canela-deck font-medium">
+            ¿Cómo nos conociste?*
+          </h3>
           <div class="flex flex-wrap gap-3">
             <button
               type="button"
@@ -440,9 +446,21 @@
         <div class="pt-8 flex justify-center">
           <button
             type="submit"
-            class="px-16 py-4 bg-black text-white/80 font-pp-neue-montreal text-sm uppercase tracking-widest hover:opacity-90 transition"
+            [disabled]="isSubmitting() || emailSentSuccessfully()"
+            [ngClass]="
+              isSubmitting() || emailSentSuccessfully()
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:opacity-90'
+            "
+            class="px-16 py-4 bg-black text-white/80 font-pp-neue-montreal text-sm uppercase tracking-widest transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Enviar solicitud de presupuesto
+            {{
+              isSubmitting()
+                ? "Enviando..."
+                : emailSentSuccessfully()
+                  ? "Enviado"
+                  : "Enviar solicitud de presupuesto"
+            }}
           </button>
         </div>
       </form>

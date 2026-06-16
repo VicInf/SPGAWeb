@@ -43,6 +43,8 @@ export class BudgetComponent {
 
   readonly mobileMenuOpen = signal(false);
   readonly showSuccess = signal(false);
+  readonly isSubmitting = signal(false);
+  readonly emailSentSuccessfully = signal(false);
 
   toggleMobileMenu() {
     this.mobileMenuOpen.update((v) => !v);
@@ -254,6 +256,10 @@ export class BudgetComponent {
   handleSubmit(event: Event) {
     event.preventDefault();
 
+    if (this.isSubmitting() || this.emailSentSuccessfully()) {
+      return;
+    }
+
     // Validate form
     const validationError = this.validateForm();
     if (validationError) {
@@ -268,16 +274,15 @@ export class BudgetComponent {
     const emailMessage = this.formatEmailMessage(formData);
 
     // EmailJS configuration
-    //   const serviceID = environment.emailjs.serviceID;
-    //   const publicKey = environment.emailjs.publicKey;
+    // const publicKey = environment.emailjs.publicKey;
 
     // Prepare email data for direct API call
     const emailData = {
-      //    service_id: serviceID,
-      //   template_id: environment.emailjs.templateID,
-      // user_id: publicKey,
+      service_id: environment.emailjs.serviceID,
+      template_id: environment.emailjs.templateID,
+      user_id: environment.emailjs.publicKey,
       template_params: {
-        //  to_email: environment.emailjs.toEmail,
+        to_email: environment.emailjs.toEmail,
         to_name: 'SPGA Group',
         from_name: formData.contactInfo['fullName'] || 'Cliente Potencial',
         from_email: formData.contactInfo['email'] || 'no-reply@spga.com',
@@ -288,6 +293,7 @@ export class BudgetComponent {
     };
 
     // Show loading state
+    this.isSubmitting.set(true);
     this.showToast('Enviando solicitud...', 'info');
 
     // Send email using direct HTTP POST to EmailJS API
@@ -302,7 +308,9 @@ export class BudgetComponent {
         if (response.ok) {
           console.log('Email sent successfully!');
           this.removeToast();
+          this.emailSentSuccessfully.set(true);
           this.showSuccess.set(true);
+          this.isSubmitting.set(false);
           this.resetForm();
           if (typeof window !== 'undefined') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -315,10 +323,11 @@ export class BudgetComponent {
         }
       })
       .catch((error) => {
+        this.isSubmitting.set(false);
         console.error('Failed to send email:', error);
         //
         this.showToast(
-          `Hubo un error al enviar tu solicitud. Por favor, contáctanos directamente a ${environment.emailjs.toEmail}`,
+          'Hubo un error al enviar tu solicitud. Por favor, inténtalo de nuevo más tarde.',
           'error',
         );
       });

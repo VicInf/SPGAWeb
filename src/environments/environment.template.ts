@@ -1,9 +1,9 @@
 export const environment = {
   production: true,
   emailjs: {
-    serviceID: 'YOUR_SERVICE_ID',
-    templateID: 'YOUR_TEMPLATE_ID',
-    publicKey: 'YOUR_PUBLIC_KEY',
-    toEmail: 'YOUR_EMAIL'
-  }
+    serviceID: 'service_23o544f',
+    templateID: 'template_iivicah',
+    publicKey: 'fCKraapjw1UlOJtoQPZx0',
+    toEmail: 'groupspga@gmail.com',
+  },
 };
